@@ -45,7 +45,7 @@ FFLOGS_WEB_TOKEN: '',
 * Node.js 16.6.0 또는 그 이상의 버전
 * Redis 6.x 또는 그 이상의 버전
 
-## How to use
+## 사용법
 
 ```bash
 # install modules
