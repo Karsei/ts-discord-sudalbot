@@ -13,7 +13,7 @@ import readline from "readline";
 import {author, version} from '../package.json';
 
 // # 초기화 -----------------------------------------
-console.log('FFXIV Service Toolbot');
+console.log('FFXIV DalDalEE Tool Discord Bot');
 console.log(`Author by. ${author}`);
 console.log(`Version ${version}`);
 
@@ -196,7 +196,7 @@ function makeCli(): Promise<void> {
                                 break;
                             }
                             default: {
-                                Logger.err('ERROR: 알 수 없는 명령어입니다.');
+                                Logger.err('오류: 알 수 없는 명령어입니다.');
                                 break;
                             }
                         }
