@@ -1,4 +1,4 @@
-export const Constants = {
+export const Setting = {
     // 이름
     APP_NAME: '달달이봇',
 
@@ -47,4 +47,16 @@ export const Constants = {
 
     // Reddit Access Token
     REDDIT_CLIENT_ACCESS_TOKEN: '',
+
+    // REDIS HOST
+    REDIS_HOST: '127.0.0.1',
+
+    // REDIS PORT
+    REDIS_PORT: 6379,
+
+    // REDIS DATABASE
+    REDIS_DB: 0,
+
+    // REDIS AUTH
+    REDIS_PASSWORD: ''
 };
