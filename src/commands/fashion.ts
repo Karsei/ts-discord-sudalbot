@@ -3,7 +3,7 @@ import SnooWrap from 'snoowrap';
 import {SlashCommandBuilder} from '@discordjs/builders';
 import RedditError from '../exceptions/RedditError';
 // Config
-import { Constants } from "../shared/constants";
+import { Setting } from "../shared/setting";
 import Logger from "jet-logger";
 
 module.exports = {
@@ -15,9 +15,9 @@ module.exports = {
         try {
             const reddit = new SnooWrap({
                 userAgent: 'DalDalee Discord Bot',
-                clientId: Constants.REDDIT_CLIENT_ID,
-                clientSecret: Constants.REDDIT_CLIENT_SECRET,
-                refreshToken: Constants.REDDIT_CLIENT_REFRESH_TOKEN,
+                clientId: Setting.REDDIT_CLIENT_ID,
+                clientSecret: Setting.REDDIT_CLIENT_SECRET,
+                refreshToken: Setting.REDDIT_CLIENT_REFRESH_TOKEN,
             });
             const subReddit = await reddit.getSubreddit('ffxiv').search({
                 query: 'author:kaiyoko Fashion Report',
@@ -35,7 +35,7 @@ module.exports = {
                 .setImage(latest.url)
                 .setThumbnail('https://styles.redditmedia.com/t5_c3dzb/styles/profileIcon_ugxkdcpuxbp51.png?width=256&height=256&crop=256:256,smart&s=a1f754e55d562256c326bbc97302bc7d895e3806')
                 .setFooter({
-                    text: Constants.APP_NAME,
+                    text: Setting.APP_NAME,
                 })
             ;
             await interaction.editReply({ embeds: [embedMsg] });

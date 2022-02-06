@@ -1,16 +1,22 @@
-//
 import fs from 'fs';
-const Discord = require('discord.js');
-import {CommandInteraction, Message as DiscordMessage} from 'discord.js';
-const DiscordRest = require('@discordjs/rest');
-const DiscordTypes = require('discord-api-types/v9');
-import Logger from 'jet-logger';
-
-// Configs
-import { Constants } from "./shared/constants";
 import readline from "readline";
+import {createClient as RedisCreateClient} from "redis";
+import {CommandInteraction, Message as DiscordMessage} from 'discord.js';
+import Logger from 'jet-logger';
+// Service
+import NewsArchiveService from './services/NewsArchiveService';
+// Configs
+import {Setting} from './shared/setting';
 // @ts-ignore
 import {author, version} from '../package.json';
+import {NewsCategoryKorea} from "./shared/newsCategories";
+
+const Discord = require('discord.js');
+const DiscordRest = require('@discordjs/rest');
+const DiscordTypes = require('discord-api-types/v9');
+
+// Services
+const NewsSchedulerService = require('./services/NewsSchedulerService');
 
 // # 초기화 -----------------------------------------
 console.log('FFXIV DalDalEE Tool Discord Bot');
@@ -18,7 +24,7 @@ console.log(`Author by. ${author}`);
 console.log(`Version ${version}`);
 
 // 봇 토큰이 없으면 사용 제한
-if (Constants.DISCORD_BOT_TOKEN === '') {
+if (Setting.DISCORD_BOT_TOKEN === '') {
     Logger.err('디스코드 봇 API 토큰 정보가 없습니다. 디스코드 개발자 센터에서 먼저 봇 토큰을 발급하고 이용하세요.');
     process.exit(1);
 }
@@ -30,12 +36,42 @@ const discordBot = new Discord.Client({
         Discord.Intents.FLAGS.GUILD_MESSAGES
     ]});
 // 디스코드 봇 Rest 초기화
-const discordRestBot = new DiscordRest.REST({ version: '9'}).setToken(Constants.DISCORD_BOT_TOKEN);
+const discordRestBot = new DiscordRest.REST({ version: '9'}).setToken(Setting.DISCORD_BOT_TOKEN);
 // 명령어 목록 로드
 discordBot.commands = new Discord.Collection();
 const commands: any = [];
 
-// 명령어 초기화
+// Redis 클라이언트 설정 준비
+const redis = RedisCreateClient({
+    socket: {
+        host: Setting.REDIS_HOST,
+        port: Setting.REDIS_PORT
+    },
+    database: Setting.REDIS_DB,
+    password: Setting.REDIS_PASSWORD
+});
+
+// Redis 연결 구성
+function makeRedisConnection(): Promise<void> {
+    return new Promise<void>(async (resolve) => {
+        Logger.info('Redis 연결중...');
+        try {
+            await redis.on('error', (err: any) => {
+                Logger.err('Redis 오류가 발생했습니다.');
+                Logger.err(err);
+            });
+            await redis.connect();
+        }
+        catch (err) {
+            Logger.err('Redis 에 연결하는 과정에서 오류가 발생했습니다.');
+            Logger.err(err);
+            process.exit(2);
+        }
+        Logger.info(`Redis 연결 완료`);
+        resolve();
+    });
+}
+// 명령어 목록 초기화
 function makeCommandList(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('명령어 목록 초기화중...');
@@ -55,30 +91,32 @@ function makeCommandList(): Promise<void> {
         catch (err) {
             Logger.err('명령어 목록을 초기화하는 과정에서 오류가 발생했습니다.');
             Logger.err(err);
-            process.exit(2);
+            process.exit(3);
         }
         Logger.info(`명령어 목록 초기화 완료 (총 ${commands.length}개)`);
         resolve();
     });
 }
+// 슬래시 명령어 구성
 function makeSlashCommandList(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('슬래시 명령어 구성중...');
         try {
             await discordRestBot.put(
-                DiscordTypes.Routes.applicationCommands(Constants.DISCORD_BOT_CLIENT_ID),
+                DiscordTypes.Routes.applicationCommands(Setting.DISCORD_BOT_CLIENT_ID),
                 {body: commands},
             );
         }
         catch (err) {
             Logger.err('슬래시 명령어을 구성하는 과정에서 오류가 발생했습니다.');
             Logger.err(err);
-            process.exit(3);
+            process.exit(4);
         }
         Logger.info(`슬래시 명령어 구성 완료`);
         resolve();
     });
 }
+// 디스코드 이벤트 구성
 function makeDiscordBotEvents(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('디스코드 이벤트 구성중...');
@@ -121,6 +159,9 @@ function makeDiscordBotEvents(): Promise<void> {
                 discordBot.user?.setActivity('지켜보고 있다.. +_+');
             });
 
+            /**
+             * [Bot Handlers] interaction Message
+             */
             discordBot.on('interactionCreate', async (interaction: CommandInteraction) => {
                 if (!interaction.isCommand()) return;
 
@@ -146,18 +187,19 @@ function makeDiscordBotEvents(): Promise<void> {
         catch (err) {
             Logger.err('디스코드 이벤트를 구성하는 과정에서 오류가 발생했습니다.');
             Logger.err(err);
-            process.exit(4);
+            process.exit(5);
         }
         Logger.info(`디스코드 이벤트 구성 완료`);
         resolve();
     });
 }
+// 디스코드 봇 로그인
 function makeDiscordBotLogin(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('디스코드 봇 로그인...');
         try {
             discordBot
-                .login(Constants.DISCORD_BOT_TOKEN)
+                .login(Setting.DISCORD_BOT_TOKEN)
                 .then(() => {
                     Logger.info(`${discordBot.user?.tag} 으로 로그인되었습니다.`);
                     Logger.info(`디스코드 봇 로그인 완료`);
@@ -170,12 +212,32 @@ function makeDiscordBotLogin(): Promise<void> {
         catch (err) {
             Logger.err('디스코드 봇 로그인을 하는 과정에서 오류가 발생했습니다.');
             Logger.err(err);
-            process.exit(5);
+            process.exit(6);
         }
     });
 }
+// 스케줄러 등록
+function makeScheduler(): Promise<void> {
+    return new Promise<void>(async (resolve) => {
+        Logger.info('스케줄러 등록중...');
+        try {
+            const scheduler = new NewsSchedulerService(redis);
+            scheduler.run();
+            Logger.info(`스케줄러 등록 완료`);
+            resolve();
+        }
+        catch (err) {
+            Logger.err('스케줄러 등록을 하는 과정에서 오류가 발생했습니다.');
+            Logger.err(err);
+            process.exit(7);
+        }
+    });
+}
+// Cli 구성
 function makeCli(): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
+        // const news = new NewsArchiveService(redis);
+
         try {
             const r = readline.createInterface({
                 input: process.stdin,
@@ -221,10 +283,12 @@ function makeCli(): Promise<void> {
     });
 }
 
-makeCommandList()
+makeRedisConnection()
+    .then(() => makeCommandList())
     .then(() => makeSlashCommandList())
     .then(() => makeDiscordBotEvents())
     .then(() => makeDiscordBotLogin())
+    .then(() => makeScheduler())
     .then(() => makeCli())
     .catch(err => {
         Logger.err(err);
