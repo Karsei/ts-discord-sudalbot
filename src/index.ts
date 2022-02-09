@@ -1,8 +1,10 @@
 import fs from 'fs';
 import readline from "readline";
 import {createClient as RedisCreateClient} from "redis";
-import {CommandInteraction, Message as DiscordMessage} from 'discord.js';
+import {CommandInteraction, Guild as DiscordGuild, Message as DiscordMessage} from 'discord.js';
 import Logger from 'jet-logger';
+// Http Server
+import HttpServer from './server';
 // Configs
 import Setting from './shared/setting';
 // @ts-ignore
@@ -160,6 +162,36 @@ function makeDiscordBotEvents(): Promise<void> {
             });
 
             /**
+             * [Bot Handlers] After user added bot
+             */
+            discordBot.on('guildCreate', async (guild: DiscordGuild) => {
+                try {
+                    const serverId = guild.id;
+                    const serverName = guild.name;
+
+                    Logger.info(`${serverName} (${serverId}) - 봇이 추가되었습니다.`);
+                }
+                catch (err) {
+                    Logger.err(err);
+                }
+            });
+
+            /**
+             * [Bot Handlers] After user deleted bot
+             */
+            discordBot.on('guildDelete', async (guild: DiscordGuild) => {
+                try {
+                    const serverId = guild.id;
+                    const serverName = guild.name;
+
+                    Logger.info(`${serverName} (${serverId}) - 봇이 삭제되었습니다.`);
+                }
+                catch (err) {
+                    Logger.err(err);
+                }
+            });
+
+            /**
              * [Bot Handlers] interaction Message
              */
             discordBot.on('interactionCreate', async (interaction: CommandInteraction) => {
@@ -233,6 +265,25 @@ function makeScheduler(): Promise<void> {
         }
     });
 }
+// 웹 서버 구성
+function makeHttpServer(): Promise<void> {
+    return new Promise<void>(async (resolve) => {
+        Logger.info('웹 서버 구성중...');
+        try {
+            const port = 3000;
+            HttpServer(redis).listen(port, () => {
+                Logger.info(`웹 서버가 포트 ${port} 으로 시작되었습니다.`);
+                Logger.info(`웹 서버 구성 완료`);
+                resolve();
+            });
+        }
+        catch (err) {
+            Logger.err('웹 서버 구성을 하는 과정에서 오류가 발생했습니다.');
+            Logger.err(err);
+            process.exit(8);
+        }
+    });
+}
 // Cli 구성
 function makeCli(): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
@@ -287,6 +338,7 @@ makeRedisConnection()
     .then(() => makeDiscordBotEvents())
     .then(() => makeDiscordBotLogin())
     .then(() => makeScheduler())
+    .then(() => makeHttpServer())
     .then(() => makeCli())
     .catch(err => {
         Logger.err(err);
