@@ -1,0 +1,67 @@
+// Express Server
+import express, { NextFunction, Request, Response } from 'express';
+const app = express();
+import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
+import helmet from 'helmet';
+import path from 'path';
+import Logger from 'jet-logger';
+// Service
+import NewsWebhookService from './services/NewsWebhookService';
+// Config
+import Setting from './shared/setting';
+
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
+app.use(cookieParser());
+// app.use(helmet());
+
+const viewsDir = path.join(__dirname, 'views');
+app.set('views', viewsDir);
+const staticDir = path.join(__dirname, 'public');
+
+app.use(express.static(staticDir));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
+app.set(`view engine`, `ejs`);
+
+app.get('/', (req: Request, res: Response) => {
+    res.render('index', {
+        authorize_url: Setting.DISCORD_URL_OAUTH_AUTHORIZED,
+        client_id: Setting.DISCORD_BOT_CLIENT_ID,
+        redirect_uri: `${Setting.DISCORD_URL_BOT_HOST}/authorize`,
+    });
+});
+
+function init(redisCon: any) {
+    const webHookService = new NewsWebhookService(redisCon);
+
+    app.get('/authorize', async (req: Request, res: Response) => {
+        // https://discord.com/developers/docs/topics/oauth2
+        // code, state, guild_id, permissions
+        let state = req.query.state;
+        let error = req.query.error;
+        let code  = req.query.code;
+
+        try {
+            if (error) {
+                throw error;
+            }
+            if (!code) {
+                throw `parameter 'code' is not found.`;
+            }
+
+            console.log(code);
+            //webHookService.subscribe(code, { guild_id: req.query.guild_id });
+            res.send(`<script>alert("봇이 추가되었습니다. 디스코드를 확인하세요."); window.location.href = "/";</script>`);
+        } catch (error) {
+            // Logger.err(error.stack);
+            res.send(`<script>alert("봇을 추가하는 과정에서 오류가 발생했습니다."); window.location.href = "/";</script>`);
+        }
+    });
+
+    return app;
+}
+
+export default init;
