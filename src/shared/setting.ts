@@ -1,4 +1,4 @@
-export const Setting = {
+const Setting = {
     // 이름
     APP_NAME: '달달이봇',
 
@@ -60,3 +60,5 @@ export const Setting = {
     // REDIS AUTH
     REDIS_PASSWORD: ''
 };
+
+export default Setting;

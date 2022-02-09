@@ -1,17 +1,18 @@
-import axios from "axios";
+import axios from 'axios';
 import cheerio, {CheerioAPI} from 'cheerio';
 import Logger from "jet-logger";
 // Config
 import NewsCategories, {NewsCategoryGlobal, NewsCategoryKorea} from '../shared/newsCategories';
-import { Setting } from '../shared/setting';
+import NewsContent from "../shared/newsContent";
+import Setting from '../shared/setting';
 
 /**
  * 소식 아카이브 서비스
  */
 export default class NewsArchiveService
 {
-    redisCon: any;
-    newsCache: NewsCache;
+    private redisCon: any;
+    private newsCache: NewsCache;
     constructor(redisCon: any) {
         this.redisCon = redisCon;
         this.newsCache = new NewsCache(redisCon);
@@ -196,17 +197,6 @@ class NewsFetcher
                 return new Promise(() => {});
         }
     }
-}
-
-interface NewsContent
-{
-    idx: string,
-    url: string,
-    title: string,
-    timestamp?: number,
-    description?: string
-    thumbnail?: string,
-    summary?: string
 }
 
 /**
@@ -613,7 +603,7 @@ class NewsParser
  */
 class NewsCache
 {
-    redisCon: any;
+    private redisCon: any;
     constructor(redisCon: any) {
         this.redisCon = redisCon;
     }
