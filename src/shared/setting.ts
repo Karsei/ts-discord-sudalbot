@@ -3,7 +3,7 @@ const Setting = {
     APP_NAME: '달달이봇',
 
     // 기본 통신 프로토콜
-    BASE_URL_PROTOCOL: 'http',
+    BASE_URL_PROTOCOL: 'https',
 
     // 로드스톤 주소
     BASE_URL_LODESTONE: 'finalfantasyxiv.com',
