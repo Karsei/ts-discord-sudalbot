@@ -85,90 +85,7 @@ export default class NewsWebhookService
         return { url: `${Setting.DISCORD_URL_WEBHOOK}/${res.data.webhook.id}/${res.data.webhook.token}`, hookData: res.data };
     }
 
-    async executePublish(pType: NewsCategoryGlobal|NewsCategoryKorea, pCategory: NewsCategoryContents, pLocale: string) {
-        // 최신 소식을 가져오면서 Redis에 넣음
-        let newPosts = pLocale !== 'kr' ? await this.newsArchiveService.fetchGlobal(pType as NewsCategoryGlobal, pLocale, true) : await this.newsArchiveService.fetchKorea(pType as NewsCategoryKorea, true);
-        newPosts = await this.webHookCache.addId(newPosts, pLocale, pType);
-        // Redis에 등록할 때 새로운 글이 없다면 그냥 끝냄
-        if (newPosts.length === 0) return newPosts;
-
-        // 소식을 Embed 메세지로 만듦
-        let newEmbedPosts = newPosts.map(post => {
-            let link = `${Setting.BASE_URL_PROTOCOL}://`;
-            if ('kr' === pLocale)   link = `${link}${Setting.BASE_URL_KOREA}${pCategory.link}`;
-            else                    link = `${link}${pLocale}.${Setting.BASE_URL_LODESTONE}${pCategory.link}`;
-
-            return new MessageEmbed()
-                .setColor(pCategory.color)
-                .setTitle(post.title)
-                .setDescription(post.description as string) // TODO:: 글로벌 시간 설정
-                // .setTimestamp(new Date())
-                .setURL(post.url)
-                .setImage(post.thumbnail as string)
-                .setThumbnail(pCategory.thumbnail as string)
-                .setAuthor({
-                    name: pCategory.name,
-                    iconURL: pCategory.icon,
-                    url: link
-                })
-                .setFooter({
-                    text: Setting.APP_NAME,
-                });
-        });
-
-        // Redis에서 모든 등록된 웹훅 주소를 불러온 후, Embed는 10개씩 한 묶음으로, Webhook은 20개씩 한 묶음으로 구성해서 전송한다.
-        // 이때 Discord 웹훅 제한이 걸릴 수 있으므로 주의할 것
-        this.redisCon.smembers(`${pLocale}-${pType}-webhooks`, async (err: any, reply: any) => {
-            if (err) throw err;
-            let whList = reply;
-
-            let result = {
-                success: 0,
-                removed: 0,
-                fail: 0,
-                limited: 0,
-            };
-
-            let originNewPosts = newEmbedPosts.length;
-            let originWhLists = whList.length;
-            while (newEmbedPosts.length) {
-                // 10개 묶음된 게시글
-                let embedPosts = newEmbedPosts.splice(0, 10);
-                let posts = { embeds: embedPosts };
-
-                while (whList.length) {
-                    // 20개 묶음된 Webhook
-                    let hookUrls = whList.splice(0, 20);
-
-                    let hookRes = await Promise.all(hookUrls.map((hookUrl: string) => this.sendNews(hookUrl, posts, pLocale, pType)));
-                    hookRes.forEach(hr => {
-                        switch (hr) {
-                            case 'success':
-                                result.success++;
-                                break;
-                            case 'removed':
-                                result.removed++;
-                                break;
-                            case 'fail':
-                                result.fail++;
-                                break;
-                            case 'limited':
-                                result.limited++;
-                                break;
-                        }
-                    });
-                }
-            }
-
-            let numUrls = originWhLists - result.removed;
-            if (result.removed > 0)     Logger.info(`${result.removed}개의 Webhook이 제거되었음`);
-            if (result.fail > 0)        Logger.info(`${result.fail}개의 Webhook이 전송하는데 실패하였음`);
-            if (result.limited > 0)     Logger.info(`${result.limited}개의 Webhook이 전송하는데 제한 걸림`);
-            Logger.info(`총 ${originNewPosts}개의 ${pType} ('${pLocale}') 게시글을 총 ${numUrls}개의 Webhook 중에서 ${result.success}개가 전송하는데 성공함`);
-        });
-    }
-
-    async executePublishAll() {
+    async publishAll() {
         let jobs = [];
 
         // 글로벌
@@ -176,20 +93,134 @@ export default class NewsWebhookService
         for (const locale of LodestoneLocales) {
             for (let idx in globalTypes) {
                 let type = globalTypes[idx];
-                jobs.push(await PromiseAdv.delay(1000).return(this.executePublish(type as NewsCategoryGlobal, NewsCategories.Global[type as keyof typeof NewsCategoryGlobal], locale)));
+                jobs.push(await PromiseAdv.delay(1000).return(this.publishGlobal(type as NewsCategoryGlobal, locale)));
             }
         }
         // 한국
         let koreaTypes = Object.keys(NewsCategories.Korea);
         for (let idx in koreaTypes) {
             let type = koreaTypes[idx];
-            jobs.push(await PromiseAdv.delay(1000).return(this.executePublish(type as NewsCategoryKorea, NewsCategories.Korea[type as keyof typeof NewsCategoryKorea], 'kr')));
+            jobs.push(await PromiseAdv.delay(1000).return(this.publishKorea(type as NewsCategoryKorea)));
         }
 
         return jobs;
     }
 
-    private async sendNews(pHookUrl: string, pPost: {embeds: MessageEmbed[]}, pLocale: string, pType: NewsCategoryGlobal|NewsCategoryKorea) {
+    async publishGlobal(pType: NewsCategoryGlobal, pLocale: string) {
+        // 제공 카테고리 양식
+        const content: NewsCategoryContents = NewsCategories.Global[pType];
+
+        // 최신 소식을 가져오면서 Redis에 넣음
+        const fetchPosts = await this.newsArchiveService.fetchGlobal(pType, pLocale, true);
+        const newPosts = await this.webHookCache.addId(fetchPosts, pLocale, pType);
+
+        // Redis에 등록할 때 새로운 글이 없다면 그냥 끝냄
+        if (newPosts.length === 0) return newPosts;
+
+        // Webhook 등록된 서버들에게 메세지를 전송한다.
+        await this.sendMessageWithMembers(newPosts, content, pType.toString(), pLocale);
+    }
+
+    async publishKorea(pType: NewsCategoryKorea) {
+        // 제공 카테고리 양식
+        const pLocale = 'kr';
+        const content: NewsCategoryContents = NewsCategories.Korea[pType];
+
+        // 최신 소식을 가져오면서 Redis에 넣음
+        const fetchPosts = await this.newsArchiveService.fetchKorea(pType, true);
+        const newPosts = await this.webHookCache.addId(fetchPosts, pLocale, pType);
+
+        // Redis에 등록할 때 새로운 글이 없다면 그냥 끝냄
+        if (newPosts.length === 0) return newPosts;
+
+        // Webhook 등록된 서버들에게 메세지를 전송한다.
+        await this.sendMessageWithMembers(newPosts, content, pType.toString(), pLocale);
+    }
+
+    private async sendMessageWithMembers(pNewsPosts: NewsContent[], pCategoryInfo: NewsCategoryContents, pTypeStr: string, pLocale: string) {
+        // 디스코드에 전달할 메세지를 생성한다.
+        const newEmbedPosts = this.makeEmbedPostMessages(pNewsPosts, pCategoryInfo, pLocale);
+
+        // Redis에서 모든 등록된 웹훅 주소를 불러온 후, Embed는 10개씩 한 묶음으로, Webhook은 20개씩 한 묶음으로 구성해서 전송한다.
+        // 이때 Discord 웹훅 제한이 걸릴 수 있으므로 주의할 것
+        this.redisCon.smembers(`${pLocale}-${pTypeStr}-webhooks`, async (err: any, reply: any) => {
+            if (err) throw err;
+            await this.sendMessage(reply, newEmbedPosts, pTypeStr, pLocale);
+        });
+    }
+
+    private makeEmbedPostMessages(pPosts: NewsContent[], pCategoryContent: NewsCategoryContents, pLocale: string): MessageEmbed[] {
+        return pPosts.map(post => {
+            let link = `${Setting.BASE_URL_PROTOCOL}://`;
+            if ('kr' === pLocale) link = `${link}${Setting.BASE_URL_KOREA}${pCategoryContent.link}`;
+            else link = `${link}${pLocale}.${Setting.BASE_URL_LODESTONE}${pCategoryContent.link}`;
+
+            return new MessageEmbed()
+                .setColor(pCategoryContent.color)
+                .setTitle(post.title)
+                .setDescription(post.description || '') // TODO:: 글로벌 시간 설정
+                // .setTimestamp(new Date())
+                .setURL(post.url)
+                .setImage(post.thumbnail || '')
+                .setThumbnail(pCategoryContent.thumbnail || '')
+                .setAuthor({
+                    name: pCategoryContent.name,
+                    iconURL: pCategoryContent.icon,
+                    url: link
+                })
+                .setFooter({
+                    text: Setting.APP_NAME,
+                });
+        });
+    }
+
+    private async sendMessage(pWhiteList: any[], pNewEmbedPosts: MessageEmbed[], pTypeStr: string, pLocale: string) {
+        let result = {
+            success: 0,
+            removed: 0,
+            fail: 0,
+            limited: 0,
+        };
+
+        let originNewPosts = pNewEmbedPosts.length;
+        let originWhLists = pWhiteList.length;
+        while (pNewEmbedPosts.length) {
+            // 10개 묶음된 게시글
+            let embedPosts = pNewEmbedPosts.splice(0, 10);
+            let posts = { embeds: embedPosts };
+
+            while (pWhiteList.length) {
+                // 20개 묶음된 Webhook
+                let hookUrls = pWhiteList.splice(0, 20);
+
+                let hookRes = await Promise.all(hookUrls.map((hookUrl: string) => this.sendNews(hookUrl, posts, pTypeStr, pLocale)));
+                hookRes.forEach(hr => {
+                    switch (hr) {
+                        case 'success':
+                            result.success++;
+                            break;
+                        case 'removed':
+                            result.removed++;
+                            break;
+                        case 'fail':
+                            result.fail++;
+                            break;
+                        case 'limited':
+                            result.limited++;
+                            break;
+                    }
+                });
+            }
+        }
+
+        let numUrls = originWhLists - result.removed;
+        if (result.removed > 0)     Logger.info(`${result.removed}개의 Webhook이 제거되었음`);
+        if (result.fail > 0)        Logger.info(`${result.fail}개의 Webhook이 전송하는데 실패하였음`);
+        if (result.limited > 0)     Logger.info(`${result.limited}개의 Webhook이 전송하는데 제한 걸림`);
+        Logger.info(`총 ${originNewPosts}개의 ${pTypeStr} ('${pLocale}') 게시글을 총 ${numUrls}개의 Webhook 중에서 ${result.success}개가 전송하는데 성공함`);
+    }
+
+    private async sendNews(pHookUrl: string, pPost: {embeds: MessageEmbed[]}, pTypeStr: string, pLocale: string) {
         return new Promise(async (resolve, reject) => {
             await axios({
                 method: 'POST',
@@ -211,7 +242,7 @@ export default class NewsWebhookService
                 }).catch(async err => {
                     if (!err) {
                         Logger.err('There is no sending response error message.');
-                        await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pType);
+                        await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                         resolve('fail');
                     } else {
                         Logger.err(err.config);
@@ -222,44 +253,44 @@ export default class NewsWebhookService
                             if (err.response.data) {
                                 // Webhook 제거됨
                                 if (err.response.data.code === 10015) {
-                                    await this.webHookCache.delUrl(pLocale, pType, pHookUrl);
-                                    Logger.info(`웹 후크 삭제됨 > ${pLocale}, ${pType} - ${pHookUrl}`);
+                                    await this.webHookCache.delUrl(pLocale, pTypeStr, pHookUrl);
+                                    Logger.info(`웹 후크 삭제됨 > ${pLocale}, ${pTypeStr} - ${pHookUrl}`);
                                     resolve('removed');
                                 } else {
-                                    await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pType);
+                                    await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                                     resolve('fail');
                                 }
                             } else {
                                 Logger.err('something error occured');
-                                await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pType);
+                                await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                                 resolve('fail');
                             }
                             // 요청을 너무 많이 보냄
                         } else if (err.response.status === 429) {
                             await PromiseAdv.delay(err.response.data.retry_after);
-                            await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pType);
+                            await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                             resolve('limited');
                             // 웹 후크가 없음
                         } else if (err.response.status === 404) {
                             if (err.response.data) {
                                 // Webhook 제거됨
                                 if (err.response.data.code === 10015) {
-                                    await this.webHookCache.delUrl(pLocale, pType, pHookUrl);
-                                    Logger.info(`웹 후크 삭제됨 > ${pLocale}, ${pType} - ${pHookUrl}`);
+                                    await this.webHookCache.delUrl(pLocale, pTypeStr, pHookUrl);
+                                    Logger.info(`웹 후크 삭제됨 > ${pLocale}, ${pTypeStr} - ${pHookUrl}`);
                                     resolve('removed');
                                 } else {
-                                    await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pType);
+                                    await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                                     resolve('fail');
                                 }
                             } else {
                                 Logger.err('something error occured');
-                                await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pType);
+                                await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                                 resolve('fail');
                             }
                             // 그 외
                         } else {
                             console.error(err);
-                            await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pType);
+                            await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                             resolve('fail');
                         }
                     }
@@ -341,10 +372,10 @@ class WebhookCache
      *
      * @param pData 데이터
      * @param pLocale 언어
-     * @param pType 카테고리
+     * @param pTypeStr 카테고리
      * @return 게시글 id
      */
-    async addId(pData: Array<NewsContent>, pLocale: string, pType: NewsCategoryGlobal|NewsCategoryKorea) {
+    async addId(pData: Array<NewsContent>, pLocale: string, pTypeStr: string) {
         if (!pData) {
             Logger.err(`There is no post cache.`);
             return [];
@@ -352,7 +383,7 @@ class WebhookCache
 
         let propSet: any = {};
         pData.forEach(d => {
-            propSet[d.idx] = this.redisCon.sAdd(`${pLocale}-${pType}-ids`, d.idx);
+            propSet[d.idx] = this.redisCon.sAdd(`${pLocale}-${pTypeStr}-ids`, d.idx);
         });
 
         let adds: Array<NewsContent> = [];
