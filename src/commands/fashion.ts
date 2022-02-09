@@ -3,7 +3,7 @@ import SnooWrap from 'snoowrap';
 import {SlashCommandBuilder} from '@discordjs/builders';
 import RedditError from '../exceptions/RedditError';
 // Config
-import { Setting } from "../shared/setting";
+import Setting from "../shared/setting";
 import Logger from "jet-logger";
 
 module.exports = {
@@ -26,7 +26,7 @@ module.exports = {
             if (!subReddit || subReddit.length <= 0)    throw new RedditError(`패션체크 최신 정보를 불러오는 과정에서 오류가 발생했습니다.`);
 
             const latest = subReddit[0];
-            const embedMsg = new MessageEmbed()
+            const embedMsg: MessageEmbed = new MessageEmbed()
                 .setColor('#fc03f4')
                 .setTitle(`패션 체크`)
                 .setDescription(`${latest.title}\n(Powered By. Kaiyoko Star)\n\n글로벌과 한국 서버의 패션 체크는 동일합니다.`)
