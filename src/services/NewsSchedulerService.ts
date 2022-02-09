@@ -1,10 +1,14 @@
 const cron = require('node-cron');
+// Service
+import NewsWebhookService from './NewsWebhookService';
 
 class NewsSchedulerService
 {
-    redisCon: any;
+    private redisCon: any;
+    private newsWebhookService: NewsWebhookService;
     constructor(redisCon: any) {
         this.redisCon = redisCon;
+        this.newsWebhookService = new NewsWebhookService(redisCon);
     }
 
     run(): void {
