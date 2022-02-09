@@ -3,13 +3,10 @@ import readline from "readline";
 import {createClient as RedisCreateClient} from "redis";
 import {CommandInteraction, Message as DiscordMessage} from 'discord.js';
 import Logger from 'jet-logger';
-// Service
-import NewsArchiveService from './services/NewsArchiveService';
 // Configs
-import {Setting} from './shared/setting';
+import Setting from './shared/setting';
 // @ts-ignore
 import {author, version} from '../package.json';
-import {NewsCategoryKorea} from "./shared/newsCategories";
 
 const Discord = require('discord.js');
 const DiscordRest = require('@discordjs/rest');
@@ -22,6 +19,9 @@ const NewsSchedulerService = require('./services/NewsSchedulerService');
 console.log('FFXIV DalDalEE Tool Discord Bot');
 console.log(`Author by. ${author}`);
 console.log(`Version ${version}`);
+
+// node 에서 허가되지 않은 인증 TLS 통신을 거부하지 않음
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // 봇 토큰이 없으면 사용 제한
 if (Setting.DISCORD_BOT_TOKEN === '') {
@@ -236,8 +236,6 @@ function makeScheduler(): Promise<void> {
 // Cli 구성
 function makeCli(): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
-        // const news = new NewsArchiveService(redis);
-
         try {
             const r = readline.createInterface({
                 input: process.stdin,
