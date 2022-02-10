@@ -2,6 +2,9 @@ const Setting = {
     // 이름
     APP_NAME: '달달이봇',
 
+    // 웹 서버 포트
+    HTTP_SERVER_PORT: 80,
+
     // 기본 통신 프로토콜
     BASE_URL_PROTOCOL: 'https',
 

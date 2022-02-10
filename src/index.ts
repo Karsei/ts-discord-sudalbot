@@ -270,9 +270,8 @@ function makeHttpServer(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('웹 서버 구성중...');
         try {
-            const port = 3000;
-            HttpServer(redis).listen(port, () => {
-                Logger.info(`웹 서버가 포트 ${port} 으로 시작되었습니다.`);
+            HttpServer(redis).listen(Setting.HTTP_SERVER_PORT, () => {
+                Logger.info(`웹 서버가 포트 ${Setting.HTTP_SERVER_PORT} 으로 시작되었습니다.`);
                 Logger.info(`웹 서버 구성 완료`);
                 resolve();
             });
