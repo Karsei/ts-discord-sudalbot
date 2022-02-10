@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="파이널판타지 14 공식 홈페이지 소식과 FFlogs 조회 등 디스코드 봇에서 실시간으로 조회해보세요!">
     <title>달달이봇</title>
-<!--    <link rel="stylesheet" href="./css/reset.css">-->
-<!--    <link rel="stylesheet" href="./css/site.css">-->
-<!--    <link rel="stylesheet" href="./css/semantic.min.css">-->
+    <link rel="stylesheet" href="./css/reset.css">
+    <link rel="stylesheet" href="./css/site.css">
+    <link rel="stylesheet" href="./css/semantic.min.css">
 
     <style type="text/css">
         .hidden.menu {
@@ -106,10 +106,10 @@
     <h2>파이널판타지 14 공식 홈페이지 소식과 FFlogs 조회 등 디스코드 봇에서 실시간으로 조회해보세요!</h2>
     <form method='get' action='https://discord.com/api/oauth2/authorize'>
         <input type='hidden' name='response_type' value='code'>
-        <input type='hidden' name='client_id' value='589775904163627026' />
+        <input type='hidden' name='client_id' value='<%= client_id %>' />
         <input type='hidden' name='scope' value='bot webhook.incoming messages.read' />
         <input type='hidden' name='state' value='' />
-        <input type='hidden' name='redirect_uri' value="https://discord-bot.karsei.pe.kr/authorize" />
+        <input type='hidden' name='redirect_uri' value='<%= redirect_uri %>' />
 
         <button class='ui huge primary button' type='submit'>봇 추가하기</button>
     </form>
@@ -160,6 +160,6 @@
     </div>
 </div>
 
-<!--<script src="./js/jquery.min.js"></script>-->
+<script src="./js/jquery.min.js"></script>
 </body>
 </html>

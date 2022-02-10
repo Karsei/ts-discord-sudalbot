@@ -10,6 +10,7 @@ import Logger from 'jet-logger';
 import NewsWebhookService from './services/NewsWebhookService';
 // Config
 import Setting from './shared/setting';
+import BotAuthParams from './shared/botAuthParams';
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
@@ -39,25 +40,23 @@ function init(redisCon: any) {
 
     app.get('/authorize', async (req: Request, res: Response) => {
         // https://discord.com/developers/docs/topics/oauth2
-        // code, state, guild_id, permissions
-        let state = req.query.state;
-        let error = req.query.error;
-        let code  = req.query.code;
+        const params = req.query as unknown as BotAuthParams;
 
         try {
-            if (error) {
-                throw error;
+            if (!params?.code) {
+                throw new Error(`parameter 'code' is not found`);
             }
-            if (!code) {
-                throw `parameter 'code' is not found.`;
+            if (!params?.guild_id) {
+                throw new Error(`parameter 'guild_id' is not found`);
             }
 
-            console.log(code);
-            //webHookService.subscribe(code, { guild_id: req.query.guild_id });
-            res.send(`<script>alert("봇이 추가되었습니다. 디스코드를 확인하세요."); window.location.href = "/";</script>`);
+            await webHookService.subscribe(params);
+            res.send(`<script>alert('봇이 추가되었습니다. 디스코드를 확인하세요.'); window.location.href = '/';</script>`);
         } catch (error) {
-            // Logger.err(error.stack);
-            res.send(`<script>alert("봇을 추가하는 과정에서 오류가 발생했습니다."); window.location.href = "/";</script>`);
+            Logger.err('봇을 추가하는 과정에서 오류가 발생했습니다.');
+            Logger.err(error);
+            console.log(error);
+            res.send(`<script>alert('봇을 추가하는 과정에서 오류가 발생했습니다.'); window.location.href = '/';</script>`);
         }
     });
 
