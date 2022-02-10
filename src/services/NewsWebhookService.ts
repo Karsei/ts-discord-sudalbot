@@ -57,7 +57,7 @@ export default class NewsWebhookService
         await this.webHookCache.addGuildsAll(guildId, hookUrl);
 
         // Webhook 추가
-        let existWebhook = this.webHookCache.checkInAllWebhooks(hookUrl);
+        let existWebhook = await this.webHookCache.checkInAllWebhooks(hookUrl);
         if (!existWebhook) {
             await this.webHookCache.addUrlAll(hookUrl);
             Logger.info(`${guildId} - ${hookUrl} 등록 완료`);
@@ -143,13 +143,13 @@ export default class NewsWebhookService
 
         // Redis에서 모든 등록된 웹훅 주소를 불러온 후, Embed는 10개씩 한 묶음으로, Webhook은 20개씩 한 묶음으로 구성해서 전송한다.
         // 이때 Discord 웹훅 제한이 걸릴 수 있으므로 주의할 것
-        this.redisCon.smembers(`${pLocale}-${pTypeStr}-webhooks`, async (err: any, reply: any) => {
-            if (err) throw err;
-            await this.sendMessage(reply, newEmbedPosts, pTypeStr, pLocale);
-        });
+        const res: Array<string> = await this.redisCon.sMembers(`${pLocale}-${pTypeStr}-webhooks`);
+        if (res) {
+            await this.sendMessage(res, newEmbedPosts, pTypeStr, pLocale);
+        }
     }
 
-    private makeEmbedPostMessages(pPosts: NewsContent[], pCategoryContent: NewsCategoryContents, pLocale: string): MessageEmbed[] {
+    private makeEmbedPostMessages(pPosts: NewsContent[], pCategoryContent: NewsCategoryContents, pLocale: string): Array<MessageEmbed> {
         return pPosts.map(post => {
             let link = `${Setting.BASE_URL_PROTOCOL}://`;
             if ('kr' === pLocale) link = `${link}${Setting.BASE_URL_KOREA}${pCategoryContent.link}`;
@@ -174,7 +174,7 @@ export default class NewsWebhookService
         });
     }
 
-    private async sendMessage(pWhiteList: any[], pNewEmbedPosts: MessageEmbed[], pTypeStr: string, pLocale: string) {
+    private async sendMessage(pWhiteList: Array<string>, pNewEmbedPosts: Array<MessageEmbed>, pTypeStr: string, pLocale: string) {
         let result = {
             success: 0,
             removed: 0,
@@ -214,10 +214,10 @@ export default class NewsWebhookService
         }
 
         let numUrls = originWhLists - result.removed;
-        if (result.removed > 0)     Logger.info(`${result.removed}개의 Webhook이 제거되었음`);
-        if (result.fail > 0)        Logger.info(`${result.fail}개의 Webhook이 전송하는데 실패하였음`);
-        if (result.limited > 0)     Logger.info(`${result.limited}개의 Webhook이 전송하는데 제한 걸림`);
-        Logger.info(`총 ${originNewPosts}개의 ${pTypeStr} ('${pLocale}') 게시글을 총 ${numUrls}개의 Webhook 중에서 ${result.success}개가 전송하는데 성공함`);
+        if (result.removed > 0)     Logger.info(`${result.removed}개의 Webhook 이 제거되었습니다.`);
+        if (result.fail > 0)        Logger.info(`${result.fail}개의 Webhook 이 전송에 실패하였습니다.`);
+        if (result.limited > 0)     Logger.info(`${result.limited}개의 Webhook 이 전송하는데 제한되었습니다.`);
+        Logger.info(`총 ${originNewPosts}개의 ${pTypeStr} ('${pLocale}') 게시글을 총 ${numUrls}개의 Webhook 중에서 ${result.success}개가 전송하는데 성공하였습니다.`);
     }
 
     private async sendNews(pHookUrl: string, pPost: {embeds: MessageEmbed[]}, pTypeStr: string, pLocale: string) {
@@ -241,7 +241,7 @@ export default class NewsWebhookService
                     resolve('success');
                 }).catch(async err => {
                     if (!err) {
-                        Logger.err('There is no sending response error message.');
+                        Logger.err('오류가 존재하지 않습니다. 다시 재시도합니다.');
                         await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                         resolve('fail');
                     } else {
@@ -254,7 +254,7 @@ export default class NewsWebhookService
                                 // Webhook 제거됨
                                 if (err.response.data.code === 10015) {
                                     await this.webHookCache.delUrl(pLocale, pTypeStr, pHookUrl);
-                                    Logger.info(`웹 후크 삭제됨 > ${pLocale}, ${pTypeStr} - ${pHookUrl}`);
+                                    Logger.info(`웹 후크가 삭제되었습니다. > ${pLocale}, ${pTypeStr} - ${pHookUrl}`);
                                     resolve('removed');
                                 } else {
                                     await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
@@ -276,14 +276,14 @@ export default class NewsWebhookService
                                 // Webhook 제거됨
                                 if (err.response.data.code === 10015) {
                                     await this.webHookCache.delUrl(pLocale, pTypeStr, pHookUrl);
-                                    Logger.info(`웹 후크 삭제됨 > ${pLocale}, ${pTypeStr} - ${pHookUrl}`);
+                                    Logger.info(`웹 후크가 삭제되었습니다. > ${pLocale}, ${pTypeStr} - ${pHookUrl}`);
                                     resolve('removed');
                                 } else {
                                     await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                                     resolve('fail');
                                 }
                             } else {
-                                Logger.err('something error occured');
+                                Logger.err('소식을 보내는 과정에서 알 수 없는 오류가 발생했습니다.');
                                 await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                                 resolve('fail');
                             }
