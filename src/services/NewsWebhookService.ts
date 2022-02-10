@@ -27,15 +27,15 @@ export default class NewsWebhookService
 
     /**
      * 서버에 Webhook 을 생성합니다.
-     * @param pCode 응답 코드
-     * @param pParams 기타 필요 파라미터
+     * @param pParams 필요 파라미터
      */
-    async subscribe(pCode: number, pParams: BotAuthParams) {
-        let guildId = pParams.guild_id;
+    async subscribe(pParams: BotAuthParams) {
+        const guildId = pParams.guild_id;
+        const code = pParams.code;
 
         // Webhook 주소 생성
         const redirectUrl = `${Setting.DISCORD_URL_BOT_HOST}/authorize`;
-        const hookUrlRes: any = this.makeWebhookUrl(pCode, redirectUrl);
+        const hookUrlRes: { url: string; hookData: object } = await NewsWebhookService.makeWebhookUrl(code, redirectUrl);
         const hookUrl: string = hookUrlRes.url;
 
         // 나라별 소식
@@ -70,7 +70,7 @@ export default class NewsWebhookService
      * @param {string} pCode 응답 코드
      * @param {string} pRedirectUrl Redirect URL
      */
-    private async makeWebhookUrl(pCode: number, pRedirectUrl: string) {
+    private static async makeWebhookUrl(pCode: string, pRedirectUrl: string): Promise<{ url: string, hookData: object }> {
         // https://discord.com/developers/docs/resources/webhook#webhook-object
         const makeData = `client_id=${Setting.DISCORD_BOT_CLIENT_ID}&client_secret=${Setting.DISCORD_BOT_CLIENT_SECRET}&grant_type=authorization_code&code=${pCode}&redirect_uri=${pRedirectUrl}`
         const res: any = await axios({
@@ -80,7 +80,7 @@ export default class NewsWebhookService
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
             data: makeData,
-        }).catch(err => Logger.err(err));
+        });
 
         return { url: `${Setting.DISCORD_URL_WEBHOOK}/${res.data.webhook.id}/${res.data.webhook.token}`, hookData: res.data };
     }

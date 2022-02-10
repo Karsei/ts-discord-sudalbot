@@ -1,8 +1,6 @@
 export default interface BotAuthParams
 {
-    client_id: string,
-    scope: string,
-    permissions: number,
+    code: string,
     guild_id: string,
-    disable_guild_select: boolean
+    permissions: number
 };
