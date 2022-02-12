@@ -6,8 +6,7 @@ import bodyParser from 'body-parser';
 import helmet from 'helmet';
 import path from 'path';
 import Logger from 'jet-logger';
-// Service
-import NewsWebhookService from './services/NewsWebhookService';
+
 // Config
 import Setting from './shared/setting';
 import BotAuthParams from './shared/botAuthParams';
@@ -35,8 +34,7 @@ app.get('/', (req: Request, res: Response) => {
     });
 });
 
-function init(redisCon: any) {
-    const webHookService = new NewsWebhookService(redisCon);
+function init() {
 
     app.get('/authorize', async (req: Request, res: Response) => {
         // https://discord.com/developers/docs/topics/oauth2
@@ -50,7 +48,7 @@ function init(redisCon: any) {
                 throw new Error(`parameter 'guild_id' is not found`);
             }
 
-            await webHookService.subscribe(params);
+            await require('./services/NewsWebhookService').subscribe(params);
             res.send(`<script>alert('봇이 추가되었습니다. 디스코드를 확인하세요.'); window.location.href = '/';</script>`);
         } catch (error) {
             Logger.err('봇을 추가하는 과정에서 오류가 발생했습니다.');

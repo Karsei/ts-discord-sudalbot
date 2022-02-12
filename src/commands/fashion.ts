@@ -2,9 +2,10 @@ import {CommandInteraction,MessageEmbed} from 'discord.js';
 import SnooWrap from 'snoowrap';
 import {SlashCommandBuilder} from '@discordjs/builders';
 import RedditError from '../exceptions/RedditError';
+import Logger from "jet-logger";
 // Config
 import Setting from "../shared/setting";
-import Logger from "jet-logger";
+
 
 module.exports = {
     data: new SlashCommandBuilder()
