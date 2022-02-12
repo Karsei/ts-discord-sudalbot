@@ -1,8 +1,9 @@
 import fs from 'fs';
-import readline from "readline";
-import {createClient as RedisCreateClient} from "redis";
-import {CommandInteraction, Guild as DiscordGuild, Message as DiscordMessage} from 'discord.js';
+import readline from 'readline';
+import {CommandInteraction, Guild as DiscordGuild, Message, Message as DiscordMessage} from 'discord.js';
 import Logger from 'jet-logger';
+// Redis
+import RedisConnection from './libs/redis';
 // Http Server
 import HttpServer from './server';
 // Configs
@@ -13,9 +14,6 @@ import {author, version} from '../package.json';
 const Discord = require('discord.js');
 const DiscordRest = require('@discordjs/rest');
 const DiscordTypes = require('discord-api-types/v9');
-
-// Services
-const NewsSchedulerService = require('./services/NewsSchedulerService');
 
 // # 초기화 -----------------------------------------
 console.log('FFXIV DalDalEE Tool Discord Bot');
@@ -35,7 +33,8 @@ if (Setting.DISCORD_BOT_TOKEN === '') {
 const discordBot = new Discord.Client({
     intents: [
         Discord.Intents.FLAGS.GUILDS,
-        Discord.Intents.FLAGS.GUILD_MESSAGES
+        Discord.Intents.FLAGS.GUILD_MESSAGES,
+        Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS
     ]});
 // 디스코드 봇 Rest 초기화
 const discordRestBot = new DiscordRest.REST({ version: '9'}).setToken(Setting.DISCORD_BOT_TOKEN);
@@ -43,26 +42,12 @@ const discordRestBot = new DiscordRest.REST({ version: '9'}).setToken(Setting.DI
 discordBot.commands = new Discord.Collection();
 const commands: any = [];
 
-// Redis 클라이언트 설정 준비
-const redis = RedisCreateClient({
-    socket: {
-        host: Setting.REDIS_HOST,
-        port: Setting.REDIS_PORT
-    },
-    database: Setting.REDIS_DB,
-    password: Setting.REDIS_PASSWORD
-});
-
 // Redis 연결 구성
 function makeRedisConnection(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('Redis 연결중...');
         try {
-            await redis.on('error', (err: any) => {
-                Logger.err('Redis 오류가 발생했습니다.');
-                Logger.err(err);
-            });
-            await redis.connect();
+            await RedisConnection.init();
         }
         catch (err) {
             Logger.err('Redis 에 연결하는 과정에서 오류가 발생했습니다.');
@@ -195,17 +180,27 @@ function makeDiscordBotEvents(): Promise<void> {
              * [Bot Handlers] interaction Message
              */
             discordBot.on('interactionCreate', async (interaction: CommandInteraction) => {
-                if (!interaction.isCommand()) return;
-
-                const command = discordBot.commands.get(interaction.commandName);
-                if (!command)   return;
-
-                try {
-                    await command.execute(interaction);
+                if (interaction.isSelectMenu()) {
+                    const message = interaction.message;
+                    if (message instanceof Message) {
+                        const command = discordBot.commands.get(message.interaction?.commandName);
+                        await command.selectExecute(interaction);
+                    }
                 }
-                catch (commandErr) {
-                    Logger.err(commandErr);
-                    await interaction.reply({content: '명령어를 실행하는 과정에서 오류가 발생했어요.'});
+                else if (interaction.isCommand()) {
+                    const command = discordBot.commands.get(interaction.commandName);
+                    if (!command)   return;
+
+                    try {
+                        await command.execute(interaction);
+                    }
+                    catch (commandErr) {
+                        Logger.err(commandErr);
+                        await interaction.reply({content: '명령어를 실행하는 과정에서 오류가 발생했어요.'});
+                    }
+                }
+                else {
+                    return;
                 }
             });
 
@@ -253,7 +248,8 @@ function makeScheduler(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('스케줄러 등록중...');
         try {
-            const scheduler = new NewsSchedulerService(redis);
+            const NewsSchedulerService = require('./services/NewsSchedulerService');
+            const scheduler = new NewsSchedulerService();
             scheduler.run();
             Logger.info(`스케줄러 등록 완료`);
             resolve();
@@ -270,7 +266,7 @@ function makeHttpServer(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('웹 서버 구성중...');
         try {
-            HttpServer(redis).listen(Setting.HTTP_SERVER_PORT, () => {
+            HttpServer().listen(Setting.HTTP_SERVER_PORT, () => {
                 Logger.info(`웹 서버가 포트 ${Setting.HTTP_SERVER_PORT} 으로 시작되었습니다.`);
                 Logger.info(`웹 서버 구성 완료`);
                 resolve();

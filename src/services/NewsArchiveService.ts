@@ -1,5 +1,6 @@
 import axios from 'axios';
 import cheerio, {CheerioAPI} from 'cheerio';
+import RedisConnection from '../libs/redis';
 import Logger from "jet-logger";
 // Config
 import NewsCategories, {NewsCategoryGlobal, NewsCategoryKorea} from '../shared/newsCategories';
@@ -11,12 +12,7 @@ import Setting from '../shared/setting';
  */
 export default class NewsArchiveService
 {
-    private redisCon: any;
-    private newsCache: NewsCache;
-    constructor(redisCon: any) {
-        this.redisCon = redisCon;
-        this.newsCache = new NewsCache(redisCon);
-    }
+    private static redisCon: any = RedisConnection.instance();
 
     /**
      * 글로벌 서비스의 특정 카테고리의 소식을 조회합니다.
@@ -24,12 +20,12 @@ export default class NewsArchiveService
      * @param pLocale 언어
      * @param pSkipCache Cache 사용 여부
      */
-    async fetchGlobal(pType: NewsCategoryGlobal, pLocale: string, pSkipCache: boolean = false): Promise<Array<NewsContent>> {
-        let outdate = await this.newsCache.isOutDate(pType, pLocale);
+    static async fetchGlobal(pType: NewsCategoryGlobal, pLocale: string, pSkipCache: boolean = false): Promise<Array<NewsContent>> {
+        let outdate = await NewsCache.isOutDate(pType, pLocale);
         if (pSkipCache || outdate) {
             try {
                 let data = await NewsFetcher.withGlobal(NewsCategories.Global[pType].url, pType, pLocale);
-                await this.newsCache.setCache(JSON.stringify(data), pType, pLocale);
+                await NewsCache.setCache(JSON.stringify(data), pType, pLocale);
                 return data;
             } catch (e) {
                 Logger.err('글로벌 소식을 가져오는 과정에서 오류가 발생했습니다.');
@@ -40,11 +36,11 @@ export default class NewsArchiveService
                 else {
                     Logger.err(e);
                 }
-                let data = await this.newsCache.getCache(pType, pLocale);
+                let data = await NewsCache.getCache(pType, pLocale);
                 return JSON.parse(data);
             }
         } else {
-            let data = await this.newsCache.getCache(pType, pLocale);
+            let data = await NewsCache.getCache(pType, pLocale);
             return JSON.parse(data);
         }
     }
@@ -53,7 +49,7 @@ export default class NewsArchiveService
      * 글로벌 서비스의 모든 카테고리 소식을 조회합니다.
      * @param pLocale
      */
-    async fetchGlobalAll(pLocale: string): Promise<Array<any>> {
+    static async fetchGlobalAll(pLocale: string): Promise<Array<any>> {
         // Promise.all 로 하면 429 오류가 뜨면서 요청이 많다고 뜨므로 하나씩 해주자
         let results = [];
         for (let idx in NewsCategoryGlobal) {
@@ -67,12 +63,12 @@ export default class NewsArchiveService
      * @param pType 카테고리
      * @param pSkipCache Cache 사용 여부
      */
-    async fetchKorea(pType: NewsCategoryKorea, pSkipCache: boolean = false): Promise<Array<NewsContent>> {
-        let outdate = await this.newsCache.isOutDate(pType, 'kr');
+    static async fetchKorea(pType: NewsCategoryKorea, pSkipCache: boolean = false): Promise<Array<NewsContent>> {
+        let outdate = await NewsCache.isOutDate(pType, 'kr');
         if (pSkipCache || outdate) {
             try {
                 let data = await NewsFetcher.withKorea(NewsCategories.Korea[pType].url, pType);
-                await this.newsCache.setCache(JSON.stringify(data), pType, 'kr');
+                await NewsCache.setCache(JSON.stringify(data), pType, 'kr');
                 return data;
             } catch (e) {
                 Logger.err('한국 소식을 가져오는 과정에서 오류가 발생했습니다.');
@@ -82,11 +78,11 @@ export default class NewsArchiveService
                 else {
                     Logger.err(e);
                 }
-                let data = await this.newsCache.getCache(pType, 'kr');
+                let data = await NewsCache.getCache(pType, 'kr');
                 return JSON.parse(data);
             }
         } else {
-            let data = await this.newsCache.getCache(pType, 'kr');
+            let data = await NewsCache.getCache(pType, 'kr');
             return JSON.parse(data);
         }
     }
@@ -94,7 +90,7 @@ export default class NewsArchiveService
     /**
      * 한국 서비스의 모든 카테고리 소식을 조회합니다.
      */
-    async fetchKoreaAll(): Promise<Array<any>> {
+    static async fetchKoreaAll(): Promise<Array<any>> {
         // Promise.all 로 하면 429 오류가 뜨면서 요청이 많다고 뜨므로 하나씩 해주자
         let results = [];
         for (let idx in NewsCategoryKorea) {
@@ -107,7 +103,7 @@ export default class NewsArchiveService
      * 모든 서비스의 모든 카테고리 소식을 조회합니다.
      * @param pLocale
      */
-    async fetchAll(pLocale: string): Promise<Object>
+    static async fetchAll(pLocale: string): Promise<Object>
     {
         return { global: await this.fetchGlobalAll(pLocale), korea: await this.fetchKoreaAll() };
     }
@@ -603,10 +599,7 @@ class NewsParser
  */
 class NewsCache
 {
-    private redisCon: any;
-    constructor(redisCon: any) {
-        this.redisCon = redisCon;
-    }
+    private static redisCon: any = RedisConnection.instance();
 
     /**
      * 수정 확인을 위한 Cache 유지 시간
@@ -619,7 +612,7 @@ class NewsCache
      * @param pType 타입
      * @param pLocale 언어
      */
-    async setCache(pNews: string, pType: string, pLocale: string): Promise<void> {
+    static async setCache(pNews: string, pType: string, pLocale: string): Promise<void> {
         this.redisCon.hSet(`${pLocale}-news-data`, pType, pNews);
         this.redisCon.hSet(`${pLocale}-news-timestamp`, pType, new Date().getTime());
     }
@@ -629,7 +622,7 @@ class NewsCache
      * @param pType 타입
      * @param pLocale 언어
      */
-    async getCache(pType: string, pLocale: string): Promise<string> {
+    static async getCache(pType: string, pLocale: string): Promise<string> {
         return await this.redisCon.hGet(`${pLocale}-news-data`, pType);
     }
 
@@ -638,7 +631,7 @@ class NewsCache
      * @param pType 타입
      * @param pLocale 언어
      */
-    async isOutDate(pType: string, pLocale: string): Promise<boolean> {
+    static async isOutDate(pType: string, pLocale: string): Promise<boolean> {
         let timestamp = await this.redisCon.hGet(`${pLocale}-news-timestamp`, pType);
         let cacheTime = timestamp ? timestamp : new Date(0).getTime();
         return new Date().getTime() > (parseInt(cacheTime) + NewsCache.CACHE_EXPIRE_IN);

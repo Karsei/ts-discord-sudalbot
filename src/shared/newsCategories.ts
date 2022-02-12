@@ -19,6 +19,7 @@ export interface NewsCategoryKoreaF
 
 export interface NewsCategoryContents
 {
+    category: string,
     name: string,
     url: string,
     link: string,
@@ -55,6 +56,7 @@ export enum NewsCategoryKorea
 const Categories: NewsCategoryF = {
     Global: {
         topics: {
+            category: '토픽',
             name: 'Topics',
             url: '/lodestone/topics',
             link: '/lodestone/topics',
@@ -63,6 +65,7 @@ const Categories: NewsCategoryF = {
             color: 14258475,
         },
         notices: {
+            category: '공지',
             name: 'Notices',
             url: '/lodestone/news/category/1',
             link: '/lodestone/news/category/1',
@@ -70,6 +73,7 @@ const Categories: NewsCategoryF = {
             color: 13421772,
         },
         maintenance: {
+            category: '점검',
             name: 'Maintenance',
             url: '/lodestone/news/category/2',
             link: '/lodestone/news/category/2',
@@ -77,6 +81,7 @@ const Categories: NewsCategoryF = {
             color: 13413161,
         },
         updates: {
+            category: '업데이트',
             name: 'Updates',
             url: '/lodestone/news/category/3',
             link: '/lodestone/news/category/3',
@@ -84,13 +89,15 @@ const Categories: NewsCategoryF = {
             color: 7051581,
         },
         status: {
-            name: '',
+            category: '서버 상태',
+            name: 'Status',
             url: '/lodestone/news/category/4',
             link: '/lodestone/news/category/4',
             icon: 'http://na.lodestonenews.com/images/status.png',
             color: 10042685,
         },
         developers: {
+            category: '개발자 노트',
             name: `Developers' Blog`,
             url: '/pr/blog/atom.xml',
             link: '/pr/blog/',
@@ -100,6 +107,7 @@ const Categories: NewsCategoryF = {
     },
     Korea: {
         notices: {
+            category: '공지',
             name: '공지',
             url: '/news/notice?category=1',
             link: '/news/notice?category=1',
@@ -107,6 +115,7 @@ const Categories: NewsCategoryF = {
             color: 13421772,
         },
         maintenance: {
+            category: '점검',
             name: '점검',
             url: '/news/notice?category=2',
             link: '/news/notice?category=2',
@@ -114,6 +123,7 @@ const Categories: NewsCategoryF = {
             color: 13413161,
         },
         updates: {
+            category: '업데이트',
             name: '업데이트',
             url: '/news/notice?category=3',
             link: '/news/notice?category=3',
@@ -122,6 +132,7 @@ const Categories: NewsCategoryF = {
         },
         // 색과 아이콘 수정해야함
         event: {
+            category: '이벤트',
             name: '이벤트',
             url: '/news/event',
             link: '/news/event',
@@ -129,6 +140,7 @@ const Categories: NewsCategoryF = {
             color: 6737151,
         },
         patchnote: {
+            category: '업데이트 노트',
             name: '업데이트 노트',
             url: '/news/patchnote',
             link: '/news/patchnote',

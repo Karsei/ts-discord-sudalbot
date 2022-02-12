@@ -1,6 +1,7 @@
 import axios from 'axios';
 import {MessageEmbed} from 'discord.js';
 const PromiseAdv = require('bluebird');
+import RedisConnection from '../libs/redis';
 import Logger from 'jet-logger';
 // Service
 import NewsArchiveService from "./NewsArchiveService";
@@ -16,20 +17,13 @@ import Setting from '../shared/setting';
  */
 export default class NewsWebhookService
 {
-    private redisCon: any;
-    private newsArchiveService: NewsArchiveService;
-    private webHookCache: WebhookCache;
-    constructor(redisCon: any) {
-        this.redisCon = redisCon;
-        this.newsArchiveService = new NewsArchiveService(redisCon);
-        this.webHookCache = new WebhookCache(redisCon);
-    }
+    private static redisCon: any = RedisConnection.instance();
 
     /**
      * 서버에 Webhook 을 생성합니다.
      * @param pParams 필요 파라미터
      */
-    async subscribe(pParams: BotAuthParams) {
+    static async subscribe(pParams: BotAuthParams) {
         const guildId = pParams.guild_id;
         const code = pParams.code;
 
@@ -41,25 +35,25 @@ export default class NewsWebhookService
         // 나라별 소식
         // 한국
         Object.keys(NewsCategories.Korea).map(type => {
-            this.webHookCache.addUrl('kr', type, hookUrl);
+            WebhookCache.addUrl('kr', type, hookUrl);
         });
         // 글로벌
         Object.keys(NewsCategories.Global).map(type => {
             LodestoneLocales.forEach(locale => {
                 // 당분간 북미 기준으로 topics, updates, developers 만 허용
                 if (['topics', 'updates', 'developers'].indexOf(type) > -1 && ['na'].indexOf(locale) > -1) {
-                    this.webHookCache.addUrl(locale, type, hookUrl);
+                    WebhookCache.addUrl(locale, type, hookUrl);
                 }
             });
         });
 
         // Redis 에 서버별로 Webhook 주소 등록 (기본 등록)
-        await this.webHookCache.addGuildsAll(guildId, hookUrl);
+        await WebhookCache.addGuildsAll(guildId, hookUrl);
 
         // Webhook 추가
-        let existWebhook = await this.webHookCache.checkInAllWebhooks(hookUrl);
+        let existWebhook = await WebhookCache.checkInAllWebhooks(hookUrl);
         if (!existWebhook) {
-            await this.webHookCache.addUrlAll(hookUrl);
+            await WebhookCache.addUrlAll(hookUrl);
             Logger.info(`${guildId} - ${hookUrl} 등록 완료`);
         }
     }
@@ -85,7 +79,7 @@ export default class NewsWebhookService
         return { url: `${Setting.DISCORD_URL_WEBHOOK}/${res.data.webhook.id}/${res.data.webhook.token}`, hookData: res.data };
     }
 
-    async publishAll() {
+    static async publishAll() {
         let jobs = [];
 
         // 글로벌
@@ -106,13 +100,13 @@ export default class NewsWebhookService
         return jobs;
     }
 
-    async publishGlobal(pType: NewsCategoryGlobal, pLocale: string) {
+    static async publishGlobal(pType: NewsCategoryGlobal, pLocale: string) {
         // 제공 카테고리 양식
         const content: NewsCategoryContents = NewsCategories.Global[pType];
 
         // 최신 소식을 가져오면서 Redis에 넣음
-        const fetchPosts = await this.newsArchiveService.fetchGlobal(pType, pLocale, true);
-        const newPosts = await this.webHookCache.addId(fetchPosts, pLocale, pType);
+        const fetchPosts = await NewsArchiveService.fetchGlobal(pType, pLocale, true);
+        const newPosts = await WebhookCache.addId(fetchPosts, pLocale, pType);
 
         // Redis에 등록할 때 새로운 글이 없다면 그냥 끝냄
         if (newPosts.length === 0) return newPosts;
@@ -121,14 +115,14 @@ export default class NewsWebhookService
         await this.sendMessageWithMembers(newPosts, content, pType.toString(), pLocale);
     }
 
-    async publishKorea(pType: NewsCategoryKorea) {
+    static async publishKorea(pType: NewsCategoryKorea) {
         // 제공 카테고리 양식
         const pLocale = 'kr';
         const content: NewsCategoryContents = NewsCategories.Korea[pType];
 
         // 최신 소식을 가져오면서 Redis에 넣음
-        const fetchPosts = await this.newsArchiveService.fetchKorea(pType, true);
-        const newPosts = await this.webHookCache.addId(fetchPosts, pLocale, pType);
+        const fetchPosts = await NewsArchiveService.fetchKorea(pType, true);
+        const newPosts = await WebhookCache.addId(fetchPosts, pLocale, pType);
 
         // Redis에 등록할 때 새로운 글이 없다면 그냥 끝냄
         if (newPosts.length === 0) return newPosts;
@@ -137,7 +131,7 @@ export default class NewsWebhookService
         await this.sendMessageWithMembers(newPosts, content, pType.toString(), pLocale);
     }
 
-    private async sendMessageWithMembers(pNewsPosts: NewsContent[], pCategoryInfo: NewsCategoryContents, pTypeStr: string, pLocale: string) {
+    private static async sendMessageWithMembers(pNewsPosts: NewsContent[], pCategoryInfo: NewsCategoryContents, pTypeStr: string, pLocale: string) {
         // 디스코드에 전달할 메세지를 생성한다.
         const newEmbedPosts = this.makeEmbedPostMessages(pNewsPosts, pCategoryInfo, pLocale);
 
@@ -149,7 +143,7 @@ export default class NewsWebhookService
         }
     }
 
-    private makeEmbedPostMessages(pPosts: NewsContent[], pCategoryContent: NewsCategoryContents, pLocale: string): Array<MessageEmbed> {
+    private static makeEmbedPostMessages(pPosts: NewsContent[], pCategoryContent: NewsCategoryContents, pLocale: string): Array<MessageEmbed> {
         return pPosts.map(post => {
             let link = `${Setting.BASE_URL_PROTOCOL}://`;
             if ('kr' === pLocale) link = `${link}${Setting.BASE_URL_KOREA}${pCategoryContent.link}`;
@@ -174,7 +168,7 @@ export default class NewsWebhookService
         });
     }
 
-    private async sendMessage(pWhiteList: Array<string>, pNewEmbedPosts: Array<MessageEmbed>, pTypeStr: string, pLocale: string) {
+    private static async sendMessage(pWhiteList: Array<string>, pNewEmbedPosts: Array<MessageEmbed>, pTypeStr: string, pLocale: string) {
         let result = {
             success: 0,
             removed: 0,
@@ -220,7 +214,7 @@ export default class NewsWebhookService
         Logger.info(`총 ${originNewPosts}개의 ${pTypeStr} ('${pLocale}') 게시글을 총 ${numUrls}개의 Webhook 중에서 ${result.success}개가 전송하는데 성공하였습니다.`);
     }
 
-    private async sendNews(pHookUrl: string, pPost: {embeds: MessageEmbed[]}, pTypeStr: string, pLocale: string) {
+    private static async sendNews(pHookUrl: string, pPost: {embeds: MessageEmbed[]}, pTypeStr: string, pLocale: string) {
         return new Promise(async (resolve, reject) => {
             await axios({
                 method: 'POST',
@@ -242,7 +236,7 @@ export default class NewsWebhookService
                 }).catch(async err => {
                     if (!err) {
                         Logger.err('오류가 존재하지 않습니다. 다시 재시도합니다.');
-                        await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
+                        await WebhookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                         resolve('fail');
                     } else {
                         Logger.err(err.config);
@@ -253,44 +247,44 @@ export default class NewsWebhookService
                             if (err.response.data) {
                                 // Webhook 제거됨
                                 if (err.response.data.code === 10015) {
-                                    await this.webHookCache.delUrl(pLocale, pTypeStr, pHookUrl);
+                                    await WebhookCache.delUrl(pLocale, pTypeStr, pHookUrl);
                                     Logger.info(`웹 후크가 삭제되었습니다. > ${pLocale}, ${pTypeStr} - ${pHookUrl}`);
                                     resolve('removed');
                                 } else {
-                                    await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
+                                    await WebhookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                                     resolve('fail');
                                 }
                             } else {
                                 Logger.err('something error occured');
-                                await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
+                                await WebhookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                                 resolve('fail');
                             }
                             // 요청을 너무 많이 보냄
                         } else if (err.response.status === 429) {
                             await PromiseAdv.delay(err.response.data.retry_after);
-                            await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
+                            await WebhookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                             resolve('limited');
                             // 웹 후크가 없음
                         } else if (err.response.status === 404) {
                             if (err.response.data) {
                                 // Webhook 제거됨
                                 if (err.response.data.code === 10015) {
-                                    await this.webHookCache.delUrl(pLocale, pTypeStr, pHookUrl);
+                                    await WebhookCache.delUrl(pLocale, pTypeStr, pHookUrl);
                                     Logger.info(`웹 후크가 삭제되었습니다. > ${pLocale}, ${pTypeStr} - ${pHookUrl}`);
                                     resolve('removed');
                                 } else {
-                                    await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
+                                    await WebhookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                                     resolve('fail');
                                 }
                             } else {
                                 Logger.err('소식을 보내는 과정에서 알 수 없는 오류가 발생했습니다.');
-                                await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
+                                await WebhookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                                 resolve('fail');
                             }
                             // 그 외
                         } else {
                             console.error(err);
-                            await this.webHookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
+                            await WebhookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                             resolve('fail');
                         }
                     }
@@ -299,12 +293,9 @@ export default class NewsWebhookService
     }
 }
 
-class WebhookCache
+export class WebhookCache
 {
-    private redisCon: any;
-    constructor(redisCon: any) {
-        this.redisCon = redisCon;
-    }
+    private static redisCon: any = RedisConnection.instance();
 
     /**
      * 게시글별 Webhook URL Cache 등록
@@ -313,7 +304,7 @@ class WebhookCache
      * @param pType 카테고리
      * @param pUrl Webhook URL
      */
-    async addUrl(pLocale: string, pType: string, pUrl: string) {
+    static async addUrl(pLocale: string, pType: string, pUrl: string) {
         return this.redisCon.sAdd(`${pLocale}-${pType}-webhooks`, pUrl);
     }
 
@@ -324,7 +315,7 @@ class WebhookCache
      * @param pType 카테고리
      * @param pUrl Webhook URL
      */
-    async delUrl(pLocale: string, pType: string, pUrl: string) {
+    static async delUrl(pLocale: string, pType: string, pUrl: string) {
         return this.redisCon.sRem(`${pLocale}-${pType}-webhooks`, pUrl);
     }
 
@@ -334,7 +325,7 @@ class WebhookCache
      * @param pGuildId Discord 서버 고유번호
      * @param pUrl Webhook URL
      */
-    async addGuildsAll(pGuildId: string, pUrl: string) {
+    static async addGuildsAll(pGuildId: string, pUrl: string) {
         return this.redisCon.hSet('all-guilds', pGuildId, pUrl);
     }
 
@@ -343,7 +334,7 @@ class WebhookCache
      *
      * @param pUrl Webhook URL
      */
-    async addUrlAll(pUrl: string) {
+    static async addUrlAll(pUrl: string) {
         return this.redisCon.sAdd(`all-webhooks`, pUrl);
     }
 
@@ -352,7 +343,7 @@ class WebhookCache
      *
      * @param pUrl Webhook URL
      */
-    async checkInAllWebhooks(pUrl: string) {
+    static async checkInAllWebhooks(pUrl: string) {
         return this.redisCon.sIsMember(`all-webhooks`, pUrl);
     }
 
@@ -363,7 +354,7 @@ class WebhookCache
      * @param pType 카테고리
      * @param pUrl Webhook URL
      */
-    async checkInWebhook(pLocale: string, pType: string, pUrl: string) {
+    static async checkInWebhook(pLocale: string, pType: string, pUrl: string) {
         return this.redisCon.sIsMember(`${pLocale}-${pType}-webhooks`, pUrl);
     }
 
@@ -375,7 +366,7 @@ class WebhookCache
      * @param pTypeStr 카테고리
      * @return 게시글 id
      */
-    async addId(pData: Array<NewsContent>, pLocale: string, pTypeStr: string) {
+    static async addId(pData: Array<NewsContent>, pLocale: string, pTypeStr: string) {
         if (!pData) {
             Logger.err(`There is no post cache.`);
             return [];
@@ -408,14 +399,14 @@ class WebhookCache
      *
      * @return url, body가 있는 객체
      */
-    async popResendItem() {
+    static async popResendItem() {
         return this.redisCon.lPop('webhooks-news-resend');
     }
 
     /**
      * 소식 다시 보낼 Webhook URL과 데이터가 있는 객체의 개수 조회
      */
-    async getResendItemLength() {
+    static async getResendItemLength() {
         return this.redisCon.lLen('webhooks-news-resend');
     }
 
@@ -427,7 +418,7 @@ class WebhookCache
      * @param pLocale 언어
      * @param pType 카테고리
      */
-    async addResendItem(pUrl: string, pBody: {embeds: MessageEmbed[]}, pLocale: string, pType: string) {
+    static async addResendItem(pUrl: string, pBody: {embeds: MessageEmbed[]}, pLocale: string, pType: string) {
         return this.redisCon.lPush('webhooks-news-resend', JSON.stringify({ url: pUrl, body: pBody, locale: pLocale, type: pType }));
     }
 
@@ -437,7 +428,7 @@ class WebhookCache
      * @param pGuildId 서버 고유 번호
      * @return Webhook URL
      */
-    async getHookUrlByGuildId(pGuildId: string) {
+    static async getHookUrlByGuildId(pGuildId: string) {
         return this.redisCon.hGet('all-guilds', pGuildId);
     }
 }
