@@ -254,6 +254,7 @@ export default class NewsWebhookService
                             if (err.response.data) {
                                 // Webhook 제거됨
                                 if (err.response.data.code === 10015) {
+                                    Logger.info(`존재하지 않는 Webhook 입니다. 삭제를 시도합니다...`);
                                     await WebhookCache.delUrl(pLocale, pTypeStr, pHookUrl);
                                     Logger.info(`웹 후크가 삭제되었습니다. > ${pLocale}, ${pTypeStr} - ${pHookUrl}`);
                                     resolve('removed');
@@ -268,6 +269,7 @@ export default class NewsWebhookService
                             }
                             // 요청을 너무 많이 보냄
                         } else if (err.response.status === 429) {
+                            Logger.info(`과도한 요청으로 인해 다시 재전송을 시도합니다...`);
                             await PromiseAdv.delay(err.response.data.retry_after);
                             await WebhookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                             resolve('limited');
@@ -276,6 +278,7 @@ export default class NewsWebhookService
                             if (err.response.data) {
                                 // Webhook 제거됨
                                 if (err.response.data.code === 10015) {
+                                    Logger.info(`존재하지 않는 Webhook 입니다. 삭제를 시도합니다...`);
                                     await WebhookCache.delUrl(pLocale, pTypeStr, pHookUrl);
                                     Logger.info(`웹 후크가 삭제되었습니다. > ${pLocale}, ${pTypeStr} - ${pHookUrl}`);
                                     resolve('removed');
