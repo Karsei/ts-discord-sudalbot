@@ -211,9 +211,17 @@ export default class NewsWebhookService
         if (result.removed > 0)     Logger.info(`${result.removed}개의 Webhook 이 제거되었습니다.`);
         if (result.fail > 0)        Logger.info(`${result.fail}개의 Webhook 이 전송에 실패하였습니다.`);
         if (result.limited > 0)     Logger.info(`${result.limited}개의 Webhook 이 전송하는데 제한되었습니다.`);
-        Logger.info(`총 ${originNewPosts}개의 ${pTypeStr} ('${pLocale}') 게시글을 총 ${numUrls}개의 Webhook 중에서 ${result.success}개가 전송하는데 성공하였습니다.`);
+        Logger.info(`총 ${originNewPosts}개의 ${pTypeStr} ('${pLocale}') 게시글 - 총 ${numUrls}개의 Webhook 으로 전송하는데 ${result.success}개가 성공하였습니다.`);
     }
 
+    /**
+     * 게시글을 각 디스코드 서버에 배포합니다.
+     * @param pHookUrl Webhook URL
+     * @param pPost 배포할 게시글
+     * @param pTypeStr 카테고리
+     * @param pLocale 언어
+     * @private
+     */
     private static async sendNews(pHookUrl: string, pPost: {embeds: MessageEmbed[]}, pTypeStr: string, pLocale: string) {
         return new Promise(async (resolve, reject) => {
             await axios({
@@ -239,8 +247,9 @@ export default class NewsWebhookService
                         await WebhookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                         resolve('fail');
                     } else {
-                        Logger.err(err.config);
-                        Logger.err(err.response);
+                        Logger.err('소식을 디스코드 서버에 전송하는 과정에서 오류가 발생했습니다. 원인을 분석합니다...');
+                        console.error(err.config);
+                        console.error(err.response);
 
                         // 정상 요청이 아님
                         if (err.response.status === 400) {
@@ -290,6 +299,60 @@ export default class NewsWebhookService
                     }
                 });
         });
+    }
+
+    /**
+     * 실패한 게시글을 다시 각 디스코드 서버에 배포합니다.
+     */
+    static async publishResendAll() {
+        let count = await WebhookCache.getResendItemLength();
+        if (count == 0) return;
+
+        Logger.info(`총 ${count}개의 게시글을 다시 전송합니다...`);
+        let allCount = count;
+        let success = 0;
+
+        while (count > 0) {
+            let cachedData = await WebhookCache.popResendItem();
+            if (cachedData) {
+                cachedData = JSON.parse(cachedData);
+
+                try {
+                    let resendRes = await axios({
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        url: cachedData.url,
+                        data: cachedData.body,
+                    });
+
+                    // 너무 많이 보낸 경우 미리 딜레이를 줌
+                    if (resendRes.headers['x-ratelimit-remaining'] == '0') {
+                        let time = (parseInt(resendRes.headers['x-ratelimit-reset']) * 1000) - (new Date().getTime());
+                        if (time > 0) {
+                            await PromiseAdv.delay(time + 1000);
+                        }
+                    }
+
+                    success++;
+                } catch (err) {
+                    Logger.err('최종적으로 재전송이 실패하였습니다.');
+                    if (err instanceof Error) {
+                        Logger.err(err);
+                    }
+                    else {
+                        Logger.err(err);
+                    }
+                    console.log(err);
+                }
+            }
+
+            // 다시 남아있는 개수 계산
+            count = await WebhookCache.getResendItemLength();
+        }
+
+        Logger.info(`총 ${allCount}개의 게시글 중에서 ${success}개가 재전송을 하는데 성공하였습니다.`);
     }
 }
 
