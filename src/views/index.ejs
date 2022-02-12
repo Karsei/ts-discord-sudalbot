@@ -107,7 +107,7 @@
     <form method='get' action='https://discord.com/api/oauth2/authorize'>
         <input type='hidden' name='response_type' value='code'>
         <input type='hidden' name='client_id' value='<%= client_id %>' />
-        <input type='hidden' name='scope' value='bot webhook.incoming messages.read' />
+        <input type='hidden' name='scope' value='bot webhook.incoming messages.read applications.commands' />
         <input type='hidden' name='state' value='' />
         <input type='hidden' name='redirect_uri' value='<%= redirect_uri %>' />
 
