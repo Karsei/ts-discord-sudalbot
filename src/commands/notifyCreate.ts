@@ -1,7 +1,7 @@
 import {
     CommandInteraction,
     MessageActionRow,
-    MessageSelectMenu,
+    MessageSelectMenu, Permissions,
     SelectMenuInteraction
 } from 'discord.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
@@ -30,9 +30,21 @@ module.exports = {
                 .addChoice('대한민국(한국어)', 'kr')
         ),
     async selectExecute(interaction: SelectMenuInteraction) {
-        await interaction.deferUpdate();
-
         try {
+            const roles = interaction.member?.permissions;
+            if (roles instanceof Permissions) {
+                if (!roles.has([Permissions.FLAGS.ADMINISTRATOR, Permissions.FLAGS.MANAGE_MESSAGES])) {
+                    await interaction.editReply('관리자 또는 메세지 관리 권한이 없어서 이용할 수 없어요.');
+                    return;
+                }
+            }
+            else {
+                await interaction.editReply('알 수 없는 오류가 발생했어요! 개발자에게 문의해주세요.');
+                return;
+            }
+
+            await interaction.deferUpdate();
+
             const hookUrl = await WebhookCache.getHookUrlByGuildId(interaction.guildId || '');
             const selectId = interaction.customId;
 
@@ -55,12 +67,24 @@ module.exports = {
         }
     },
     async execute(interaction: CommandInteraction) {
-        await interaction.deferReply();
-
         const selLocale = interaction.options.getString('언어');
 
         try
         {
+            const roles = interaction.member?.permissions;
+            if (roles instanceof Permissions) {
+                if (!roles.has([Permissions.FLAGS.ADMINISTRATOR, Permissions.FLAGS.MANAGE_MESSAGES])) {
+                    await interaction.editReply('관리자 또는 메세지 관리 권한이 없어서 이용할 수 없어요.');
+                    return;
+                }
+            }
+            else {
+                await interaction.editReply('알 수 없는 오류가 발생했어요! 개발자에게 문의해주세요.');
+                return;
+            }
+
+            await interaction.deferReply();
+
             const redisCon = RedisConnection.instance();
 
             // 해당 서버의 Webhook URL 확인
@@ -106,6 +130,10 @@ module.exports = {
                             .addOptions(selectRes)
                     );
                 await interaction.editReply({ content: '추가할 소식을 선택해주세요.', components: [row] });
+
+                setTimeout(async () => {
+                    await interaction.editReply({ content: '시간이 꽤 지나서 다시 명령어를 이용해주세요.', components: [] });
+                }, 30000);
             } else {
                 await interaction.editReply('존재하는 소식 알림이 없네요!');
             }
