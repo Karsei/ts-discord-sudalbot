@@ -1,9 +1,12 @@
-export const Constants = {
+const Setting = {
     // 이름
     APP_NAME: '달달이봇',
 
+    // 웹 서버 포트
+    HTTP_SERVER_PORT: 80,
+
     // 기본 통신 프로토콜
-    BASE_URL_PROTOCOL: 'http',
+    BASE_URL_PROTOCOL: 'https',
 
     // 로드스톤 주소
     BASE_URL_LODESTONE: 'finalfantasyxiv.com',
@@ -47,4 +50,18 @@ export const Constants = {
 
     // Reddit Access Token
     REDDIT_CLIENT_ACCESS_TOKEN: '',
+
+    // REDIS HOST
+    REDIS_HOST: '127.0.0.1',
+
+    // REDIS PORT
+    REDIS_PORT: 6379,
+
+    // REDIS DATABASE
+    REDIS_DB: 0,
+
+    // REDIS AUTH
+    REDIS_PASSWORD: ''
 };
+
+export default Setting;
