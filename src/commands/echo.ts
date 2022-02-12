@@ -12,7 +12,7 @@ module.exports = {
                 .setRequired(true)
         ),
     async execute(interaction: CommandInteraction) {
-        const message = interaction.options.getString('따라하기');
+        const message = interaction.options.getString('메세지');
         await interaction.reply(`${message}`);
     },
 };
