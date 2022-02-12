@@ -1,25 +1,33 @@
-//
 import fs from 'fs';
+import readline from 'readline';
+// Discord
 const Discord = require('discord.js');
-import {CommandInteraction, Message as DiscordMessage} from 'discord.js';
+import {CommandInteraction, Guild as DiscordGuild, Message, Message as DiscordMessage} from 'discord.js';
 const DiscordRest = require('@discordjs/rest');
 const DiscordTypes = require('discord-api-types/v9');
-import Logger from 'jet-logger';
-
+// Logger
+const Logger = require('./libs/logger');
+// Redis
+import RedisConnection from './libs/redis';
+// Http Server
+import HttpServer from './server';
 // Configs
-import { Constants } from "./shared/constants";
-import readline from "readline";
+import Setting from './shared/setting';
 // @ts-ignore
 import {author, version} from '../package.json';
 
 // # 초기화 -----------------------------------------
+// 시작
 console.log('FFXIV DalDalEE Tool Discord Bot');
 console.log(`Author by. ${author}`);
 console.log(`Version ${version}`);
 
+// node 에서 허가되지 않은 인증 TLS 통신을 거부하지 않음
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 // 봇 토큰이 없으면 사용 제한
-if (Constants.DISCORD_BOT_TOKEN === '') {
-    Logger.err('디스코드 봇 API 토큰 정보가 없습니다. 디스코드 개발자 센터에서 먼저 봇 토큰을 발급하고 이용하세요.');
+if (Setting.DISCORD_BOT_TOKEN === '') {
+    Logger.error('디스코드 봇 API 토큰 정보가 없습니다. 디스코드 개발자 센터에서 먼저 봇 토큰을 발급하고 이용하세요.');
     process.exit(1);
 }
 
@@ -27,15 +35,31 @@ if (Constants.DISCORD_BOT_TOKEN === '') {
 const discordBot = new Discord.Client({
     intents: [
         Discord.Intents.FLAGS.GUILDS,
-        Discord.Intents.FLAGS.GUILD_MESSAGES
+        Discord.Intents.FLAGS.GUILD_MESSAGES,
+        Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS
     ]});
 // 디스코드 봇 Rest 초기화
-const discordRestBot = new DiscordRest.REST({ version: '9'}).setToken(Constants.DISCORD_BOT_TOKEN);
+const discordRestBot = new DiscordRest.REST({ version: '9'}).setToken(Setting.DISCORD_BOT_TOKEN);
 // 명령어 목록 로드
 discordBot.commands = new Discord.Collection();
 const commands: any = [];
 
-// 명령어 초기화
+// Redis 연결 구성
+function makeRedisConnection(): Promise<void> {
+    return new Promise<void>(async (resolve) => {
+        Logger.info('Redis 연결중...');
+        try {
+            await RedisConnection.init();
+        }
+        catch (err) {
+            Logger.error('Redis 에 연결하는 과정에서 오류가 발생했습니다.', err);
+            process.exit(2);
+        }
+        Logger.info(`Redis 연결 완료`);
+        resolve();
+    });
+}
+// 명령어 목록 초기화
 function makeCommandList(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('명령어 목록 초기화중...');
@@ -53,32 +77,32 @@ function makeCommandList(): Promise<void> {
             }
         }
         catch (err) {
-            Logger.err('명령어 목록을 초기화하는 과정에서 오류가 발생했습니다.');
-            Logger.err(err);
-            process.exit(2);
+            Logger.error('명령어 목록을 초기화하는 과정에서 오류가 발생했습니다.', err);
+            process.exit(3);
         }
         Logger.info(`명령어 목록 초기화 완료 (총 ${commands.length}개)`);
         resolve();
     });
 }
+// 슬래시 명령어 구성
 function makeSlashCommandList(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('슬래시 명령어 구성중...');
         try {
             await discordRestBot.put(
-                DiscordTypes.Routes.applicationCommands(Constants.DISCORD_BOT_CLIENT_ID),
+                DiscordTypes.Routes.applicationCommands(Setting.DISCORD_BOT_CLIENT_ID),
                 {body: commands},
             );
         }
         catch (err) {
-            Logger.err('슬래시 명령어을 구성하는 과정에서 오류가 발생했습니다.');
-            Logger.err(err);
-            process.exit(3);
+            Logger.error('슬래시 명령어을 구성하는 과정에서 오류가 발생했습니다.', err);
+            process.exit(4);
         }
         Logger.info(`슬래시 명령어 구성 완료`);
         resolve();
     });
 }
+// 디스코드 이벤트 구성
 function makeDiscordBotEvents(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('디스코드 이벤트 구성중...');
@@ -86,18 +110,18 @@ function makeDiscordBotEvents(): Promise<void> {
             /**
              * [Bot Handlers] Warn
              */
-            discordBot.on('warn', (err: any) => Logger.err(err));
+            discordBot.on('warn', (err: any) => Logger.error(err));
 
             /**
              * [Bot Handlers] Error
              */
-            discordBot.on('error', (err: any) => Logger.err(err));
+            discordBot.on('error', (err: any) => Logger.error(err));
 
             /**
              * [Bot Handlers] 예외 발생
              */
             discordBot.on('uncaughtException', (err: any) => {
-                Logger.err(err);
+                Logger.error(err);
                 process.exit(101);
             });
 
@@ -121,18 +145,61 @@ function makeDiscordBotEvents(): Promise<void> {
                 discordBot.user?.setActivity('지켜보고 있다.. +_+');
             });
 
-            discordBot.on('interactionCreate', async (interaction: CommandInteraction) => {
-                if (!interaction.isCommand()) return;
-
-                const command = discordBot.commands.get(interaction.commandName);
-                if (!command)   return;
-
+            /**
+             * [Bot Handlers] After user added bot
+             */
+            discordBot.on('guildCreate', async (guild: DiscordGuild) => {
                 try {
-                    await command.execute(interaction);
+                    const serverId = guild.id;
+                    const serverName = guild.name;
+
+                    Logger.info(`${serverName} (${serverId}) - 봇이 추가되었습니다.`);
                 }
-                catch (commandErr) {
-                    Logger.err(commandErr);
-                    await interaction.reply({content: '명령어를 실행하는 과정에서 오류가 발생했어요.'});
+                catch (err) {
+                    Logger.error(err);
+                }
+            });
+
+            /**
+             * [Bot Handlers] After user deleted bot
+             */
+            discordBot.on('guildDelete', async (guild: DiscordGuild) => {
+                try {
+                    const serverId = guild.id;
+                    const serverName = guild.name;
+
+                    Logger.info(`${serverName} (${serverId}) - 봇이 삭제되었습니다.`);
+                }
+                catch (err) {
+                    Logger.error(err);
+                }
+            });
+
+            /**
+             * [Bot Handlers] interaction Message
+             */
+            discordBot.on('interactionCreate', async (interaction: CommandInteraction) => {
+                if (interaction.isSelectMenu()) {
+                    const message = interaction.message;
+                    if (message instanceof Message) {
+                        const command = discordBot.commands.get(message.interaction?.commandName);
+                        await command.selectExecute(interaction);
+                    }
+                }
+                else if (interaction.isCommand()) {
+                    const command = discordBot.commands.get(interaction.commandName);
+                    if (!command)   return;
+
+                    try {
+                        await command.execute(interaction);
+                    }
+                    catch (commandErr) {
+                        Logger.error(commandErr);
+                        await interaction.reply({content: '명령어를 실행하는 과정에서 오류가 발생했어요.'});
+                    }
+                }
+                else {
+                    return;
                 }
             });
 
@@ -144,20 +211,20 @@ function makeDiscordBotEvents(): Promise<void> {
             });
         }
         catch (err) {
-            Logger.err('디스코드 이벤트를 구성하는 과정에서 오류가 발생했습니다.');
-            Logger.err(err);
-            process.exit(4);
+            Logger.error('디스코드 이벤트를 구성하는 과정에서 오류가 발생했습니다.', err);
+            process.exit(5);
         }
         Logger.info(`디스코드 이벤트 구성 완료`);
         resolve();
     });
 }
+// 디스코드 봇 로그인
 function makeDiscordBotLogin(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('디스코드 봇 로그인...');
         try {
             discordBot
-                .login(Constants.DISCORD_BOT_TOKEN)
+                .login(Setting.DISCORD_BOT_TOKEN)
                 .then(() => {
                     Logger.info(`${discordBot.user?.tag} 으로 로그인되었습니다.`);
                     Logger.info(`디스코드 봇 로그인 완료`);
@@ -168,12 +235,46 @@ function makeDiscordBotLogin(): Promise<void> {
                 });
         }
         catch (err) {
-            Logger.err('디스코드 봇 로그인을 하는 과정에서 오류가 발생했습니다.');
-            Logger.err(err);
-            process.exit(5);
+            Logger.error('디스코드 봇 로그인을 하는 과정에서 오류가 발생했습니다.', err);
+            process.exit(6);
         }
     });
 }
+// 스케줄러 등록
+function makeScheduler(): Promise<void> {
+    return new Promise<void>(async (resolve) => {
+        Logger.info('스케줄러 등록중...');
+        try {
+            const NewsSchedulerService = require('./services/NewsSchedulerService');
+            const scheduler = new NewsSchedulerService();
+            scheduler.run();
+            Logger.info(`스케줄러 등록 완료`);
+            resolve();
+        }
+        catch (err) {
+            Logger.error('스케줄러 등록을 하는 과정에서 오류가 발생했습니다.', err);
+            process.exit(7);
+        }
+    });
+}
+// 웹 서버 구성
+function makeHttpServer(): Promise<void> {
+    return new Promise<void>(async (resolve) => {
+        Logger.info('웹 서버 구성중...');
+        try {
+            HttpServer().listen(Setting.HTTP_SERVER_PORT, () => {
+                Logger.info(`웹 서버가 포트 ${Setting.HTTP_SERVER_PORT} 으로 시작되었습니다.`);
+                Logger.info(`웹 서버 구성 완료`);
+                resolve();
+            });
+        }
+        catch (err) {
+            Logger.error('웹 서버 구성을 하는 과정에서 오류가 발생했습니다.', err);
+            process.exit(8);
+        }
+    });
+}
+// Cli 구성
 function makeCli(): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
         try {
@@ -196,7 +297,7 @@ function makeCli(): Promise<void> {
                                 break;
                             }
                             default: {
-                                Logger.err('오류: 알 수 없는 명령어입니다.');
+                                Logger.error('오류: 알 수 없는 명령어입니다.');
                                 break;
                             }
                         }
@@ -221,12 +322,15 @@ function makeCli(): Promise<void> {
     });
 }
 
-makeCommandList()
+makeRedisConnection()
+    .then(() => makeCommandList())
     .then(() => makeSlashCommandList())
     .then(() => makeDiscordBotEvents())
     .then(() => makeDiscordBotLogin())
+    .then(() => makeScheduler())
+    .then(() => makeHttpServer())
     .then(() => makeCli())
     .catch(err => {
-        Logger.err(err);
+        Logger.error(err);
         process.exit(100);
     });
