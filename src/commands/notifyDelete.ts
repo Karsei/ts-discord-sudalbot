@@ -1,5 +1,5 @@
 import {
-    CommandInteraction,
+    CommandInteraction, Message,
     MessageActionRow,
     MessageSelectMenu, Permissions,
     SelectMenuInteraction
@@ -52,7 +52,7 @@ module.exports = {
             const locale = values[0], topic = values[1];
             
             await WebhookCache.delUrl(locale, topic, hookUrl);
-            Logger.info(`${interaction.guild}(${interaction.guildId}) - 언어: ${locale}, 카테고리: ${topic} - 소식을 삭제하였습니다.`);
+            Logger.info(`${interaction.guild} (${interaction.guildId}) - 언어: ${locale}, 카테고리: ${topic} - 소식을 삭제하였습니다.`);
             await interaction.editReply({content: '소식 삭제에 성공했어요!', components: []});
         }
         catch (e) {
@@ -129,13 +129,18 @@ module.exports = {
                             .setCustomId('notify-delete').setPlaceholder('선택해주세요')
                             .addOptions(selectRes)
                     );
-                await interaction.editReply({ content: '삭제할 소식을 선택해주세요.', components: [row] });
+                const editedMsg = await interaction.editReply({ content: '삭제할 소식을 선택해주세요.', components: [row] });
+                if (!(editedMsg instanceof Message)) return;
 
                 setTimeout(async () => {
-                    await interaction.editReply({ content: '시간이 꽤 지나서 다시 명령어를 이용해주세요.', components: [] });
-                }, 30000);
+                    const fetchMsg = await interaction.fetchReply();
+                    if (!(fetchMsg instanceof Message)) return;
+                    if (fetchMsg.editedTimestamp != null) return;
+
+                    await interaction.editReply({content: '시간이 꽤 지나서 다시 명령어를 이용해주세요.', components: []});
+                }, 15000);
             } else {
-                await interaction.editReply('존재하는 소식 알림이 없네요!');
+                await interaction.editReply('존재하는 소식 알림이 없어요!');
             }
         }
         catch (e) {

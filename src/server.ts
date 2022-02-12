@@ -35,7 +35,6 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 function init() {
-
     app.get('/authorize', async (req: Request, res: Response) => {
         // https://discord.com/developers/docs/topics/oauth2
         const params = req.query as unknown as BotAuthParams;
