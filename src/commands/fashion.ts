@@ -1,11 +1,10 @@
 import {CommandInteraction,MessageEmbed} from 'discord.js';
-import SnooWrap from 'snoowrap';
 import {SlashCommandBuilder} from '@discordjs/builders';
+import SnooWrap from 'snoowrap';
 import RedditError from '../exceptions/RedditError';
-import Logger from "jet-logger";
+const Logger = require('../libs/logger');
 // Config
-import Setting from "../shared/setting";
-
+import Setting from '../shared/setting';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -46,9 +45,9 @@ module.exports = {
                 await interaction.editReply(e.message);
             } else if (e instanceof Error) {
                 await interaction.editReply('오류가 발생해서 보여드릴 수 없네요.. 잠시 후에 다시 시도해보세요.');
-                Logger.err(e.stack);
+                Logger.error(e.stack);
             } else {
-                Logger.err(e);
+                Logger.error(e);
             }
         }
     },

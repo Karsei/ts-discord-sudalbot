@@ -1,6 +1,7 @@
 import {createClient as RedisCreateClient} from "redis";
-import Setting from "../shared/setting";
-import Logger from "jet-logger";
+const Logger = require('../libs/logger');
+// Config
+import Setting from '../shared/setting';
 
 export default class RedisConnection {
     private static redisCon: any;
@@ -15,8 +16,7 @@ export default class RedisConnection {
         });
 
         await this.redisCon.on('error', (err: any) => {
-            Logger.err('Redis 오류가 발생했습니다.');
-            Logger.err(err);
+            Logger.error('Redis 오류가 발생했습니다.', err);
         });
         await this.redisCon.connect();
     }

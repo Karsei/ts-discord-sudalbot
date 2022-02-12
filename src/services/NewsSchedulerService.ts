@@ -1,6 +1,6 @@
-import NewsWebhookService from "./NewsWebhookService";
-
 const cron = require('node-cron');
+// Service
+import NewsWebhookService from './NewsWebhookService';
 
 class NewsSchedulerService
 {

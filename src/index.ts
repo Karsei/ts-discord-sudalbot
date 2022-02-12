@@ -1,12 +1,12 @@
 import fs from 'fs';
-import util from 'util';
 import readline from 'readline';
 // Discord
 const Discord = require('discord.js');
 import {CommandInteraction, Guild as DiscordGuild, Message, Message as DiscordMessage} from 'discord.js';
 const DiscordRest = require('@discordjs/rest');
 const DiscordTypes = require('discord-api-types/v9');
-import Logger from 'jet-logger';
+// Logger
+const Logger = require('./libs/logger');
 // Redis
 import RedisConnection from './libs/redis';
 // Http Server
@@ -27,7 +27,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // 봇 토큰이 없으면 사용 제한
 if (Setting.DISCORD_BOT_TOKEN === '') {
-    Logger.err('디스코드 봇 API 토큰 정보가 없습니다. 디스코드 개발자 센터에서 먼저 봇 토큰을 발급하고 이용하세요.');
+    Logger.error('디스코드 봇 API 토큰 정보가 없습니다. 디스코드 개발자 센터에서 먼저 봇 토큰을 발급하고 이용하세요.');
     process.exit(1);
 }
 
@@ -52,8 +52,7 @@ function makeRedisConnection(): Promise<void> {
             await RedisConnection.init();
         }
         catch (err) {
-            Logger.err('Redis 에 연결하는 과정에서 오류가 발생했습니다.');
-            Logger.err(err);
+            Logger.error('Redis 에 연결하는 과정에서 오류가 발생했습니다.', err);
             process.exit(2);
         }
         Logger.info(`Redis 연결 완료`);
@@ -78,8 +77,7 @@ function makeCommandList(): Promise<void> {
             }
         }
         catch (err) {
-            Logger.err('명령어 목록을 초기화하는 과정에서 오류가 발생했습니다.');
-            Logger.err(err);
+            Logger.error('명령어 목록을 초기화하는 과정에서 오류가 발생했습니다.', err);
             process.exit(3);
         }
         Logger.info(`명령어 목록 초기화 완료 (총 ${commands.length}개)`);
@@ -97,8 +95,7 @@ function makeSlashCommandList(): Promise<void> {
             );
         }
         catch (err) {
-            Logger.err('슬래시 명령어을 구성하는 과정에서 오류가 발생했습니다.');
-            Logger.err(err);
+            Logger.error('슬래시 명령어을 구성하는 과정에서 오류가 발생했습니다.', err);
             process.exit(4);
         }
         Logger.info(`슬래시 명령어 구성 완료`);
@@ -113,18 +110,18 @@ function makeDiscordBotEvents(): Promise<void> {
             /**
              * [Bot Handlers] Warn
              */
-            discordBot.on('warn', (err: any) => Logger.err(err));
+            discordBot.on('warn', (err: any) => Logger.error(err));
 
             /**
              * [Bot Handlers] Error
              */
-            discordBot.on('error', (err: any) => Logger.err(err));
+            discordBot.on('error', (err: any) => Logger.error(err));
 
             /**
              * [Bot Handlers] 예외 발생
              */
             discordBot.on('uncaughtException', (err: any) => {
-                Logger.err(err);
+                Logger.error(err);
                 process.exit(101);
             });
 
@@ -159,7 +156,7 @@ function makeDiscordBotEvents(): Promise<void> {
                     Logger.info(`${serverName} (${serverId}) - 봇이 추가되었습니다.`);
                 }
                 catch (err) {
-                    Logger.err(err);
+                    Logger.error(err);
                 }
             });
 
@@ -174,7 +171,7 @@ function makeDiscordBotEvents(): Promise<void> {
                     Logger.info(`${serverName} (${serverId}) - 봇이 삭제되었습니다.`);
                 }
                 catch (err) {
-                    Logger.err(err);
+                    Logger.error(err);
                 }
             });
 
@@ -197,7 +194,7 @@ function makeDiscordBotEvents(): Promise<void> {
                         await command.execute(interaction);
                     }
                     catch (commandErr) {
-                        Logger.err(commandErr);
+                        Logger.error(commandErr);
                         await interaction.reply({content: '명령어를 실행하는 과정에서 오류가 발생했어요.'});
                     }
                 }
@@ -214,8 +211,7 @@ function makeDiscordBotEvents(): Promise<void> {
             });
         }
         catch (err) {
-            Logger.err('디스코드 이벤트를 구성하는 과정에서 오류가 발생했습니다.');
-            Logger.err(err);
+            Logger.error('디스코드 이벤트를 구성하는 과정에서 오류가 발생했습니다.', err);
             process.exit(5);
         }
         Logger.info(`디스코드 이벤트 구성 완료`);
@@ -239,8 +235,7 @@ function makeDiscordBotLogin(): Promise<void> {
                 });
         }
         catch (err) {
-            Logger.err('디스코드 봇 로그인을 하는 과정에서 오류가 발생했습니다.');
-            Logger.err(err);
+            Logger.error('디스코드 봇 로그인을 하는 과정에서 오류가 발생했습니다.', err);
             process.exit(6);
         }
     });
@@ -257,8 +252,7 @@ function makeScheduler(): Promise<void> {
             resolve();
         }
         catch (err) {
-            Logger.err('스케줄러 등록을 하는 과정에서 오류가 발생했습니다.');
-            Logger.err(err);
+            Logger.error('스케줄러 등록을 하는 과정에서 오류가 발생했습니다.', err);
             process.exit(7);
         }
     });
@@ -275,8 +269,7 @@ function makeHttpServer(): Promise<void> {
             });
         }
         catch (err) {
-            Logger.err('웹 서버 구성을 하는 과정에서 오류가 발생했습니다.');
-            Logger.err(err);
+            Logger.error('웹 서버 구성을 하는 과정에서 오류가 발생했습니다.', err);
             process.exit(8);
         }
     });
@@ -304,7 +297,7 @@ function makeCli(): Promise<void> {
                                 break;
                             }
                             default: {
-                                Logger.err('오류: 알 수 없는 명령어입니다.');
+                                Logger.error('오류: 알 수 없는 명령어입니다.');
                                 break;
                             }
                         }
@@ -338,6 +331,6 @@ makeRedisConnection()
     .then(() => makeHttpServer())
     .then(() => makeCli())
     .catch(err => {
-        Logger.err(err);
+        Logger.error(err);
         process.exit(100);
     });
