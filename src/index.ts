@@ -1,6 +1,11 @@
 import fs from 'fs';
+import util from 'util';
 import readline from 'readline';
+// Discord
+const Discord = require('discord.js');
 import {CommandInteraction, Guild as DiscordGuild, Message, Message as DiscordMessage} from 'discord.js';
+const DiscordRest = require('@discordjs/rest');
+const DiscordTypes = require('discord-api-types/v9');
 import Logger from 'jet-logger';
 // Redis
 import RedisConnection from './libs/redis';
@@ -11,11 +16,8 @@ import Setting from './shared/setting';
 // @ts-ignore
 import {author, version} from '../package.json';
 
-const Discord = require('discord.js');
-const DiscordRest = require('@discordjs/rest');
-const DiscordTypes = require('discord-api-types/v9');
-
 // # 초기화 -----------------------------------------
+// 시작
 console.log('FFXIV DalDalEE Tool Discord Bot');
 console.log(`Author by. ${author}`);
 console.log(`Version ${version}`);
