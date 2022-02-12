@@ -6,7 +6,7 @@ import {
 } from 'discord.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
 import RedisConnection from '../libs/redis';
-import Logger from 'jet-logger';
+const Logger = require('../libs/logger');
 // Service
 import {WebhookCache} from '../services/NewsWebhookService';
 // Config
@@ -56,14 +56,8 @@ module.exports = {
             await interaction.editReply({content: '소식 삭제에 성공했어요!', components: []});
         }
         catch (e) {
-            Logger.err('소식 삭제 과정에서 오류가 발생했습니다.');
-            if (e instanceof Error) {
-                await interaction.editReply('오류가 발생해서 보여드릴 수 없네요.. 잠시 후에 다시 시도해보세요.');
-                Logger.err(e.stack);
-            } else {
-                Logger.err(e);
-            }
-            console.error(e);
+            Logger.error('소식 삭제 과정에서 오류가 발생했습니다.', e);
+            await interaction.editReply('오류가 발생해서 보여드릴 수 없네요.. 잠시 후에 다시 시도해보세요.');
         }
     },
     async execute(interaction: CommandInteraction) {
@@ -146,9 +140,9 @@ module.exports = {
         catch (e) {
             if (e instanceof Error) {
                 await interaction.editReply('오류가 발생해서 보여드릴 수 없네요.. 잠시 후에 다시 시도해보세요.');
-                Logger.err(e.stack);
+                Logger.error(e.stack);
             } else {
-                Logger.err(e);
+                Logger.error(e);
             }
         }
     },

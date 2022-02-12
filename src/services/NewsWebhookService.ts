@@ -2,7 +2,7 @@ import axios from 'axios';
 import {MessageEmbed} from 'discord.js';
 const PromiseAdv = require('bluebird');
 import RedisConnection from '../libs/redis';
-import Logger from 'jet-logger';
+const Logger = require('../libs/logger');
 // Service
 import NewsArchiveService from "./NewsArchiveService";
 // Config
@@ -243,13 +243,11 @@ export default class NewsWebhookService
                     resolve('success');
                 }).catch(async err => {
                     if (!err) {
-                        Logger.err('오류가 존재하지 않습니다. 다시 재시도합니다.');
+                        Logger.error('오류가 존재하지 않습니다. 다시 재시도합니다.');
                         await WebhookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                         resolve('fail');
                     } else {
-                        Logger.err('소식을 디스코드 서버에 전송하는 과정에서 오류가 발생했습니다. 원인을 분석합니다...');
-                        console.error(err.config);
-                        console.error(err.response);
+                        Logger.error('소식을 디스코드 서버에 전송하는 과정에서 오류가 발생했습니다. 원인을 분석합니다...', err);
 
                         // 정상 요청이 아님
                         if (err.response.status === 400) {
@@ -264,7 +262,7 @@ export default class NewsWebhookService
                                     resolve('fail');
                                 }
                             } else {
-                                Logger.err('something error occured');
+                                Logger.error('something error occured');
                                 await WebhookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                                 resolve('fail');
                             }
@@ -286,13 +284,12 @@ export default class NewsWebhookService
                                     resolve('fail');
                                 }
                             } else {
-                                Logger.err('소식을 보내는 과정에서 알 수 없는 오류가 발생했습니다.');
+                                Logger.error('소식을 보내는 과정에서 알 수 없는 오류가 발생했습니다.');
                                 await WebhookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                                 resolve('fail');
                             }
                             // 그 외
                         } else {
-                            console.error(err);
                             await WebhookCache.addResendItem(pHookUrl, pPost, pLocale, pTypeStr);
                             resolve('fail');
                         }
@@ -337,14 +334,7 @@ export default class NewsWebhookService
 
                     success++;
                 } catch (err) {
-                    Logger.err('최종적으로 재전송이 실패하였습니다.');
-                    if (err instanceof Error) {
-                        Logger.err(err);
-                    }
-                    else {
-                        Logger.err(err);
-                    }
-                    console.log(err);
+                    Logger.error('최종적으로 재전송이 실패하였습니다.', err);
                 }
             }
 
@@ -431,7 +421,7 @@ export class WebhookCache
      */
     static async addId(pData: Array<NewsContent>, pLocale: string, pTypeStr: string) {
         if (!pData) {
-            Logger.err(`There is no post cache.`);
+            Logger.error(`등록할 게시글이 존재하지 않습니다.`);
             return [];
         }
 

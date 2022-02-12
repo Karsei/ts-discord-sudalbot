@@ -1,10 +1,10 @@
 import axios from 'axios';
 import cheerio, {CheerioAPI} from 'cheerio';
 import RedisConnection from '../libs/redis';
-import Logger from "jet-logger";
+const Logger = require('../libs/logger');
 // Config
 import NewsCategories, {NewsCategoryGlobal, NewsCategoryKorea} from '../shared/newsCategories';
-import NewsContent from "../shared/newsContent";
+import NewsContent from '../shared/newsContent';
 import Setting from '../shared/setting';
 
 /**
@@ -28,14 +28,13 @@ export default class NewsArchiveService
                 await NewsCache.setCache(JSON.stringify(data), pType, pLocale);
                 return data;
             } catch (e) {
-                Logger.err('글로벌 소식을 가져오는 과정에서 오류가 발생했습니다.');
-                console.error(e);
-                if (e instanceof Error) {
-                    Logger.err(e);
-                }
-                else {
-                    Logger.err(e);
-                }
+                Logger.error('글로벌 소식을 가져오는 과정에서 오류가 발생했습니다.', e);
+                // if (e instanceof Error) {
+                //     Logger.error(e);
+                // }
+                // else {
+                //     Logger.error(e);
+                // }
                 let data = await NewsCache.getCache(pType, pLocale);
                 return JSON.parse(data);
             }
@@ -71,13 +70,7 @@ export default class NewsArchiveService
                 await NewsCache.setCache(JSON.stringify(data), pType, 'kr');
                 return data;
             } catch (e) {
-                Logger.err('한국 소식을 가져오는 과정에서 오류가 발생했습니다.');
-                if (e instanceof Error) {
-                    Logger.err(e);
-                }
-                else {
-                    Logger.err(e);
-                }
+                Logger.error('한국 소식을 가져오는 과정에서 오류가 발생했습니다.', e);
                 let data = await NewsCache.getCache(pType, 'kr');
                 return JSON.parse(data);
             }
@@ -557,7 +550,7 @@ class NewsParser
                 if (m[1])   list.date.push((m[1] || '').trim());
 
                 if (countBreak > 10) {
-                    Logger.err('something error');
+                    Logger.error('something error');
                     break;
                 }
                 countBreak++;
@@ -573,7 +566,7 @@ class NewsParser
                 if (m[1])   list.content.push((m[1] || '').trim());
 
                 if (countBreak > 10) {
-                    Logger.err('something error');
+                    Logger.error('something error');
                     break;
                 }
                 countBreak++;
