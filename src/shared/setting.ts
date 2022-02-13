@@ -61,7 +61,10 @@ const Setting = {
     REDIS_DB: 0,
 
     // REDIS AUTH
-    REDIS_PASSWORD: ''
+    REDIS_PASSWORD: '',
+
+    // XIVAPI KEY
+    XIVAPI_KEY: '',
 };
 
 export default Setting;
