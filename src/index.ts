@@ -9,6 +9,8 @@ const DiscordTypes = require('discord-api-types/v9');
 const Logger = require('./libs/logger');
 // Redis
 import RedisConnection from './libs/redis';
+// Server task
+import StoreKoreanData from './serverTask/storeKoreanData';
 // Http Server
 import HttpServer from './server';
 // Configs
@@ -59,6 +61,21 @@ function makeRedisConnection(): Promise<void> {
         resolve();
     });
 }
+// 한국어 데이터 조회
+function makeKoreanGameDatas(): Promise<void> {
+    return new Promise<void>(async (resolve) => {
+        Logger.info('한국어 게임 데이터 초기화중...');
+        try {
+            await StoreKoreanData.init();
+        }
+        catch (err) {
+            Logger.error('한국어 게임 데이터를 초기화하는 과정에서 오류가 발생했습니다.', err);
+            process.exit(3);
+        }
+        Logger.info(`한국어 게임 데이터 초기화 완료`);
+        resolve();
+    });
+}
 // 명령어 목록 초기화
 function makeCommandList(): Promise<void> {
     return new Promise<void>(async (resolve) => {
@@ -78,7 +95,7 @@ function makeCommandList(): Promise<void> {
         }
         catch (err) {
             Logger.error('명령어 목록을 초기화하는 과정에서 오류가 발생했습니다.', err);
-            process.exit(3);
+            process.exit(4);
         }
         Logger.info(`명령어 목록 초기화 완료 (총 ${commands.length}개)`);
         resolve();
@@ -96,7 +113,7 @@ function makeSlashCommandList(): Promise<void> {
         }
         catch (err) {
             Logger.error('슬래시 명령어을 구성하는 과정에서 오류가 발생했습니다.', err);
-            process.exit(4);
+            process.exit(5);
         }
         Logger.info(`슬래시 명령어 구성 완료`);
         resolve();
@@ -212,7 +229,7 @@ function makeDiscordBotEvents(): Promise<void> {
         }
         catch (err) {
             Logger.error('디스코드 이벤트를 구성하는 과정에서 오류가 발생했습니다.', err);
-            process.exit(5);
+            process.exit(6);
         }
         Logger.info(`디스코드 이벤트 구성 완료`);
         resolve();
@@ -236,7 +253,7 @@ function makeDiscordBotLogin(): Promise<void> {
         }
         catch (err) {
             Logger.error('디스코드 봇 로그인을 하는 과정에서 오류가 발생했습니다.', err);
-            process.exit(6);
+            process.exit(7);
         }
     });
 }
@@ -253,7 +270,7 @@ function makeScheduler(): Promise<void> {
         }
         catch (err) {
             Logger.error('스케줄러 등록을 하는 과정에서 오류가 발생했습니다.', err);
-            process.exit(7);
+            process.exit(8);
         }
     });
 }
@@ -270,7 +287,7 @@ function makeHttpServer(): Promise<void> {
         }
         catch (err) {
             Logger.error('웹 서버 구성을 하는 과정에서 오류가 발생했습니다.', err);
-            process.exit(8);
+            process.exit(9);
         }
     });
 }
@@ -323,6 +340,7 @@ function makeCli(): Promise<void> {
 }
 
 makeRedisConnection()
+    .then(() => makeKoreanGameDatas())
     .then(() => makeCommandList())
     .then(() => makeSlashCommandList())
     .then(() => makeDiscordBotEvents())
