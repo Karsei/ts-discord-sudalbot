@@ -3,6 +3,8 @@ import {SlashCommandBuilder} from '@discordjs/builders';
 import SnooWrap from 'snoowrap';
 import RedditError from '../exceptions/RedditError';
 const Logger = require('../libs/logger');
+// Task
+import StoreKoreanData from '../serverTask/storeKoreanData';
 // Service
 import XivApiFetchService from '../services/XivApiFetchService';
 // Config
@@ -19,48 +21,77 @@ module.exports = {
                 .setRequired(true)
         ),
     async execute(interaction: CommandInteraction) {
-        const searchWord = interaction.options.getString('이름')?.toLowerCase();
+        const searchWord = interaction.options.getString('이름')?.toLowerCase() || '';
 
         try {
             await interaction.deferReply();
 
-            const constSearchBody: object = {
-                query: {
-                    bool: {
-                        should: [
-                            {
-                                wildcard: {
-                                    'NameCombined_en': `*${searchWord}*`
+            const koreanItems: Array<any> = StoreKoreanData.getItems();
+
+            let searchRes: any;
+            // 글로벌
+            if (!/[가-힣]/gi.test(searchWord)) {
+                const constSearchBody: object = {
+                    query: {
+                        bool: {
+                            should: [
+                                {
+                                    wildcard: {
+                                        'NameCombined_en': `*${searchWord}*`
+                                    }
+                                },
+                                {
+                                    wildcard: {
+                                        'NameCombined_ja': `*${searchWord}*`
+                                    }
+                                },
+                                {
+                                    wildcard: {
+                                        'NameCombined_fr': `*${searchWord}*`
+                                    }
+                                },
+                                {
+                                    wildcard: {
+                                        'NameCombined_de': `*${searchWord}*`
+                                    }
                                 }
-                            },
-                            {
-                                wildcard: {
-                                    'NameCombined_ja': `*${searchWord}*`
-                                }
-                            },
-                            {
-                                wildcard: {
-                                    'NameCombined_fr': `*${searchWord}*`
-                                }
-                            },
-                            {
-                                wildcard: {
-                                    'NameCombined_de': `*${searchWord}*`
-                                }
-                            }
-                        ]
-                    }
-                },
-                from: 0
-            };
-            const searchRes = await XivApiFetchService.fetchElasticSearch('instantcontent', constSearchBody, 'ID,Name');
-            if (!searchRes.hasOwnProperty('data') || !searchRes.data.hasOwnProperty('Results')) {
-                await interaction.editReply('정보를 불러오는 과정에서 오류가 발생했어요!');
-                return;
+                            ]
+                        }
+                    },
+                    from: 0
+                };
+                searchRes = await XivApiFetchService.fetchElasticSearch('instantcontent', constSearchBody, 'ID,Name');
+                if (!searchRes.hasOwnProperty('data') || !searchRes.data.hasOwnProperty('Results')) {
+                    await interaction.editReply('정보를 불러오는 과정에서 오류가 발생했어요!');
+                    return;
+                }
+                if (Array.isArray(searchRes.data.Results) && searchRes.data.Results.length <= 0) {
+                    await interaction.editReply('데이터를 발견하지 못했어요!');
+                    return;
+                }
             }
-            if (Array.isArray(searchRes.data.Results) && searchRes.data.Results.length <= 0) {
-                await interaction.editReply('데이터를 발견하지 못했어요!');
-                return;
+            else {
+                // 데이터 초기화
+                searchRes = {
+                    data: {
+                        Pagination: {
+                            ResultsTotal: 0
+                        },
+                        Results: [],
+                    }
+                }
+
+                // 이름을 찾는다.
+                for (const item of koreanItems) {
+                    const _name = item.Name ? item.Name.toLowerCase() : '';
+                    if (_name.toLowerCase().includes(searchWord)) {
+                        searchRes.data.Results.push({
+                            ID: item['#'],
+                            Name: item.Name,
+                        });
+                    }
+                }
+                searchRes.data.Pagination.ResultsTotal = searchRes.data.Results.length;
             }
 
             const pagination = searchRes.data.Pagination;
@@ -70,6 +101,7 @@ module.exports = {
             if (results.length > 1 && results[0].Name.toLowerCase() !== searchWord) {
                 let itmListstr = '';
                 for (let itmIdx = 0, itmLen = results.length; itmIdx < itmLen; itmIdx++) {
+                    if (itmIdx > 9) break;
                     if (itmListstr.length > 0) itmListstr += "\n";
                     itmListstr += `${itmIdx + 1}. ${results[itmIdx].Name}`;
                 }
@@ -94,19 +126,46 @@ module.exports = {
                 }
 
                 const itemDetail = itemRes.data;
+
+                const koreanData = {
+                    name: '(알 수 없음)',
+                };
+                const filtered = {
+                    name: itemDetail.Name,
+                    desc: itemDetail.Description.replace(/(\r\n\t|\n|\r\t)/gm, " "),
+                    itemUiCategoryName: itemDetail.ItemUICategory.Name,
+                };
+
+                // 한국어 관련
+                // 아이템
+                if (koreanItems.hasOwnProperty(results[0].ID)) {
+                    if (koreanItems[results[0].ID].Name && koreanItems[results[0].ID].Name.length > 0) {
+                        koreanData.name = koreanItems[results[0].ID].Name;
+                        filtered.name = koreanItems[results[0].ID].Name;
+                    }
+                    if (koreanItems[results[0].ID].Description && koreanItems[results[0].ID].Description.length > 0) {
+                        filtered.desc = koreanItems[results[0].ID].Description;
+                    }
+
+                    const koreanItemUiCategory: Array<any> = StoreKoreanData.getItemUiCategories();
+                    if (koreanItemUiCategory.hasOwnProperty(itemDetail.ItemUICategory.ID)) {
+                        filtered.itemUiCategoryName = koreanItemUiCategory[itemDetail.ItemUICategory.ID].Name;
+                    }
+                }
+
                 embedMsg = new MessageEmbed()
                     .setColor('#0099ff')
-                    .setTitle(itemDetail.Name)
-                    .setDescription(itemDetail.Description.replace(/(\r\n\t|\n|\r\t)/gm, " "))
+                    .setTitle(filtered.name)
+                    .setDescription(filtered.desc)
                     .addFields(
-                        { name: `아이템 이름`, value: `:flag_us: 영어: ${itemDetail.Name_en}\n:flag_jp: 일본어: ${itemDetail.Name_ja}\n:flag_kr: 한국어: (null)\n:flag_de: 독일어: ${itemDetail.Name_de}\n:flag_fr: 프랑스어: ${itemDetail.Name_fr}` },
+                        { name: `아이템 이름`, value: `:flag_us: 영어: ${itemDetail.Name_en}\n:flag_jp: 일본어: ${itemDetail.Name_ja}\n:flag_kr: 한국어: ${koreanData.name}\n:flag_de: 독일어: ${itemDetail.Name_de}\n:flag_fr: 프랑스어: ${itemDetail.Name_fr}` },
                         { name: `아이템 레벨`, value: `${itemDetail.LevelItem}`, inline: true },
                         { name: `출시 버전`, value: `v${itemDetail.GamePatch.Version}`, inline: true },
                         { name: `고유번호`, value: `${itemDetail.ID}`, inline: true },
-                        { name: `종류`, value: itemDetail.ItemUICategory.Name, inline: true },
+                        { name: `종류`, value: filtered.itemUiCategoryName, inline: true },
                         { name: `아이템 분해`, value: itemDetail.Desynth === 0 ? '불가' : '가능', inline: true },
                         { name: `아이템 정제`, value: itemDetail.IsCollectable === 0 ? '불가' : '가능', inline: true },
-                        { name: `DB 링크`, value: `[Lodestone](https://na.finalfantasyxiv.com/lodestone/playguide/db/search/?q=${itemDetail.Name_en.replace(' ', '+')})` +
+                        { name: `DB 링크`, value: `[Lodestone](https://na.finalfantasyxiv.com/lodestone/playguide/db/search/?q=${itemDetail.Name_en.replace(/ /gm, '+')})` +
                                 `\n[Garland Tools](https://www.garlandtools.org/db/#item/${itemDetail.ID})` +
                                 `\n[Teamcraft](https://ffxivteamcraft.com/db/ko/item/${itemDetail.ID})` +
                                 `\n[타르토맛 타르트](https://ff14.tar.to/item/view/${itemDetail.ID})` +
