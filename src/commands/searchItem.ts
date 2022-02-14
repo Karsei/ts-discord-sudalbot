@@ -1,10 +1,9 @@
 import {CommandInteraction,MessageEmbed} from 'discord.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
-import SnooWrap from 'snoowrap';
 import RedditError from '../exceptions/RedditError';
 const Logger = require('../libs/logger');
 // Task
-import StoreKoreanData from '../serverTask/storeKoreanData';
+import StoreKoreanData, {GameContentCache} from '../serverTask/storeKoreanData';
 // Service
 import XivApiFetchService from '../services/XivApiFetchService';
 // Config
@@ -26,7 +25,7 @@ module.exports = {
         try {
             await interaction.deferReply();
 
-            const koreanItems: Array<any> = StoreKoreanData.getItems();
+            // const koreanItems: Array<any> = StoreKoreanData.getItems();
 
             let searchRes: any;
             // 글로벌
@@ -82,12 +81,13 @@ module.exports = {
                 }
 
                 // 이름을 찾는다.
-                for (const item of koreanItems) {
-                    const _name = item.Name ? item.Name.toLowerCase() : '';
-                    if (_name.toLowerCase().includes(searchWord)) {
+                const kNames: any = await StoreKoreanData.getItems();
+                for (const itemIdx of Object.keys(kNames)) {
+                    const item = kNames[itemIdx];
+                    if (item.Name.toLowerCase().includes(searchWord)) {
                         searchRes.data.Results.push({
-                            ID: item['#'],
                             Name: item.Name,
+                            ID: item.ID,
                         });
                     }
                 }
@@ -138,18 +138,21 @@ module.exports = {
 
                 // 한국어 관련
                 // 아이템
-                if (koreanItems.hasOwnProperty(results[0].ID)) {
-                    if (koreanItems[results[0].ID].Name && koreanItems[results[0].ID].Name.length > 0) {
-                        koreanData.name = koreanItems[results[0].ID].Name;
-                        filtered.name = koreanItems[results[0].ID].Name;
+                const koreanItemFetch = await GameContentCache.getItems(results[0].ID);
+                if (koreanItemFetch) {
+                    const itemParsed = JSON.parse(koreanItemFetch);
+                    if (itemParsed.Name && itemParsed.Name.length > 0) {
+                        koreanData.name = itemParsed.Name;
+                        filtered.name = itemParsed.Name;
                     }
-                    if (koreanItems[results[0].ID].Description && koreanItems[results[0].ID].Description.length > 0) {
-                        filtered.desc = koreanItems[results[0].ID].Description;
+                    if (itemParsed.Description && itemParsed.Description.length > 0) {
+                        filtered.desc = itemParsed.Description;
                     }
 
-                    const koreanItemUiCategory: Array<any> = StoreKoreanData.getItemUiCategories();
-                    if (koreanItemUiCategory.hasOwnProperty(itemDetail.ItemUICategory.ID)) {
-                        filtered.itemUiCategoryName = koreanItemUiCategory[itemDetail.ItemUICategory.ID].Name;
+                    const koreanItemUiCategory = await GameContentCache.getItemUiCategories(itemDetail.ItemUICategory.ID);
+                    if (koreanItemUiCategory) {
+                        const itemUiParsed = JSON.parse(koreanItemUiCategory);
+                        filtered.itemUiCategoryName = itemUiParsed.Name;
                     }
                 }
 
