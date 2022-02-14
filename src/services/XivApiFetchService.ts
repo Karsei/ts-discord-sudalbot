@@ -1,4 +1,5 @@
 const axios = require('axios');
+import RedisConnection from '../libs/redis';
 // Config
 import Setting from '../shared/setting';
 
