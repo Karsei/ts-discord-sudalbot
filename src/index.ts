@@ -9,8 +9,6 @@ const DiscordTypes = require('discord-api-types/v9');
 const Logger = require('./libs/logger');
 // Redis
 import RedisConnection from './libs/redis';
-// Server task
-import StoreKoreanData from './serverTask/storeKoreanData';
 // Http Server
 import HttpServer from './server';
 // Configs
@@ -66,7 +64,7 @@ function makeKoreanGameDatas(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('한국어 게임 데이터 초기화중...');
         try {
-            await StoreKoreanData.init();
+            await require('./serverTask/storeKoreanData').default.init();
         }
         catch (err) {
             Logger.error('한국어 게임 데이터를 초기화하는 과정에서 오류가 발생했습니다.', err);
