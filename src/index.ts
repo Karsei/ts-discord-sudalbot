@@ -7,6 +7,8 @@ const DiscordRest = require('@discordjs/rest');
 const DiscordTypes = require('discord-api-types/v9');
 // Logger
 const Logger = require('./libs/logger');
+// MariaDb
+import MariaDbConnection from './libs/mariadb';
 // Redis
 import RedisConnection from './libs/redis';
 // Http Server
@@ -44,6 +46,21 @@ const discordRestBot = new DiscordRest.REST({ version: '9'}).setToken(Setting.DI
 discordBot.commands = new Discord.Collection();
 const commands: any = [];
 
+// MariaDB 연결 구성
+function makeMariaDbConnection(): Promise<void> {
+    return new Promise<void>(async (resolve) => {
+        Logger.info('MariaDb 연결중...');
+        try {
+            await MariaDbConnection.init();
+        }
+        catch (err) {
+            Logger.error('MariaDb 에 연결하는 과정에서 오류가 발생했습니다.', err);
+            process.exit(2);
+        }
+        Logger.info(`MariaDb 연결 완료`);
+        resolve();
+    });
+}
 // Redis 연결 구성
 function makeRedisConnection(): Promise<void> {
     return new Promise<void>(async (resolve) => {
@@ -53,7 +70,7 @@ function makeRedisConnection(): Promise<void> {
         }
         catch (err) {
             Logger.error('Redis 에 연결하는 과정에서 오류가 발생했습니다.', err);
-            process.exit(2);
+            process.exit(3);
         }
         Logger.info(`Redis 연결 완료`);
         resolve();
@@ -78,7 +95,7 @@ function makeCommandList(): Promise<void> {
         }
         catch (err) {
             Logger.error('명령어 목록을 초기화하는 과정에서 오류가 발생했습니다.', err);
-            process.exit(3);
+            process.exit(4);
         }
         Logger.info(`명령어 목록 초기화 완료 (총 ${commands.length}개)`);
         resolve();
@@ -96,7 +113,7 @@ function makeSlashCommandList(): Promise<void> {
         }
         catch (err) {
             Logger.error('슬래시 명령어을 구성하는 과정에서 오류가 발생했습니다.', err);
-            process.exit(4);
+            process.exit(5);
         }
         Logger.info(`슬래시 명령어 구성 완료`);
         resolve();
@@ -212,7 +229,7 @@ function makeDiscordBotEvents(): Promise<void> {
         }
         catch (err) {
             Logger.error('디스코드 이벤트를 구성하는 과정에서 오류가 발생했습니다.', err);
-            process.exit(5);
+            process.exit(6);
         }
         Logger.info(`디스코드 이벤트 구성 완료`);
         resolve();
@@ -236,7 +253,7 @@ function makeDiscordBotLogin(): Promise<void> {
         }
         catch (err) {
             Logger.error('디스코드 봇 로그인을 하는 과정에서 오류가 발생했습니다.', err);
-            process.exit(6);
+            process.exit(7);
         }
     });
 }
@@ -253,7 +270,7 @@ function makeScheduler(): Promise<void> {
         }
         catch (err) {
             Logger.error('스케줄러 등록을 하는 과정에서 오류가 발생했습니다.', err);
-            process.exit(7);
+            process.exit(8);
         }
     });
 }
@@ -270,7 +287,7 @@ function makeHttpServer(): Promise<void> {
         }
         catch (err) {
             Logger.error('웹 서버 구성을 하는 과정에서 오류가 발생했습니다.', err);
-            process.exit(8);
+            process.exit(9);
         }
     });
 }
@@ -322,7 +339,8 @@ function makeCli(): Promise<void> {
     });
 }
 
-makeRedisConnection()
+makeMariaDbConnection()
+    .then(() => makeRedisConnection())
     .then(() => makeCommandList())
     .then(() => makeSlashCommandList())
     .then(() => makeDiscordBotEvents())

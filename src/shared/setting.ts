@@ -61,7 +61,28 @@ const Setting = {
     REDIS_DB: 0,
 
     // REDIS AUTH
-    REDIS_PASSWORD: ''
+    REDIS_PASSWORD: '',
+
+    // XIVAPI KEY
+    XIVAPI_KEY: '',
+
+    // MariaDb Host
+    MARIADB_HOST: '127.0.0.1',
+
+    // MariaDb Port
+    MARIADB_PORT: 3306,
+
+    // MariaDb Database
+    MARIADB_DATABASE: '',
+
+    // MariaDb User
+    MARIADB_USER: '',
+
+    // MariaDb Password
+    MARIADB_PASSWORD: '',
+
+    // MariaDb Connection Limit
+    MARIADB_CONNECTION_LIMIT: 5,
 };
 
 export default Setting;
