@@ -7,6 +7,8 @@ const DiscordRest = require('@discordjs/rest');
 const DiscordTypes = require('discord-api-types/v9');
 // Logger
 const Logger = require('./libs/logger');
+// MariaDb
+import MariaDbConnection from './libs/mariadb';
 // Redis
 import RedisConnection from './libs/redis';
 // Http Server
@@ -44,6 +46,21 @@ const discordRestBot = new DiscordRest.REST({ version: '9'}).setToken(Setting.DI
 discordBot.commands = new Discord.Collection();
 const commands: any = [];
 
+// MariaDB 연결 구성
+function makeMariaDbConnection(): Promise<void> {
+    return new Promise<void>(async (resolve) => {
+        Logger.info('MariaDb 연결중...');
+        try {
+            await MariaDbConnection.init();
+        }
+        catch (err) {
+            Logger.error('MariaDb 에 연결하는 과정에서 오류가 발생했습니다.', err);
+            process.exit(2);
+        }
+        Logger.info(`MariaDb 연결 완료`);
+        resolve();
+    });
+}
 // Redis 연결 구성
 function makeRedisConnection(): Promise<void> {
     return new Promise<void>(async (resolve) => {
@@ -53,7 +70,7 @@ function makeRedisConnection(): Promise<void> {
         }
         catch (err) {
             Logger.error('Redis 에 연결하는 과정에서 오류가 발생했습니다.', err);
-            process.exit(2);
+            process.exit(3);
         }
         Logger.info(`Redis 연결 완료`);
         resolve();
@@ -64,7 +81,7 @@ function makeKoreanGameDatas(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('한국어 게임 데이터 초기화중...');
         try {
-            await require('./serverTask/storeKoreanData').default.init();
+            //await require('./serverTask/storeKoreanData').default.init();
         }
         catch (err) {
             Logger.error('한국어 게임 데이터를 초기화하는 과정에서 오류가 발생했습니다.', err);
@@ -337,7 +354,8 @@ function makeCli(): Promise<void> {
     });
 }
 
-makeRedisConnection()
+makeMariaDbConnection()
+    .then(() => makeRedisConnection())
     .then(() => makeKoreanGameDatas())
     .then(() => makeCommandList())
     .then(() => makeSlashCommandList())
