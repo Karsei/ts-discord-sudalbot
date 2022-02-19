@@ -76,6 +76,21 @@ function makeRedisConnection(): Promise<void> {
         resolve();
     });
 }
+// 한국어 데이터 조회
+function makeKoreanGameDatas(): Promise<void> {
+    return new Promise<void>(async (resolve) => {
+        Logger.info('한국어 게임 데이터 초기화중...');
+        try {
+            //await require('./serverTask/storeKoreanData').default.init();
+        }
+        catch (err) {
+            Logger.error('한국어 게임 데이터를 초기화하는 과정에서 오류가 발생했습니다.', err);
+            process.exit(3);
+        }
+        Logger.info(`한국어 게임 데이터 초기화 완료`);
+        resolve();
+    });
+}
 // 명령어 목록 초기화
 function makeCommandList(): Promise<void> {
     return new Promise<void>(async (resolve) => {
@@ -341,6 +356,7 @@ function makeCli(): Promise<void> {
 
 makeMariaDbConnection()
     .then(() => makeRedisConnection())
+    .then(() => makeKoreanGameDatas())
     .then(() => makeCommandList())
     .then(() => makeSlashCommandList())
     .then(() => makeDiscordBotEvents())
