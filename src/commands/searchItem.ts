@@ -3,8 +3,9 @@ import {SlashCommandBuilder} from '@discordjs/builders';
 import RedditError from '../exceptions/RedditError';
 const Logger = require('../libs/logger');
 // Task
-import StoreKoreanData, {GameContentCache} from '../serverTask/storeKoreanData';
+import {GameContentDb} from '../serverTask/storeKoreanData';
 // Service
+import GuideItemFetcher from '../services/FfxivKoreanGuideService';
 import XivApiFetchService from '../services/XivApiFetchService';
 // Config
 import Setting from '../shared/setting';
@@ -24,8 +25,6 @@ module.exports = {
 
         try {
             await interaction.deferReply();
-
-            // const koreanItems: Array<any> = StoreKoreanData.getItems();
 
             let searchRes: any;
             // 글로벌
@@ -81,17 +80,23 @@ module.exports = {
                 }
 
                 // 이름을 찾는다.
-                const kNames: any = await StoreKoreanData.getItems();
+                const kNames: any = await GameContentDb.getItemByName('kr', searchWord);
                 for (const itemIdx of Object.keys(kNames)) {
+                    if (itemIdx == 'meta') continue;
                     const item = kNames[itemIdx];
-                    if (item.Name.toLowerCase().includes(searchWord)) {
+                    if (item.name.toLowerCase().includes(searchWord)) {
                         searchRes.data.Results.push({
-                            Name: item.Name,
-                            ID: item.ID,
+                            Name: item.name,
+                            ID: item.idx,
                         });
                     }
                 }
                 searchRes.data.Pagination.ResultsTotal = searchRes.data.Results.length;
+
+                if (Array.isArray(searchRes.data.Results) && searchRes.data.Results.length <= 0) {
+                    await interaction.editReply('데이터를 발견하지 못했어요!');
+                    return;
+                }
             }
 
             const pagination = searchRes.data.Pagination;
@@ -138,9 +143,9 @@ module.exports = {
 
                 // 한국어 관련
                 // 아이템
-                const koreanItemFetch = await GameContentCache.getItems(results[0].ID);
-                if (koreanItemFetch) {
-                    const itemParsed = JSON.parse(koreanItemFetch);
+                const koreanItemFetch = await GameContentDb.getItemByIdx('kr', results[0].ID);
+                if (koreanItemFetch && koreanItemFetch.length > 0) {
+                    const itemParsed = JSON.parse(koreanItemFetch[0].content);
                     if (itemParsed.Name && itemParsed.Name.length > 0) {
                         koreanData.name = itemParsed.Name;
                         filtered.name = itemParsed.Name;
@@ -149,12 +154,30 @@ module.exports = {
                         filtered.desc = itemParsed.Description;
                     }
 
-                    const koreanItemUiCategory = await GameContentCache.getItemUiCategories(itemDetail.ItemUICategory.ID);
-                    if (koreanItemUiCategory) {
-                        const itemUiParsed = JSON.parse(koreanItemUiCategory);
+                    const koreanItemUiCategory = await GameContentDb.getItemUiCategory('kr', itemDetail.ItemUICategory.ID);
+                    if (koreanItemUiCategory && koreanItemUiCategory.length > 0) {
+                        const itemUiParsed = JSON.parse(koreanItemUiCategory[0].content);
                         filtered.itemUiCategoryName = itemUiParsed.Name;
                     }
                 }
+                let koreaDbLink = '';
+                try {
+                    koreaDbLink = await GuideItemFetcher.searchItemUrl(koreanData.name);
+                }
+                catch (ee) {
+                    console.error(ee);
+                }
+
+                let dbLinks = `[FF14 글로벌 공식 DB](https://na.finalfantasyxiv.com/lodestone/playguide/db/search/?q=${itemDetail.Name_en.replace(/ /gm, '+')})` +
+                    (koreaDbLink != '' ? `\n[FF14 한국 공식 DB](${koreaDbLink})` : '') +
+                    `\n[Garland Tools](https://www.garlandtools.org/db/#item/${itemDetail.ID})` +
+                    `\n[Teamcraft](https://ffxivteamcraft.com/db/ko/item/${itemDetail.ID})` +
+                    `\n[XIVAPI](https://xivapi.com/item/${itemDetail.ID})` +
+                    `\n[타르토맛 타르트](https://ff14.tar.to/item/view/${itemDetail.ID})` +
+                    `\n[Project Anyder](https://anyder.vercel.app/item/${itemDetail.ID})` +
+                    `\n[Gamerescape](https://ffxiv.gamerescape.com/wiki/${itemDetail.Name_en.replace(/ /gm, "_")})` +
+                    `\n[Web Model Viewer](https://ffxiv.dlunch.net/model?itemId=${itemDetail.ID}&language=7)` +
+                    `\n[FF14 인벤](https://ff14.inven.co.kr/dataninfo/item/detail.php?code=${itemDetail.ID})`;
 
                 embedMsg = new MessageEmbed()
                     .setColor('#0099ff')
@@ -168,14 +191,7 @@ module.exports = {
                         { name: `종류`, value: filtered.itemUiCategoryName, inline: true },
                         { name: `아이템 분해`, value: itemDetail.Desynth === 0 ? '불가' : '가능', inline: true },
                         { name: `아이템 정제`, value: itemDetail.IsCollectable === 0 ? '불가' : '가능', inline: true },
-                        { name: `DB 링크`, value: `[Lodestone](https://na.finalfantasyxiv.com/lodestone/playguide/db/search/?q=${itemDetail.Name_en.replace(/ /gm, '+')})` +
-                                `\n[Garland Tools](https://www.garlandtools.org/db/#item/${itemDetail.ID})` +
-                                `\n[Teamcraft](https://ffxivteamcraft.com/db/ko/item/${itemDetail.ID})` +
-                                `\n[타르토맛 타르트](https://ff14.tar.to/item/view/${itemDetail.ID})` +
-                                `\n[Project Anyder](https://anyder.vercel.app/item/${itemDetail.ID})` +
-                                `\n[Gamerescape](https://ffxiv.gamerescape.com/wiki/${itemDetail.Name_en.replace(/ /gm, "_")})` +
-                                `\n[FF14 인벤](https://ff14.inven.co.kr/dataninfo/item/detail.php?code=${itemDetail.ID})`
-                        },
+                        { name: `DB 링크`, value: dbLinks },
                     )
                     .setThumbnail(`https://xivapi.com${itemDetail.IconHD}`)
                     .setTimestamp()
