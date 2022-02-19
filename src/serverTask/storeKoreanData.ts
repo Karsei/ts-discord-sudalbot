@@ -1,5 +1,4 @@
-import RedisConnection from "../libs/redis";
-
+import MariaDbConnection from '../libs/mariadb';
 const axios = require('axios');
 const cliProgress = require('cli-progress');
 
@@ -8,9 +7,6 @@ const Logger = require('../libs/logger');
 
 export default class StoreKoreanData
 {
-    private static items: any = {};
-    //private static itemUiCategories: Array<object>;
-
     private static async fetchCsv(pName: string) {
         return axios.get(`https://raw.githubusercontent.com/Ra-Workspace/ffxiv-datamining-ko/master/csv/${pName}.csv`);
     }
@@ -78,12 +74,7 @@ export default class StoreKoreanData
         for (let dataIdx = 0, dataTotal = itemRes.length; dataIdx < dataTotal; dataIdx++) {
             let csvItem = itemRes[dataIdx];
             if (csvItem.hasOwnProperty('_')) delete csvItem['_'];
-            await GameContentCache.addItems(dataIdx, JSON.stringify(csvItem));
-            this.items[csvItem['#']] = {
-                ID: csvItem['#'],
-                Name: csvItem.Name,
-                Description: csvItem.Description,
-            };
+            await GameContentDb.addItem('kr', csvItem);
             bItem.increment();
         }
         bItem.stop();
@@ -95,7 +86,7 @@ export default class StoreKoreanData
         for (let dataIdx = 0, dataTotal = itemUiCategoryRes.length; dataIdx < dataTotal; dataIdx++) {
             const csvItem = itemUiCategoryRes[dataIdx];
             if (csvItem.hasOwnProperty('_')) delete csvItem['_'];
-            await GameContentCache.addItemUiCategories(dataIdx, JSON.stringify(csvItem));
+            await GameContentDb.addItemUiCategories('kr', csvItem);
             bItemUiCategory.increment();
         }
         bItemUiCategory.stop();
@@ -116,29 +107,31 @@ export default class StoreKoreanData
 
         return data;
     }
-
-    static getItems() {
-        return this.items;
-    }
 }
 
-export class GameContentCache
+export class GameContentDb
 {
-    private static redisCon: any = RedisConnection.instance();
+    private static dbCon: any = MariaDbConnection.instance();
 
-    static async addItems(pKey: number, pData: string) {
-        return await this.redisCon.hSet(`gamecontents-item`, pKey, pData);
+    static async addItem(pLang: string, pData: any) {
+        const pLangIdx = pLang == 'kr' ? 1 : 0;
+        return await this.dbCon.query(`INSERT INTO g_item (version_seqno, idx, name, content) VALUES (?, ?, ?, ?)`, [pLangIdx, pData['#'], pData.Name, JSON.stringify(pData)]);
     }
 
-    static async getItems(pKey: number) {
-        return await this.redisCon.hGet(`gamecontents-item`, pKey);
+    static async getItemByIdx(pLang: string, pKey: number) {
+        return await this.dbCon.query(`SELECT item.idx, item.name, item.content FROM g_item item INNER JOIN g_version version ON version.seqno = item.version_seqno WHERE 1=1 AND version.lang = ? AND item.idx = ?`, [pLang, pKey]);
     }
 
-    static async addItemUiCategories(pKey: number, pData: string) {
-        return await this.redisCon.hSet(`gamecontents-itemuicategory`, pKey, pData);
+    static async getItemByName(pLang: string, pName: string) {
+        return await this.dbCon.query(`SELECT item.idx, item.name, item.content FROM g_item item INNER JOIN g_version version ON version.seqno = item.version_seqno WHERE 1=1 AND version.lang = ? AND item.name LIKE ?`, [pLang, `%${pName}%`]);
     }
 
-    static async getItemUiCategories(pKey: number) {
-        return await this.redisCon.hGet(`gamecontents-itemuicategory`, pKey);
+    static async addItemUiCategories(pLang: string, pData: any) {
+        const pLangIdx = pLang == 'kr' ? 1 : 0;
+        return await this.dbCon.query(`INSERT INTO g_itemuicategories (version_seqno, idx, name, content) VALUES (?, ?, ?, ?)`, [pLangIdx, pData['#'], pData.Name, JSON.stringify(pData)]);
+    }
+
+    static async getItemUiCategory(pLang: string, pKey: number) {
+        return await this.dbCon.query(`SELECT itemui.idx, itemui.name, itemui.content FROM g_itemuicategories itemui INNER JOIN g_version version ON version.seqno = itemui.version_seqno WHERE 1=1 AND version.lang = ? AND itemui.idx = ?`, [pLang, pKey]);
     }
 }
