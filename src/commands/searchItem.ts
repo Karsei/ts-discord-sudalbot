@@ -5,6 +5,7 @@ const Logger = require('../libs/logger');
 // Task
 import {GameContentDb} from '../serverTask/storeKoreanData';
 // Service
+import GuideItemFetcher from '../services/FfxivKoreanGuideService';
 import XivApiFetchService from '../services/XivApiFetchService';
 // Config
 import Setting from '../shared/setting';
@@ -91,6 +92,11 @@ module.exports = {
                     }
                 }
                 searchRes.data.Pagination.ResultsTotal = searchRes.data.Results.length;
+
+                if (Array.isArray(searchRes.data.Results) && searchRes.data.Results.length <= 0) {
+                    await interaction.editReply('데이터를 발견하지 못했어요!');
+                    return;
+                }
             }
 
             const pagination = searchRes.data.Pagination;
@@ -154,6 +160,24 @@ module.exports = {
                         filtered.itemUiCategoryName = itemUiParsed.Name;
                     }
                 }
+                let koreaDbLink = '';
+                try {
+                    koreaDbLink = await GuideItemFetcher.searchItemUrl(koreanData.name);
+                }
+                catch (ee) {
+                    console.error(ee);
+                }
+
+                let dbLinks = `[FF14 글로벌 공식 DB](https://na.finalfantasyxiv.com/lodestone/playguide/db/search/?q=${itemDetail.Name_en.replace(/ /gm, '+')})` +
+                    (koreaDbLink != '' ? `\n[FF14 한국 공식 DB](${koreaDbLink})` : '') +
+                    `\n[Garland Tools](https://www.garlandtools.org/db/#item/${itemDetail.ID})` +
+                    `\n[Teamcraft](https://ffxivteamcraft.com/db/ko/item/${itemDetail.ID})` +
+                    `\n[XIVAPI](https://xivapi.com/item/${itemDetail.ID})` +
+                    `\n[타르토맛 타르트](https://ff14.tar.to/item/view/${itemDetail.ID})` +
+                    `\n[Project Anyder](https://anyder.vercel.app/item/${itemDetail.ID})` +
+                    `\n[Gamerescape](https://ffxiv.gamerescape.com/wiki/${itemDetail.Name_en.replace(/ /gm, "_")})` +
+                    `\n[Web Model Viewer](https://ffxiv.dlunch.net/model?itemId=${itemDetail.ID}&language=7)` +
+                    `\n[FF14 인벤](https://ff14.inven.co.kr/dataninfo/item/detail.php?code=${itemDetail.ID})`;
 
                 embedMsg = new MessageEmbed()
                     .setColor('#0099ff')
@@ -167,16 +191,7 @@ module.exports = {
                         { name: `종류`, value: filtered.itemUiCategoryName, inline: true },
                         { name: `아이템 분해`, value: itemDetail.Desynth === 0 ? '불가' : '가능', inline: true },
                         { name: `아이템 정제`, value: itemDetail.IsCollectable === 0 ? '불가' : '가능', inline: true },
-                        { name: `DB 링크`, value: `[FF14 글로벌 공식 DB](https://na.finalfantasyxiv.com/lodestone/playguide/db/search/?q=${itemDetail.Name_en.replace(/ /gm, '+')})` +
-                                `\n[Garland Tools](https://www.garlandtools.org/db/#item/${itemDetail.ID})` +
-                                `\n[Teamcraft](https://ffxivteamcraft.com/db/ko/item/${itemDetail.ID})` +
-                                `\n[XIVAPI](https://xivapi.com/item/${itemDetail.ID})` +
-                                `\n[타르토맛 타르트](https://ff14.tar.to/item/view/${itemDetail.ID})` +
-                                `\n[Project Anyder](https://anyder.vercel.app/item/${itemDetail.ID})` +
-                                `\n[Gamerescape](https://ffxiv.gamerescape.com/wiki/${itemDetail.Name_en.replace(/ /gm, "_")})` +
-                                `\n[Web Model Viewer](https://ffxiv.dlunch.net/model?itemId=${itemDetail.ID}&language=7)` +
-                                `\n[FF14 인벤](https://ff14.inven.co.kr/dataninfo/item/detail.php?code=${itemDetail.ID})`
-                        },
+                        { name: `DB 링크`, value: dbLinks },
                     )
                     .setThumbnail(`https://xivapi.com${itemDetail.IconHD}`)
                     .setTimestamp()
