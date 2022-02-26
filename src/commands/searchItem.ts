@@ -184,7 +184,7 @@ module.exports = {
                     .setTitle(filtered.name)
                     .setDescription(filtered.desc)
                     .addFields(
-                        { name: `아이템 이름`, value: `:flag_us: 영어: ${itemDetail.Name_en}\n:flag_jp: 일본어: ${itemDetail.Name_ja}\n:flag_kr: 한국어: ${koreanData.name}\n:flag_de: 독일어: ${itemDetail.Name_de}\n:flag_fr: 프랑스어: ${itemDetail.Name_fr}` },
+                        { name: `아이템 이름`, value: `:flag_us: ${itemDetail.Name_en}\n:flag_jp: ${itemDetail.Name_ja}\n:flag_kr: ${koreanData.name}\n:flag_de: ${itemDetail.Name_de}\n:flag_fr: ${itemDetail.Name_fr}` },
                         { name: `아이템 레벨`, value: `${itemDetail.LevelItem}`, inline: true },
                         { name: `출시 버전`, value: `v${itemDetail.GamePatch.Version}`, inline: true },
                         { name: `고유번호`, value: `${itemDetail.ID}`, inline: true },
