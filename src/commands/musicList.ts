@@ -25,7 +25,7 @@ module.exports = {
             for (const song of queue.songs) {
                 if (idx >= 11) break;
                 if (queueStr.length > 0) queueStr += "\n";
-                queueStr += `${idx}. ${song.name}`;
+                queueStr += `${idx++}. ${song.name}`;
             }
             const embedMsg: MessageEmbed = new MessageEmbed()
                 .setColor('#eb8634')
