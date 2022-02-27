@@ -3,158 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="파이널판타지 14 공식 홈페이지 소식과 FFlogs 조회 등 디스코드 봇에서 실시간으로 조회해보세요!">
+    <meta name="author" content="Karsei">
+    <meta name="description" content="파이널판타지 14 공식 홈페이지 소식과 아이템 검색, 음악 등 디스코드 봇에서 실시간으로 이용해보세요!">
     <title>달달이봇</title>
-    <link rel="stylesheet" href="./css/reset.css">
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
     <link rel="stylesheet" href="./css/site.css">
-    <link rel="stylesheet" href="./css/semantic.min.css">
-
-    <style type="text/css">
-        .hidden.menu {
-            display: none;
-        }
-
-        .masthead.segment {
-            min-height: 700px;
-            padding: 1em 0em;
-        }
-        .masthead .logo.item img {
-            margin-right: 1em;
-        }
-        .masthead .ui.menu .ui.button {
-            margin-left: 0.5em;
-        }
-        .masthead h1.ui.header {
-            margin-top: 3em;
-            margin-bottom: 0em;
-            font-size: 4em;
-            font-weight: normal;
-        }
-        .masthead h2 {
-            font-size: 1.7em;
-            font-weight: normal;
-        }
-
-        .ui.vertical.stripe {
-            padding: 8em 0em;
-        }
-        .ui.vertical.stripe h3 {
-            font-size: 2em;
-        }
-        .ui.vertical.stripe .button + h3,
-        .ui.vertical.stripe p + h3 {
-            margin-top: 3em;
-        }
-        .ui.vertical.stripe .floated.image {
-            clear: both;
-        }
-        .ui.vertical.stripe p {
-            font-size: 1.33em;
-        }
-        .ui.vertical.stripe .horizontal.divider {
-            margin: 3em 0em;
-        }
-
-        .quote.stripe.segment {
-            padding: 0em;
-        }
-        .quote.stripe.segment .grid .column {
-            padding-top: 5em;
-            padding-bottom: 5em;
-        }
-
-        .footer.segment {
-            padding: 5em 0em;
-        }
-
-        .secondary.pointing.menu .toc.item {
-            display: none;
-        }
-
-        @media only screen and (max-width: 700px) {
-            .ui.fixed.menu {
-                display: none !important;
-            }
-            .secondary.pointing.menu .item,
-            .secondary.pointing.menu .menu {
-                display: none;
-            }
-            .secondary.pointing.menu .toc.item {
-                display: block;
-            }
-            .masthead.segment {
-                min-height: 350px;
-            }
-            .masthead h1.ui.header {
-                font-size: 2em;
-                margin-top: 1.5em;
-            }
-            .masthead h2 {
-                margin-top: 0.5em;
-                font-size: 1.5em;
-            }
-        }
-
-        #header {
-            margin-top:50px;
-        }
-    </style>
 </head>
-<body>
-<div id="header" class="ui text container">
-    <h1 class="ui header">달달이봇</h1>
-    <h2>파이널판타지 14 공식 홈페이지 소식과 FFlogs 조회 등 디스코드 봇에서 실시간으로 조회해보세요!</h2>
-    <form method='get' action='https://discord.com/api/oauth2/authorize'>
-        <input type='hidden' name='response_type' value='code'>
-        <input type='hidden' name='client_id' value='<%= client_id %>' />
-        <input type='hidden' name='scope' value='bot webhook.incoming messages.read applications.commands' />
-        <input type='hidden' name='state' value='' />
 
-        <button class='ui huge primary button' type='submit'>봇 추가하기</button>
-    </form>
-</div>
+<body class="d-flex h-100">
 
-<div class="ui vertical stripe segment">
-    <div class="ui middle aligned stackable grid container">
-        <div class="row">
-            <div class="sixteen wide column">
-                <h3 class="ui header">소개</h3>
-                <p>기존의 Lodestone 이라는 디스코드 봇이 글로벌 한정으로 로드스톤에서 소식을 가져오던 것을 개량하여 한국 공식 홈페이지에서도 소식을 가져올 수 있도록 만든 것이 이 디스코드 봇의 출발이었습니다.</p>
-                <p>더욱 많은 여러 가지 기능들을 지원할 수 있도록 기능을 추가할 예정입니다.</p>
-                <h3 class="ui header">사용 방법</h3>
-                <p>1. 위에 있는 '봇 추가하기' 버튼을 누릅니다.</p>
-                <p>2. 달달이봇을 추가할 서버를 선택합니다.</p>
-                <p>3. 웹후크에서 달달이봇이 소식을 전해줄 채팅 채널을 골라주세요.</p>
-                <h3 class="ui header">명령어 종류</h3>
-                <p>디스코드 내에서 채팅창에 / 를 입력하면 자동적으로 명령어 목록이 나타납니다.</p>
-                <dl>
-                    <dt>/따라하기 [메세지]</dt>
-                    <dd>봇이 사용자의 말을 똑같이 따라합니다.</dd>
-                    <dt>/패션체크</dt>
-                    <dd>이번 주의 패션체크를 확인합니다. 글로벌/한국 서비스 모두 동일합니다.</dd>
-                    <dt>/소식추가 [언어]</dt>
-                    <dd>현재 서버에서 구독중인 소식 카테고리 중 하나를 추가합니다.</dd>
-                    <dt>/소식삭제 [언어]</dt>
-                    <dd>현재 서버에서 구독중인 소식 카테고리 중 하나를 삭제합니다.</dd>
-                    <dt>/업타임</dt>
-                    <dd>서버 로드로부터 경과된 시간을 출력합니다.</dd>
-                </dl>
+<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+    <header class="text-center">
+        <img src="./images/daldalee.png" class="img-header img-thumbnail rounded-circle" alt="...">
+        <h1>달달이봇</h1>
+        <p class="lead">파이널판타지 14 공식 홈페이지 소식과 아이템 검색, 음악 등<br/>디스코드 봇에서 실시간으로 이용해보세요!</p>
+
+        <form method='get' action='https://discord.com/api/oauth2/authorize'>
+            <input type='hidden' name='response_type' value='code'>
+            <input type='hidden' name='client_id' value='<%= client_id %>' />
+            <input type='hidden' name='scope' value='bot webhook.incoming messages.read applications.commands' />
+            <input type='hidden' name='state' value='' />
+            <p class="lead">
+                <button class="btn btn-lg btn-secondary fw-bold border-white" type="submit">봇 추가하기</button>
+            </p>
+        </form>
+    </header>
+
+    <main class="px-3">
+        <div class="ui vertical stripe segment">
+            <div class="ui middle aligned stackable grid container">
+                <div class="row">
+                    <div class="sixteen wide column">
+                        <h3 class="ui header">사용 방법</h3>
+                        <p>1. 위에 있는 '봇 추가하기' 버튼을 누릅니다.</p>
+                        <p>2. 달달이봇을 추가할 서버를 선택합니다.</p>
+                        <img src="./images/1.png" class="img-detail rounded mx-auto d-block" alt="달달이봇을 추가할 서버를 선택합니다." />
+                        <p>3. 달달이봇이 소식을 전해줄 채팅 채널을 골라주세요.</p>
+                        <img src="./images/2.png" class="img-detail rounded mx-auto d-block" alt="달달이봇이 소식을 전해줄 채팅 채널을 골라주세요." />
+
+                        <h3 class="ui header">권한 안내</h3>
+                        <dl>
+                            <dt>모든 메시지 읽기</dt>
+                            <dd>현재는 '/' 문자를 이용하여 명령어를 지원하고 있으나 이전에는 '!' 와 같은 문자를 붙이는 방식을 이용했습니다. 기존 시스템의 이용 방식을 유지하기 위해 사용되고 있습니다.</dd>
+                            <dt>서버에서 명령어를 만들어 보세요.</dt>
+                            <dd>'/' 문자 기능을 이용하려면 필요한 기능입니다.</dd>
+                            <dt>(???)</dt>
+                            <dd>파이널 판타지 14 소식을 디스코드 특정 채널에 배포하기 위해 필요합니다.</dd>
+                        </dl>
+
+                        <h3 class="ui header">명령어 종류</h3>
+                        <p>디스코드 내에서 채팅창에 / 를 입력하면 자동적으로 명령어 목록이 나타납니다.</p>
+                        <img src="./images/slashcmds.jpg" class="img-detail rounded mx-auto d-block" alt="디스코드 내에서 채팅창에 / 를 입력하면 자동적으로 명령어 목록이 나타납니다." />
+                        <h4 class="ui header">소식</h4>
+                        <dl>
+                            <dt>/소식추가 [언어]</dt>
+                            <dd>현재 서버에서 구독중인 소식 카테고리 중 하나를 추가합니다.</dd>
+                            <dt>/소식삭제 [언어]</dt>
+                            <dd>현재 서버에서 구독중인 소식 카테고리 중 하나를 삭제합니다.</dd>
+                        </dl>
+                        <h4 class="ui header">정보 조회</h4>
+                        <dl>
+                            <dt>/아이템검색 [아이템이름]</dt>
+                            <dd>아이템을 검색합니다. 이름을 한글로 적을 경우, 한국 서비스 기준으로 목록이 나타납니다.</dd>
+                        </dl>
+                        <dl>
+                            <dt>/시장 [서버] [아이템이름]</dt>
+                            <dd>(글로벌 전용) 현재 시장에 출품되어 있는 아이템의 목록을 조회합니다. 서버는 영문자로 적어야 합니다. ex) /시장 chocobo coke</dd>
+                        </dl>
+                        <dl>
+                            <dt>/상점 [아이템이름]</dt>
+                            <dd>(현재 한국만 지원) 아이템이 어느 곳에서 판매 또는 교환하고 있는지 관련 정보를 출력합니다.</dd>
+                        </dl>
+                        <h4 class="ui header">패션체크</h4>
+                        <dl>
+                            <dt>/패션체크</dt>
+                            <dd>이번 주의 패션체크를 확인합니다. 글로벌/한국 서비스 모두 동일합니다.</dd>
+                        </dl>
+                        <h4 class="ui header">음악</h4>
+                        <dl>
+                            <dt>/음악재생 [주소]</dt>
+                            <dd>음악을 재생합니다.</dd>
+                        </dl>
+                        <dl>
+                            <dt>/음악일시중지</dt>
+                            <dd>음악을 잠시 중단하거나 재개합니다.</dd>
+                        </dl>
+                        <dl>
+                            <dt>/음악중단</dt>
+                            <dd>음악을 중단하고 재생을 종료합니다.</dd>
+                        </dl>
+                        <dl>
+                            <dt>/음악목록</dt>
+                            <dd>재생 대기열의 목록을 출력합니다.</dd>
+                        </dl>
+                        <dl>
+                            <dt>/음악초기화</dt>
+                            <dd>재생 대기열을 초기화합니다.</dd>
+                        </dl>
+                        <dl>
+                            <dt>/음악현재</dt>
+                            <dd>현재 재생중인 음악의 정보를 출력합니다.</dd>
+                        </dl>
+                        <dl>
+                            <dt>/음악스킵</dt>
+                            <dd>현재 재생중인 음악을 건너뜁니다.</dd>
+                        </dl>
+                        <dl>
+                            <dt>/음악소리 [크기]</dt>
+                            <dd>음악의 소리 크기를 조절합니다. (0 ~ 200)</dd>
+                        </dl>
+                        <dl>
+                            <dt>/음악반복</dt>
+                            <dd>대기열의 음악 반복 모드를 설정합니다.</dd>
+                        </dl>
+                        <h4 class="ui header">기타</h4>
+                        <dl>
+                            <dt>/따라하기 [메세지]</dt>
+                            <dd>봇이 사용자의 말을 똑같이 따라합니다.</dd>
+                            <dt>/업타임</dt>
+                            <dd>서버가 실행된 후 경과된 시간을 출력합니다.</dd>
+                        </dl>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
+    </main>
 
-<div class="ui inverted vertical footer segment">
-    <div class="ui container">
-        <div class="ui stackable inverted divided equal height stackable grid">
-            <div class="sixteen wide column">
-                <h4 class="ui inverted header">달달이봇</h4>
-                <p>&copy; 2020-2022 Karsei</p>
-            </div>
-        </div>
-    </div>
+    <footer class="mt-auto">
+        <p>&copy; 2020-2022 Karsei</p>
+    </footer>
 </div>
-
-<script src="./js/jquery.min.js"></script>
+<script src="./js/bootstrap.min.js"></script>
 </body>
 </html>
