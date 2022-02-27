@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Karsei">
     <meta name="description" content="파이널판타지 14 공식 홈페이지 소식과 아이템 검색, 음악 등 디스코드 봇에서 실시간으로 이용해보세요!">
+    <meta property="og:title" content="달달이봇" />
+    <meta property="og:description" content="파이널판타지 14 공식 홈페이지 소식과 아이템 검색, 음악 등 디스코드 봇에서 실시간으로 이용해보세요!" />
     <title>달달이봇</title>
     <link rel="stylesheet" href="./css/bootstrap.min.css">
     <link rel="stylesheet" href="./css/site.css">
@@ -34,11 +36,15 @@
             <div class="ui middle aligned stackable grid container">
                 <div class="row">
                     <div class="sixteen wide column">
+                        <h3 class="ui header">소개</h3>
+                        <p>2019년도에 심심풀이로 만들었다가 글로벌과 한국 서비스의 소식이라던지 아이템 검색 또는 프프로그 조회 기능(현재는 지원하지 않습니다) 등을 지인들과 함께 이용할 수 있도록 만들어진 디스코드 봇입니다.</p>
+                        <p>추후에도 필요한 기능을 계속해서 확장하여 추가할 예정입니다.</p>
+
                         <h3 class="ui header">사용 방법</h3>
                         <p>1. 위에 있는 '봇 추가하기' 버튼을 누릅니다.</p>
                         <p>2. 달달이봇을 추가할 서버를 선택합니다.</p>
                         <img src="./images/1.png" class="img-detail rounded mx-auto d-block" alt="달달이봇을 추가할 서버를 선택합니다." />
-                        <p>3. 달달이봇이 소식을 전해줄 채팅 채널을 골라주세요.</p>
+                        <p>3. 달달이봇이 소식을 전해줄 채팅 채널을 골라주세요.<br/>※1. 기본적으로 북미, 한국 소식을 가져옵니다.<br/>※2. 나중에 소식 종류를 <b>/소식추가</b> 와 <b>/소식삭제</b> 명령어를 이용해서 고를 수 있습니다.</p>
                         <img src="./images/2.png" class="img-detail rounded mx-auto d-block" alt="달달이봇이 소식을 전해줄 채팅 채널을 골라주세요." />
 
                         <h3 class="ui header">권한 안내</h3>
@@ -68,11 +74,11 @@
                         </dl>
                         <dl>
                             <dt class="text-cmd">/시장 [서버] [아이템이름]</dt>
-                            <dd>(글로벌 전용) 현재 시장에 출품되어 있는 아이템의 목록을 조회합니다. 서버는 영문자로 적어야 합니다. ex) /시장 chocobo coke</dd>
+                            <dd>(글로벌 전용) 현재 시장에 출품되어 있는 아이템의 목록을 조회합니다. 서버는 영문자로 적어야 합니다.<br/>ex) /시장 chocobo coke<br/>정보는 <a href="https://universalis.app/" target="_blank">Universalis</a> 에서 가져옵니다.</dd>
                         </dl>
                         <dl>
                             <dt class="text-cmd">/상점 [아이템이름]</dt>
-                            <dd>(현재 한국만 지원) 아이템이 어느 곳에서 판매 또는 교환하고 있는지 관련 정보를 출력합니다.</dd>
+                            <dd>아이템이 어느 곳에서 판매 또는 교환하고 있는지 관련 정보를 출력합니다.<br/>정보는 파이널 판타지 14 공식 사이트에서 가져옵니다.</dd>
                         </dl>
                         <h4 class="ui header">패션체크</h4>
                         <dl>
