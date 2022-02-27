@@ -1,5 +1,7 @@
+import axios from 'axios';
+import {MessageEmbed} from 'discord.js';
 // Express Server
-import express, { NextFunction, Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 const app = express();
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
@@ -47,7 +49,23 @@ function init() {
                 throw new Error(`parameter 'guild_id' is not found`);
             }
 
-            await require('./services/NewsWebhookService').default.subscribe(params);
+            const webhookUrl = await require('./services/NewsWebhookService').default.subscribe(params);
+            const msg =  new MessageEmbed()
+                .setColor('#0c9c54')
+                .setTitle('이곳에 소식이 추가될 예정이에요!')
+                .setDescription(`봇을 추가하셔서 고맙습니다! 파이널 판타지 14 관련 소식은 앞으로 해당 채널에 등록되게 되어요. 채널을 변경하고 싶다면, 서버 설정의 '연동' 에서 '달달이' 의 웹훅 설정을 변경해주세요.\n참고로 소식 종류는 \`/소식추가\` 또는 \`/소식삭제\` 명령어로 변경하실 수 있어요.`)
+                .setTimestamp(new Date())
+                .setFooter({
+                    text: Setting.APP_NAME,
+                });
+            await axios({
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                url: webhookUrl,
+                data: { embeds: [msg] },
+            });
             res.send(`<script>alert('봇이 추가되었습니다. 디스코드를 확인하세요.'); window.location.href = '${Setting.DISCORD_URL_BOT_HOST}';</script>`);
         } catch (error) {
             Logger.error('봇을 추가하는 과정에서 오류가 발생했습니다.', error);
