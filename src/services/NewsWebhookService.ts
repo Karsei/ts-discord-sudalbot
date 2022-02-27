@@ -56,6 +56,9 @@ export default class NewsWebhookService
             await WebhookCache.addUrlAll(hookUrl);
             Logger.info(`${guildId} - ${hookUrl} 등록 완료`);
         }
+
+        // 메세지 보냄
+        return hookUrl;
     }
 
     /**
