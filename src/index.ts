@@ -291,6 +291,9 @@ function makeScheduler(): Promise<void> {
             const NewsSchedulerService = require('./services/NewsSchedulerService');
             const scheduler = new NewsSchedulerService();
             scheduler.run();
+            const ConnectionSchedulerService = require('./services/ConnectionSchedulerService');
+            const conScheduler = new ConnectionSchedulerService();
+            conScheduler.run();
             Logger.info(`스케줄러 등록 완료`);
             resolve();
         }
