@@ -77,7 +77,7 @@ module.exports = {
                 return;
             }
 
-            await interaction.deferReply();
+            await interaction.deferReply({ephemeral: true});
 
             const redisCon = RedisConnection.instance();
 
