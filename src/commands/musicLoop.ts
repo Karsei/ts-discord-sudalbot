@@ -57,7 +57,7 @@ module.exports = {
         const discordBot: any = interaction.client;
 
         try {
-            await interaction.deferReply();
+            await interaction.deferReply({ephemeral: true});
 
             const player = discordBot.player;
             const queue = player.getQueue(interaction.guildId);
