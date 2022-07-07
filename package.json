@@ -48,6 +48,7 @@
     "discord-api-types": "^0.26.1",
     "discord-music-player": "^8.3.1",
     "discord.js": "^13.6.0",
+    "dotenv": "^16.0.1",
     "node-cron": "^3.0.0",
     "redis": "^4.0.3",
     "snoowrap": "^1.23.0"
