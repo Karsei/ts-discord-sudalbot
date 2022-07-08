@@ -41,6 +41,7 @@
     "@discordjs/opus": "^0.5.3",
     "@discordjs/rest": "^0.3.0",
     "@types/cookie-parser": "^1.4.2",
+    "@types/dotenv": "^8.2.0",
     "@types/express": "^4.17.13",
     "@types/node": "^17.0.16",
     "cheerio": "^1.0.0-rc.10",
@@ -48,6 +49,7 @@
     "discord-api-types": "^0.26.1",
     "discord-music-player": "^8.3.1",
     "discord.js": "^13.6.0",
+    "dotenv": "^16.0.1",
     "node-cron": "^3.0.0",
     "redis": "^4.0.3",
     "snoowrap": "^1.23.0"
