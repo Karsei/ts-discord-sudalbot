@@ -1,1 +1,0 @@
-export default [ 'na', 'jp', 'eu', 'de', 'fr' ];
