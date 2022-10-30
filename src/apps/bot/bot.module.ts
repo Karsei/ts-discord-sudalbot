@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Logger } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DiscordModule } from '@discord-nestjs/core';
 import { GatewayIntentBits } from 'discord.js';
@@ -38,6 +38,7 @@ import {FashionCheckCommand} from './commands/fashion/fashioncheck.command';
     DiscordModule.forFeature(),
   ],
   providers: [
+    Logger,
     BotGateway,
     EchoService, EchoCommand,
     UptimeService, UptimeCommand,
