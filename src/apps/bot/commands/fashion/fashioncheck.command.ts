@@ -1,5 +1,5 @@
-import {LoggerService} from '@nestjs/common';
-import {ConfigService} from '@nestjs/config';
+import {Inject, Logger, LoggerService} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
     Command,
     DiscordTransformedCommand,
@@ -14,7 +14,7 @@ import {FashionCheckService} from './fashioncheck.service';
 })
 export class FashionCheckCommand implements DiscordTransformedCommand<any> {
     constructor(
-        private readonly LoggerService: LoggerService,
+        @Inject(Logger) private readonly LoggerService: LoggerService,
         private readonly configService: ConfigService,
         private readonly fashionCheckService: FashionCheckService) {
     }
