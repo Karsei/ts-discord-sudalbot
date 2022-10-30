@@ -1,26 +1,17 @@
-import {Module, Logger, CacheModule} from '@nestjs/common';
+import { Module, Logger, CacheModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import * as redisStore from 'cache-manager-ioredis';
 
+import { BaseConfig } from './configs/base.config';
+import { CacheConfig } from './configs/cache.config';
 import { HttpModule } from './apps/http/http.module';
 import { BotModule } from './apps/bot/bot.module';
 
 @Module({
   imports: [
     // For Config
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: `.env.${process.env.NODE_ENV}`,
-      ignoreEnvFile: 'prod' === process.env.NODE_ENV,
-    }),
+    ConfigModule.forRoot(BaseConfig),
     // For Cache
-    CacheModule.register({
-      store: redisStore,
-      host: process.env.REDIS_HOST,
-      port: process.env.REDIS_PORT,
-      password: process.env.REDIS_PASSWORD,
-      db: process.env.REDIS_DB,
-    }),
+    CacheModule.register(CacheConfig),
     // For HTTP
     HttpModule,
     // For Discord
