@@ -1,7 +1,15 @@
 import { Module } from '@nestjs/common';
-import { DiscordModule } from '@discord-nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { DiscordModule } from '@discord-nestjs/core';
 import { GatewayIntentBits } from 'discord.js';
+
+import {BotGateway} from './bot.gateway';
+import {EchoService} from './commands/echo/echo.service';
+import {EchoCommand} from './commands/echo/echo.command';
+import {UptimeService} from './commands/uptime/uptime.service';
+import {UptimeCommand} from './commands/uptime/uptime.command';
+import {FashionCheckService} from './commands/fashion/fashioncheck.service';
+import {FashionCheckCommand} from './commands/fashion/fashioncheck.command';
 
 @Module({
   imports: [
@@ -10,7 +18,12 @@ import { GatewayIntentBits } from 'discord.js';
       useFactory: (configService: ConfigService) => ({
         token: configService.get('DISCORD_BOT_TOKEN'),
         discordClientOptions: {
-          intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
+          intents: [
+            GatewayIntentBits.Guilds,
+            GatewayIntentBits.GuildMessages,
+            GatewayIntentBits.GuildMessageReactions,
+            GatewayIntentBits.GuildVoiceStates,
+          ],
         },
         registerCommandOptions: [
           {
@@ -22,6 +35,13 @@ import { GatewayIntentBits } from 'discord.js';
       }),
       inject: [ConfigService],
     }),
+    DiscordModule.forFeature(),
+  ],
+  providers: [
+    BotGateway,
+    EchoService, EchoCommand,
+    UptimeService, UptimeCommand,
+    FashionCheckService, FashionCheckCommand
   ]
 })
 export class BotModule {}
