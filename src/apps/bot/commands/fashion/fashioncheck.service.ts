@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import {Submission} from 'snoowrap';
-import {RedditError} from '../../../exceptions/reddit.exception';
+import {RedditError} from '../../../../exceptions/reddit.exception';
 
 @Injectable()
 export class FashionCheckService {
