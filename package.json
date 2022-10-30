@@ -28,15 +28,18 @@
     "@nestjs/core": "^9.0.0",
     "@nestjs/platform-express": "^9.0.0",
     "@nestjs/terminus": "^9.1.2",
+    "@nestjs/typeorm": "^9.0.1",
     "cache-manager": "^5.1.1",
     "cache-manager-ioredis": "^2.1.0",
     "cross-env": "^7.0.3",
     "discord.js": "^14.6.0",
+    "mysql2": "^2.3.3",
     "nest-winston": "^1.8.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
     "snoowrap": "^1.23.0",
+    "typeorm": "^0.3.10",
     "winston": "^3.8.2"
   },
   "devDependencies": {
