@@ -1,8 +1,8 @@
 import { Module, Logger } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { HttpModule } from './http/http.module';
-import { BotModule } from './bot/bot.module';
+import { HttpModule } from './apps/http/http.module';
+import { BotModule } from './apps/bot/bot.module';
 
 @Module({
   imports: [
