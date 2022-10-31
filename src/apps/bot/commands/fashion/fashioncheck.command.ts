@@ -1,12 +1,12 @@
-import {Inject, Logger, LoggerService} from '@nestjs/common';
+import { Inject, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
     Command,
     DiscordTransformedCommand,
 } from '@discord-nestjs/core';
-import {ContextMenuCommandInteraction,EmbedBuilder} from 'discord.js';
-import {Submission} from 'snoowrap';
-import {FashionCheckService} from './fashioncheck.service';
+import { ContextMenuCommandInteraction,EmbedBuilder } from 'discord.js';
+import { Submission } from 'snoowrap';
+import { FashionCheckService } from './fashioncheck.service';
 
 @Command({
     name: '패션체크',
@@ -14,7 +14,7 @@ import {FashionCheckService} from './fashioncheck.service';
 })
 export class FashionCheckCommand implements DiscordTransformedCommand<any> {
     constructor(
-        @Inject(Logger) private readonly LoggerService: LoggerService,
+        @Inject(Logger) private readonly loggerService: LoggerService,
         private readonly configService: ConfigService,
         private readonly fashionCheckService: FashionCheckService) {
     }
@@ -31,7 +31,7 @@ export class FashionCheckCommand implements DiscordTransformedCommand<any> {
             })
             .catch(async err => {
                 await interaction.editReply('오류가 발생해서 보여드릴 수 없네요.. 잠시 후에 다시 시도해보세요.');
-                this.LoggerService.error(err);
+                this.loggerService.error(err);
                 console.error(err);
             });
     }
