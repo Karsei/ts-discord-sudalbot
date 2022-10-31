@@ -1,14 +1,15 @@
-import { CacheModuleOptions } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import * as redisStore from 'cache-manager-ioredis';
+import { RedisModuleAsyncOptions } from '@liaoliaots/nestjs-redis';
 
-export const CacheConfig: CacheModuleOptions = {
+export const CacheConfig: RedisModuleAsyncOptions = {
     imports: [ ConfigModule ],
     useFactory: (configService: ConfigService) => ({
-        store: redisStore,
-        host: configService.get('REDIS_HOST'),
-        port: configService.get('REDIS_PORT'),
-        password: configService.get('REDIS_PASSWORD'),
-        db: configService.get('REDIS_DB'),
+        config: {
+            host: configService.get('REDIS_HOST'),
+            port: configService.get('REDIS_PORT'),
+            password: configService.get('REDIS_PASSWORD'),
+            db: configService.get('REDIS_DB'),
+        }
     }),
+    inject: [ ConfigService ],
 };
