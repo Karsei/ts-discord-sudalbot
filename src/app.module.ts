@@ -17,7 +17,7 @@ import { SchedulerModule } from './apps/scheduler/scheduler.module';
     // For Cache
     RedisModule.forRootAsync(CacheConfig),
     // For TypeORM
-    TypeOrmModule.forRootAsync(TypeORMConfig),
+    //TypeOrmModule.forRootAsync(TypeORMConfig),
     // For HTTP
     HttpModule,
     // For Discord
