@@ -1,14 +1,14 @@
-import { Module } from '@nestjs/common';
+import { Module, Logger } from '@nestjs/common';
 import { TerminusModule } from '@nestjs/terminus';
 
-import { HelloController } from './hello/hello.controller';
-import { HelloService } from './hello/hello.service';
 import { SampleHealthIndicator } from './health/sample.health';
 import { HealthController } from './health/health.controller';
+import { WebhookController } from './webhook/webhook.controller';
+import { WebhookService } from './webhook/webhook.service';
 
 @Module({
   imports: [TerminusModule],
-  controllers: [HelloController, HealthController],
-  providers: [HelloService, SampleHealthIndicator],
+  controllers: [HealthController, WebhookController],
+  providers: [Logger, SampleHealthIndicator, WebhookService],
 })
 export class HttpModule {}
