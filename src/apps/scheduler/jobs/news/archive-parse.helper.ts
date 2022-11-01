@@ -1,5 +1,5 @@
 import { CheerioAPI, load as CheerioAPILoad } from 'cheerio';
-import { NewsContent } from './archive.constant';
+import { NewsContent } from '../../../../types/archive.constant';
 import { ArchiveFetchHelper } from './archive-fetch.helper';
 
 export class ArchiveParseHelper {
