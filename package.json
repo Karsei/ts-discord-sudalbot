@@ -34,6 +34,7 @@
     "axios": "^0.27.2",
     "bluebird": "^3.7.2",
     "cheerio": "^1.0.0-rc.12",
+    "class-validator": "^0.13.2",
     "cross-env": "^7.0.3",
     "discord.js": "^14.6.0",
     "ioredis": "^5.2.3",
