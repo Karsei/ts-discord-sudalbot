@@ -21,10 +21,4 @@ export class WebhookController {
             res.send(`<script>alert('봇을 추가하는 과정에서 오류가 발생했습니다.'); window.location.href = '/';</script>`);
         }
     }
-
-    @Get('/save-done')
-    async done(@Res() res) {
-        console.log('yeah');
-        return '완료';
-    }
 }
