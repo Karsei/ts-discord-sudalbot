@@ -53,7 +53,7 @@ export class PublishService {
         // 제공 카테고리 양식
         const content: NewsCategoryContents = NewsCategories.Global[type];
 
-        // 최신 소식을 가져오면서 Redis에 넣음
+        // 최신 소식을 가져오면서 Redis 에 넣음
         const fetchPosts = await this.archiveService.getGlobal(type, locale, true);
         const newPosts = await this.addId(fetchPosts, locale, type);
 
@@ -69,11 +69,11 @@ export class PublishService {
         const pLocale = 'kr';
         const content: NewsCategoryContents = NewsCategories.Korea[type];
 
-        // 최신 소식을 가져오면서 Redis에 넣음
+        // 최신 소식을 가져오면서 Redis 에 넣음
         const fetchPosts = await this.archiveService.getKorea(type, true);
         const newPosts = await this.addId(fetchPosts, pLocale, type);
 
-        // Redis에 등록할 때 새로운 글이 없다면 그냥 끝냄
+        // Redis 에 등록할 때 새로운 글이 없다면 그냥 끝냄
         if (newPosts.length === 0) return newPosts;
 
         // Webhook 등록된 서버들에게 메세지를 전송한다.
@@ -84,7 +84,7 @@ export class PublishService {
         // 디스코드에 전달할 메세지를 생성한다.
         const newEmbedPosts = this.makeEmbedPostMessages(posts, categoryContents, locale);
 
-        // Redis에서 모든 등록된 웹훅 주소를 불러온 후, Embed는 10개씩 한 묶음으로, Webhook은 20개씩 한 묶음으로 구성해서 전송한다.
+        // Redis 에서 모든 등록된 웹훅 주소를 불러온 후, Embed 는 10개씩 한 묶음으로, Webhook 은 20개씩 한 묶음으로 구성해서 전송한다.
         // 이때 Discord 웹훅 제한이 걸릴 수 있으므로 주의할 것
         const res: Array<string> = await this.redis.smembers(`${locale}-${typeStr}-webhooks`);
         if (res) {
