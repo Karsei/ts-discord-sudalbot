@@ -9,7 +9,7 @@ export class NewsJob {
                 private readonly publishService: PublishService) {
     }
 
-    @Cron('5,15,30,25,35,45,55 * * * *', {
+    @Cron('5,15,25,35,45,55 * * * *', {
         name: 'publish-archives',
         timeZone: 'Asia/Seoul',
     })
