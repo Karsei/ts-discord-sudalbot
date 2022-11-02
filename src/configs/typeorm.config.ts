@@ -10,7 +10,7 @@ export const TypeORMConfig: TypeOrmModuleAsyncOptions = {
         username: configService.get('MARIADB_USER'),
         password: configService.get('MARIADB_PASSWORD'),
         database: configService.get('MARIADB_DATABASE'),
-        entities: ['dist/**/*.entity.{ts,js}'],
+        entities: [__dirname + '/**/*.entity.{ts,js}'],
         synchronize: false,
     }),
     inject: [ ConfigService ],
