@@ -3,6 +3,7 @@ import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 
 import { News } from '../entities/news.entity';
 import { Guild } from '../entities/guild.entity';
+import { Contact } from '../entities/contact.entity';
 
 export const TypeORMConfig: TypeOrmModuleAsyncOptions = {
     imports: [ ConfigModule ],
@@ -14,8 +15,8 @@ export const TypeORMConfig: TypeOrmModuleAsyncOptions = {
         password: configService.get('MARIADB_PASSWORD'),
         database: configService.get('MARIADB_DATABASE'),
         //entities: ['../**/*.entity.{ts,js}'],
-        entities: [Guild, News],
-        synchronize: true,
+        entities: [Guild, News, Contact],
+        synchronize: 'prod' !== process.env.NODE_ENV,
     }),
     inject: [ ConfigService ],
 };
