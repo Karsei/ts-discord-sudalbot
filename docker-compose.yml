@@ -56,6 +56,8 @@ services:
 
   mariadb-dev:
     image: mariadb:10.8.2
+    ports:
+      - "3306:3306"
     profiles:
       - dev
       - infra-only
@@ -67,6 +69,8 @@ services:
 
   mariadb-prod:
     image: mariadb:10.8.2
+    ports:
+      - "3306:3306"
     profiles:
       - prod
     env_file:
