@@ -72,7 +72,7 @@ export class WebhookService {
     private async saveGuild(webhookRes: { hookData: any; url: string }) {
         let guild = await this.getGuild(webhookRes.hookData.guild.id);
         if (!guild) {
-            guild.guildId = webhookRes.hookData.guild.id;
+            guild.id = webhookRes.hookData.guild.id;
         }
         guild.name = webhookRes.hookData.guild.name;
         guild.webhookId = webhookRes.hookData.webhook.id;
@@ -87,7 +87,7 @@ export class WebhookService {
      * @param guildId 서버 ID
      */
     private async getGuild(guildId: string) {
-        return await this.guildRepository.findOneBy({ guildId: guildId });
+        return await this.guildRepository.findOneBy({ id: guildId });
     }
 
     /**
@@ -97,14 +97,14 @@ export class WebhookService {
     private saveDefaultNews(guild: Guild) {
         // 한국
         Object.keys(NewsCategories.Korea).map(type => {
-            this.addUrl(guild.guildId, 'kr', type, guild.webhookUrl);
+            this.addUrl(guild.id, 'kr', type, guild.webhookUrl);
         });
         // 글로벌
         Object.keys(NewsCategories.Global).map(type => {
             LodestoneLocales.forEach(locale => {
                 // 당분간 북미 기준으로 topics, updates, developers 만 허용
                 if (['topics', 'updates', 'developers'].indexOf(type) > -1 && ['na'].indexOf(locale) > -1) {
-                    this.addUrl(guild.guildId, locale, type, guild.webhookUrl);
+                    this.addUrl(guild.id, locale, type, guild.webhookUrl);
                 }
             });
         });
@@ -113,19 +113,19 @@ export class WebhookService {
     /**
      * 게시글별 Webhook URL Cache 등록
      *
-     * @param guildId 서버 ID
+     * @param guildId 서버 IDX
      * @param locale 언어
      * @param type 카테고리
      * @param url Webhook URL
      */
     async addUrl(guildId: string, locale: string, type: string, url: string) {
         if (!await this.checkExistWebhookNews(locale, type, url)) {
-            const news = new News();
-            news.guildId = guildId;
-            news.locale = locale;
-            news.type = type;
-            news.url = url;
-            await this.newsRepository.save(news);
+            await this.newsRepository.insert({
+                guild: { id: guildId },
+                locale: locale,
+                type: type,
+                url: url,
+            });
         }
         return this.redis.sadd(`${locale}-${type}-webhooks`, url);
     }

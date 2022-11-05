@@ -2,17 +2,19 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    PrimaryGeneratedColumn,
+    OneToMany,
+    PrimaryColumn,
     UpdateDateColumn
 } from 'typeorm';
 
+import { YesNoFlag } from '../enums/common.enum';
+import { News } from './news.entity';
+import { Contact } from './contact.entity';
+
 @Entity('Guild')
 export class Guild {
-    @PrimaryGeneratedColumn('increment')
-    id!: string;
-
-    @Column({ name: 'guild_id', length: 50, comment: '서버 ID' })
-    guildId: string;
+    @PrimaryColumn({ name: 'id', length: 50, comment: '서버 ID' })
+    id: string;
 
     @Column({ name: 'name', length: 256, comment: '이름' })
     name: string;
@@ -29,9 +31,26 @@ export class Guild {
     @Column({ name: 'webhook_url', length: 256, comment: '웹훅 채널 ID', nullable: false })
     webhookUrl!: string;
 
-    @CreateDateColumn({ name: 'create_at', comment: '생성일', nullable: false })
+    @Column({ name: 'active', comment: '활성 여부', default: true, nullable: false })
+    active!: boolean;
+
+    @CreateDateColumn({ name: 'created_at', comment: '생성일', nullable: false })
     createdAt!: Date;
 
-    @UpdateDateColumn({ name: 'update_at', comment: '수정일', nullable: false })
+    @UpdateDateColumn({ name: 'updated_at', comment: '수정일', nullable: false })
     updatedAt!: Date;
+
+    @OneToMany(
+        (type) => News,
+        (news) => news.guild,
+        { eager: false }
+    )
+    news: News[];
+
+    @OneToMany(
+        (type) => Contact,
+        (contact) => contact.guild,
+        { eager: false }
+    )
+    contact: Contact[];
 }

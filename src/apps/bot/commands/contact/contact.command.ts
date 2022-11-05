@@ -71,10 +71,10 @@ export class ContactCommand implements DiscordCommand {
 
         if (modal.customId !== this.requestParticipantModalId) return;
 
-        const contact = await this.saveContact(modal);
+        await this.saveContact(modal);
 
         await modal.reply(
-            `**${contact.userName}** 님, 정상적으로 제보가 접수되었어요!`
+            `**${modal.user.username}** 님, 정상적으로 제보가 접수되었어요!`
             //+ codeBlock('markdown', comment),
         );
     }
@@ -84,12 +84,12 @@ export class ContactCommand implements DiscordCommand {
      * @param modal modal 객체
      */
     private async saveContact(modal: ModalSubmitInteraction) {
-        const contact = new Contact();
-        contact.guildId = modal.guildId;
-        contact.userId = modal.user.id;
-        contact.userName = modal.user.username;
-        contact.summary = modal.fields.fields.get(this.summaryComponentId).value;
-        contact.comment = modal.fields.fields.get(this.commentComponentId).value;
-        return await this.contactRepository.save(contact);
+        return await this.contactRepository.insert({
+            guild: { id: modal.guildId },
+            userId: modal.user.id,
+            userName: modal.user.username,
+            summary: modal.fields.fields.get(this.summaryComponentId).value,
+            comment: modal.fields.fields.get(this.commentComponentId).value,
+        });
     }
 }

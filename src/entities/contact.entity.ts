@@ -2,33 +2,42 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    JoinColumn,
+    ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn
 } from 'typeorm';
 
+import { Guild } from './guild.entity';
+
 @Entity('Contact')
 export class Contact {
     @PrimaryGeneratedColumn('increment')
-    id!: string;
+    idx!: number;
 
-    @Column({ name: 'guild_id', length: 50, comment: '서버 ID', nullable: false })
-    guildId: string;
+    @ManyToOne(
+        (type) => Guild,
+        (guild) => guild.contact,
+        { eager: false }
+    )
+    @JoinColumn({ name: 'guild_id' })
+    guild!: Guild;
 
     @Column({ name: 'user_id', length: 50, comment: '유저 ID', nullable: false })
-    userId: string;
+    userId!: string;
 
     @Column({ name: 'username', length: 256, comment: '유저 이름', nullable: false })
-    userName: string;
+    userName!: string;
 
     @Column({ name: 'summary', length: 4000, comment: '제목', nullable: false })
-    summary: string;
+    summary!: string;
 
     @Column({ name: 'comment', length: 4000, comment: '내용', nullable: false })
-    comment: string;
+    comment!: string;
 
-    @CreateDateColumn({ name: 'create_at', comment: '생성일', nullable: false })
+    @CreateDateColumn({ name: 'created_at', comment: '생성일', nullable: false })
     createdAt!: Date;
 
-    @UpdateDateColumn({ name: 'update_at', comment: '수정일', nullable: false })
+    @UpdateDateColumn({ name: 'updated_at', comment: '수정일', nullable: false })
     updatedAt!: Date;
 }

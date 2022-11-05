@@ -2,19 +2,27 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    ManyToOne,
+    JoinColumn,
     PrimaryGeneratedColumn,
     UpdateDateColumn
 } from 'typeorm';
 
 import { YesNoFlag } from '../enums/common.enum';
+import { Guild } from './guild.entity';
 
 @Entity('News')
 export class News {
     @PrimaryGeneratedColumn('increment')
-    id!: string;
+    idx!: number;
 
-    @Column({ name: 'guild_id', length: 50, comment: '서버 ID' })
-    guildId: string;
+    @ManyToOne(
+        (type) => Guild,
+        (guild) => guild.news,
+        { eager: false }
+    )
+    @JoinColumn({ name: 'guild_id' })
+    guild: Guild;
 
     @Column({ name: 'locale', length: 8, comment: '언어', nullable: false })
     locale!: string;
@@ -28,9 +36,12 @@ export class News {
     @Column({ name: 'del_flag', type: 'enum', enum: YesNoFlag, comment: '삭제 여부', default: YesNoFlag.NO, nullable: false })
     delFlag!: YesNoFlag;
 
-    @CreateDateColumn({ name: 'create_at', comment: '생성일', nullable: false })
+    @CreateDateColumn({ name: 'created_at', comment: '생성일', nullable: false })
     createdAt!: Date;
 
-    @UpdateDateColumn({ name: 'update_at', comment: '수정일', nullable: false })
+    @UpdateDateColumn({ name: 'updated_at', comment: '수정일', nullable: false })
     updatedAt!: Date;
+
+    @Column({ name: 'deleted_at', comment: '삭제일', nullable: true })
+    deletedAt: Date | undefined;
 }
