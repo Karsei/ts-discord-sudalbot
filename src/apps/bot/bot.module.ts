@@ -12,13 +12,19 @@ import { UptimeCommand } from './commands/uptime/uptime.command';
 import { ContactCommand } from './commands/contact/contact.command';
 import { FashionCheckService } from './commands/fashion/fashioncheck.service';
 import { FashionCheckCommand } from './commands/fashion/fashioncheck.command';
+import { ItemSearchService} from './commands/item/item-search.service';
+import { ItemSearchCommand} from './commands/item/item-search.command';
+import { XivapiService } from './commands/item/xivapi.service';
 import { Contact } from '../../entities/contact.entity';
+import { XivVersion } from '../../entities/xiv-version.entity';
+import { XivItem } from '../../entities/xiv-item.entity';
+import { XivItemCategories } from '../../entities/xiv-item-categories.entity';
 
 @Module({
   imports: [
     DiscordModule.forRootAsync(DiscordConfig),
     DiscordModule.forFeature(),
-    TypeOrmModule.forFeature([Contact]),
+    TypeOrmModule.forFeature([Contact, XivVersion, XivItem, XivItemCategories]),
   ],
   providers: [
     Logger,
@@ -26,7 +32,8 @@ import { Contact } from '../../entities/contact.entity';
     EchoService, EchoCommand,
     UptimeService, UptimeCommand,
     ContactCommand,
-    FashionCheckService, FashionCheckCommand
+    FashionCheckService, FashionCheckCommand,
+    ItemSearchService, ItemSearchCommand, XivapiService,
   ]
 })
 export class BotModule {}
