@@ -21,12 +21,13 @@ export class ItemSearchService {
     }
 
     async search(keyword: string) {
-        let searchRes: any = this.fetchSearch(keyword);
+        let searchRes: any = await this.fetchSearch(keyword);
 
         const pagination = searchRes.data.Pagination;
         const results = searchRes.data.Results;
 
         let embedMsg: EmbedBuilder;
+        // 바로 발견 못함 -> 목록 보여줌
         if (results.length > 1 && results[0].Name.toLowerCase() !== keyword) {
             let itmListstr = '';
             for (let itmIdx = 0, itmLen = results.length; itmIdx < itmLen; itmIdx++) {
@@ -35,7 +36,9 @@ export class ItemSearchService {
                 itmListstr += `${itmIdx + 1}. ${results[itmIdx].Name}`;
             }
             embedMsg = this.makeItemRemainListInfoEmbedMessage(keyword, pagination, itmListstr);
-        } else {
+        } 
+        // 바로 발견
+        else {
             // 한 번 더 검색을 한다.
             let itemRes = await this.xivapiService.fetchItem(results[0].ID);
             if (!itemRes.hasOwnProperty('data') || !itemRes.data.hasOwnProperty('Name')) {
@@ -55,9 +58,9 @@ export class ItemSearchService {
 
             // 한국어 관련
             // 아이템
-            const koreanItemFetch = await this.getItemByIdx('kr', results[0].ID);
-            if (koreanItemFetch) {
-                const itemParsed = JSON.parse(koreanItemFetch.content);
+            const koreanItemFetch = await this.getItemsByIdx('kr', results[0].ID);
+            if (koreanItemFetch && koreanItemFetch.length > 0) {
+                const itemParsed = JSON.parse(koreanItemFetch[0].content);
                 if (itemParsed.Name && itemParsed.Name.length > 0) {
                     koreanData.name = itemParsed.Name;
                     filtered.name = itemParsed.Name;
@@ -67,8 +70,8 @@ export class ItemSearchService {
                 }
 
                 const koreanItemUiCategory = await this.getItemCategoriesByIdx('kr', itemDetail.ItemUICategory.ID);
-                if (koreanItemUiCategory) {
-                    const itemUiParsed = JSON.parse(koreanItemUiCategory.content);
+                if (koreanItemUiCategory && koreanItemUiCategory.length > 0) {
+                    const itemUiParsed = JSON.parse(koreanItemUiCategory[0].content);
                     filtered.itemUiCategoryName = itemUiParsed.Name;
                 }
             }
@@ -87,31 +90,34 @@ export class ItemSearchService {
         return embedMsg;
     }
 
-    private async getItemByIdx(locale: string, idx: number) {
-        return await this.xivItemRepository.findOne({
-            where: [
-                { version: { locale: locale }},
-                { itemIdx: idx }
-            ],
-            order: { version: { version: 'DESC' }}});
+    private async getItemsByIdx(locale: string, idx: number) {
+        return await this.xivItemRepository.find({
+            where: {
+                version: { locale: locale },
+                itemIdx: idx
+            },
+            order: { version: { version: 'DESC' }}
+        });
     }
 
-    private async getItemByName(locale: string, name: string) {
-        return await this.xivItemRepository.findOne({
-            where: [
-                { version: { locale: locale }},
-                { name: Like(`%${name}%`) }
-            ],
-            order: { version: { version: 'DESC' }}});
+    private async getItemsByName(locale: string, name: string) {
+        return await this.xivItemRepository.find({
+            where: {
+                version: {locale: locale},
+                name: Like(`%${name}%`),
+            },
+            order: { version: { version: 'DESC' }}
+        });
     }
 
     private async getItemCategoriesByIdx(locale: string, idx: number) {
-        return await this.xivItemCategoriesRepository.findOne({
-            where: [
-                { version: { locale: locale }},
-                { itemCategoryIdx: idx }
-            ],
-            order: { version: { version: 'DESC' }}});
+        return await this.xivItemCategoriesRepository.find({
+            where: {
+                version: {locale: locale},
+                itemCategoryIdx: idx,
+            },
+            order: { version: { version: 'DESC' }}
+        });
     }
 
     private fetchSearch(keyword: string) {
@@ -175,14 +181,14 @@ export class ItemSearchService {
         }
 
         // 이름을 찾는다.
-        const kNames: any = await this.getItemByName('kr', keyword);
+        const kNames: any = await this.getItemsByName('kr', keyword);
         for (const itemIdx of Object.keys(kNames)) {
             if (itemIdx == 'meta') continue;
             const item = kNames[itemIdx];
             if (item.name.toLowerCase().includes(keyword)) {
                 searchRes.data.Results.push({
                     Name: item.name,
-                    ID: item.idx,
+                    ID: item.itemIdx,
                 });
             }
         }
@@ -225,7 +231,7 @@ export class ItemSearchService {
                     value: `:flag_us: ${itemDetail.Name_en}\n:flag_jp: ${itemDetail.Name_ja}\n:flag_kr: ${koreanData.name}\n:flag_de: ${itemDetail.Name_de}\n:flag_fr: ${itemDetail.Name_fr}`
                 },
                 {name: `아이템 레벨`, value: `${itemDetail.LevelItem}`, inline: true},
-                {name: `출시 버전`, value: `v${itemDetail.GamePatch.Version}`, inline: true},
+                {name: `출시 버전`, value: itemDetail.GamePatch ? `v${itemDetail.GamePatch.Version}` : '(정보 없음)', inline: true},
                 {name: `고유번호`, value: `${itemDetail.ID}`, inline: true},
                 {name: `종류`, value: filtered.itemUiCategoryName, inline: true},
                 {name: `아이템 분해`, value: itemDetail.Desynth === 0 ? '불가' : '가능', inline: true},

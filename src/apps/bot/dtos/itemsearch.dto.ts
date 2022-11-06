@@ -1,6 +1,9 @@
 import { Param } from '@discord-nestjs/core';
 
+import { Transform } from 'class-transformer';
+
 export class ItemSearchDto {
+    @Transform(({ value }) => value.toLowerCase())
     @Param({
         name: '이름',
         description:
