@@ -72,6 +72,7 @@ export class WebhookService {
     private async saveGuild(webhookRes: { hookData: any; url: string }) {
         let guild = await this.getGuild(webhookRes.hookData.guild.id);
         if (!guild) {
+            guild = new Guild();
             guild.id = webhookRes.hookData.guild.id;
         }
         guild.name = webhookRes.hookData.guild.name;
