@@ -1,9 +1,10 @@
 import { Inject, Logger, LoggerService } from '@nestjs/common';
+import { TransformPipe } from '@discord-nestjs/common';
 import {
     Command,
     DiscordTransformedCommand,
     Payload,
-    TransformedCommandExecutionContext,
+    TransformedCommandExecutionContext, UsePipes,
 } from '@discord-nestjs/core';
 
 import { ItemSearchService } from './item-search.service';
@@ -14,6 +15,7 @@ import { ItemSearchError } from '../../../../exceptions/item-search.exception';
     name: '아이템검색',
     description: '아이템을 검색합니다.',
 })
+@UsePipes(TransformPipe)
 export class ItemSearchCommand implements DiscordTransformedCommand<ItemSearchDto> {
     constructor(@Inject(Logger) private readonly loggerService: LoggerService,
                 private readonly itemSearchService: ItemSearchService) {
