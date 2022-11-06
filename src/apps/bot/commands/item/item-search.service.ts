@@ -7,9 +7,29 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { XivapiService } from './xivapi.service';
 import { GuideFetchHelper } from './guide-fetch.helper';
 import { ItemSearchError } from '../../../../exceptions/item-search.exception';
+import { ItemSearchTooManyResultsError } from '../../../../exceptions/item-search-too-many-results.exception';
 import { XivVersion } from '../../../../entities/xiv-version.entity';
 import { XivItem } from '../../../../entities/xiv-item.entity';
 import { XivItemCategories } from '../../../../entities/xiv-item-categories.entity';
+
+export interface AggregatedItemInfo {
+    id: number;
+    name: string | null;
+    nameEn: string | null;
+    nameKr: string | null;
+    nameJa: string | null;
+    nameFr: string | null;
+    nameDe: string | null;
+    desc: string | null;
+    descKr: string | null;
+    itemIcon: string;
+    itemUiCategoryName: string;
+    itemUiCategoryNameKr: string | null;
+    itemLevel: number;
+    isCollectable: number;
+    desynth: number;
+    gamePatchVersion: string;
+}
 
 @Injectable()
 export class ItemSearchService {
@@ -21,73 +41,105 @@ export class ItemSearchService {
     }
 
     async search(keyword: string) {
-        let searchRes: any = await this.fetchSearch(keyword);
-
-        const pagination = searchRes.data.Pagination;
-        const results = searchRes.data.Results;
-
         let embedMsg: EmbedBuilder;
-        // 바로 발견 못함 -> 목록 보여줌
-        if (results.length > 1 && results[0].Name.toLowerCase() !== keyword) {
-            let itmListstr = '';
-            for (let itmIdx = 0, itmLen = results.length; itmIdx < itmLen; itmIdx++) {
-                if (itmIdx > 9) break;
-                if (itmListstr.length > 0) itmListstr += "\n";
-                itmListstr += `${itmIdx + 1}. ${results[itmIdx].Name}`;
-            }
-            embedMsg = this.makeItemRemainListInfoEmbedMessage(keyword, pagination, itmListstr);
-        } 
-        // 바로 발견
-        else {
-            // 한 번 더 검색을 한다.
-            let itemRes = await this.xivapiService.fetchItem(results[0].ID);
-            if (!itemRes.hasOwnProperty('data') || !itemRes.data.hasOwnProperty('Name')) {
-                throw new ItemSearchError('정보를 불러오는 과정에서 오류가 발생했어요!');
-            }
+        try {
+            const aggregated = await this.fetchSearchItem(keyword);
 
-            const itemDetail = itemRes.data;
-
-            const koreanData = {
-                name: '(알 수 없음)',
-            };
-            const filtered = {
-                name: itemDetail.Name,
-                desc: itemDetail.Description.replace(/(\r\n\t|\n|\r\t)/gm, " "),
-                itemUiCategoryName: itemDetail.ItemUICategory.Name,
-            };
-
-            // 한국어 관련
-            // 아이템
-            const koreanItemFetch = await this.getItemsByIdx('kr', results[0].ID);
-            if (koreanItemFetch && koreanItemFetch.length > 0) {
-                const itemParsed = JSON.parse(koreanItemFetch[0].content);
-                if (itemParsed.Name && itemParsed.Name.length > 0) {
-                    koreanData.name = itemParsed.Name;
-                    filtered.name = itemParsed.Name;
+            let dbLinks = await this.getDbSiteLinks(aggregated);
+            embedMsg = this.makeItemInfoEmbedMessage(aggregated, dbLinks);
+        }
+        catch (e) {
+            // 데이터가 너무 많은 경우 목록을 보여줌
+            if (e instanceof ItemSearchTooManyResultsError) {
+                let itmListstr = '';
+                for (let itmIdx = 0, itmLen = e.result.length; itmIdx < itmLen; itmIdx++) {
+                    if (itmIdx > 9) break;
+                    if (itmListstr.length > 0) itmListstr += "\n";
+                    itmListstr += `${itmIdx + 1}. ${e.result[itmIdx].Name}`;
                 }
-                if (itemParsed.Description && itemParsed.Description.length > 0) {
-                    filtered.desc = itemParsed.Description;
-                }
-
-                const koreanItemUiCategory = await this.getItemCategoriesByIdx('kr', itemDetail.ItemUICategory.ID);
-                if (koreanItemUiCategory && koreanItemUiCategory.length > 0) {
-                    const itemUiParsed = JSON.parse(koreanItemUiCategory[0].content);
-                    filtered.itemUiCategoryName = itemUiParsed.Name;
-                }
+                embedMsg = this.makeItemRemainListInfoEmbedMessage(keyword, e.pagination, itmListstr);
             }
-            let koreaDbLink = '';
-            try {
-                koreaDbLink = await GuideFetchHelper.searchItemUrl(koreanData.name);
-            } catch (ee) {
-                console.error(ee);
+            else {
+                throw e;
             }
-
-            let dbLinks = this.getDbSiteLinks(itemDetail, koreaDbLink);
-
-            embedMsg = this.makeItemInfoEmbedMessage(filtered, itemDetail, koreanData, dbLinks);
         }
 
         return embedMsg;
+    }
+
+    async fetchSearchItem(keyword: string) {
+        const { pagination, results } = await this.fetchSearchItems(keyword);
+
+        if (results.length < 1)
+            throw new ItemSearchError('데이터를 발견하지 못했어요!');
+        if (results.length > 1 && results[0].Name.toLowerCase() !== keyword)
+            throw new ItemSearchTooManyResultsError('아이템 검색 결과가 많아요! 이름을 정확하게 입력하고 다시 시도해보세요.', pagination, results);
+
+        return await this.aggregateKoreanItemInfo(results[0].ID);
+    }
+
+    async fetchSearchItems(keyword: string) {
+        let searchRes;
+        if (!/[가-힣]/gi.test(keyword)) {
+            searchRes = await this.searchFromGlobal(keyword);
+        } else {
+            searchRes = await this.searchFromKorea(keyword);
+        }
+
+        return {
+            pagination: searchRes.data.Pagination,
+            results: searchRes.data.Results,
+        };
+    }
+
+    private async aggregateKoreanItemInfo(itemId: number) {
+        // 한 번 더 검색을 한다.
+        let itemRes = await this.xivapiService.fetchItem(itemId);
+        if (!itemRes.hasOwnProperty('data') || !itemRes.data.hasOwnProperty('Name')) {
+            throw new ItemSearchError('정보를 불러오는 과정에서 오류가 발생했어요!');
+        }
+
+        const itemDetail = itemRes.data;
+
+        const filtered: AggregatedItemInfo = {
+            id: itemDetail.ID,
+            name: itemDetail.Name,
+            nameEn: itemDetail.Name_en,
+            nameJa: itemDetail.Name_ja,
+            nameKr: null,
+            nameDe: itemDetail.Name_de,
+            nameFr: itemDetail.Name_fr,
+            itemIcon: itemDetail.IconHD,
+            itemLevel: itemDetail.LevelItem,
+            itemUiCategoryName: itemDetail.ItemUICategory.Name,
+            itemUiCategoryNameKr: null,
+            gamePatchVersion: itemDetail.GamePatch ? `v${itemDetail.GamePatch.Version}` : '(정보 없음)',
+            desc: itemDetail.Description.replace(/(\r\n\t|\n|\r\t)/gm, " "),
+            descKr: null,
+            desynth: itemDetail.Desynth,
+            isCollectable: itemDetail.IsCollectable,
+        };
+
+        // 한국어 관련
+        // 아이템
+        const koreanItemFetch = await this.getItemsByIdx('kr', itemId);
+        if (koreanItemFetch && koreanItemFetch.length > 0) {
+            const itemParsed = JSON.parse(koreanItemFetch[0].content);
+            if (itemParsed.Name && itemParsed.Name.length > 0) {
+                filtered.nameKr = itemParsed.Name;
+            }
+            if (itemParsed.Description && itemParsed.Description.length > 0) {
+                filtered.descKr = itemParsed.Description;
+            }
+
+            const koreanItemUiCategory = await this.getItemCategoriesByIdx('kr', itemDetail.ItemUICategory.ID);
+            if (koreanItemUiCategory && koreanItemUiCategory.length > 0) {
+                const itemUiParsed = JSON.parse(koreanItemUiCategory[0].content);
+                filtered.itemUiCategoryNameKr = itemUiParsed.Name;
+            }
+        }
+
+        return filtered;
     }
 
     private async getItemsByIdx(locale: string, idx: number) {
@@ -120,15 +172,9 @@ export class ItemSearchService {
         });
     }
 
-    private fetchSearch(keyword: string) {
-        if (!/[가-힣]/gi.test(keyword)) {
-            return this.searchFromGlobal(keyword);
-        } else {
-            return this.searchFromKorea(keyword);
-        }
-    }
-
     private async searchFromGlobal(keyword: string) {
+        keyword = keyword.toLowerCase();
+
         const constSearchBody: object = {
             query: {
                 bool: {
@@ -158,7 +204,7 @@ export class ItemSearchService {
             },
             from: 0
         };
-        const searchRes = await this.xivapiService.fetchElasticSearch('instantcontent', constSearchBody, 'ID,Name');
+        const searchRes = await this.xivapiService.fetchElasticSearch('instantcontent', constSearchBody);
         if (!searchRes.hasOwnProperty('data') || !searchRes.data.hasOwnProperty('Results')) {
             throw new ItemSearchError('정보를 불러오는 과정에서 오류가 발생했어요!');
         }
@@ -217,44 +263,53 @@ export class ItemSearchService {
             });
     }
 
-    private makeItemInfoEmbedMessage(filtered: { name: any; itemUiCategoryName: any; desc: any },
-                                     itemDetail,
-                                     koreanData: { name: string },
+    private async getDbSiteLinks(filtered: AggregatedItemInfo) {
+        let koreaDbLink = '';
+        try {
+            koreaDbLink = await GuideFetchHelper.searchItemUrl(filtered.nameKr);
+        } catch (ee) {
+            console.error(ee);
+        }
+
+        return `[FF14 글로벌 공식 DB](https://na.finalfantasyxiv.com/lodestone/playguide/db/search/?q=${filtered.nameEn.replace(/ /gm, '+')})` +
+            (koreaDbLink != '' ? `\n[FF14 한국 공식 DB](${koreaDbLink})` : '') +
+            `\n[Garland Tools](https://www.garlandtools.org/db/#item/${filtered.id})` +
+            `\n[Teamcraft](https://ffxivteamcraft.com/db/ko/item/${filtered.id})` +
+            `\n[XIVAPI](https://xivapi.com/item/${filtered.id})` +
+            `\n[타르토맛 타르트](https://ff14.tar.to/item/view/${filtered.id})` +
+            `\n[Project Anyder](https://anyder.vercel.app/item/${filtered.id})` +
+            `\n[Gamerescape](https://ffxiv.gamerescape.com/wiki/${filtered.nameEn.replace(/ /gm, "_")})` +
+            `\n[Web Model Viewer](https://ffxiv.dlunch.net/model?itemId=${filtered.id}&language=7)` +
+            `\n[FF14 인벤](https://ff14.inven.co.kr/dataninfo/item/detail.php?code=${filtered.id})`;
+    }
+
+    private makeItemInfoEmbedMessage(filtered: AggregatedItemInfo,
                                      dbLinks: string) {
         return new EmbedBuilder()
             .setColor('#0099ff')
-            .setTitle(filtered.name)
-            .setDescription(filtered.desc)
+            .setTitle(filtered.nameKr ? filtered.nameKr : filtered.name)
+            .setDescription(filtered.descKr ? filtered.descKr : filtered.desc)
             .addFields(
                 {
                     name: `아이템 이름`,
-                    value: `:flag_us: ${itemDetail.Name_en}\n:flag_jp: ${itemDetail.Name_ja}\n:flag_kr: ${koreanData.name}\n:flag_de: ${itemDetail.Name_de}\n:flag_fr: ${itemDetail.Name_fr}`
+                    value: `:flag_us: ${filtered.nameEn}\n:flag_jp: ${filtered.nameJa}\n:flag_kr: ${filtered.nameKr ? filtered.nameKr : '(알 수 없음)'}\n:flag_de: ${filtered.nameDe}\n:flag_fr: ${filtered.nameFr}`
                 },
-                {name: `아이템 레벨`, value: `${itemDetail.LevelItem}`, inline: true},
-                {name: `출시 버전`, value: itemDetail.GamePatch ? `v${itemDetail.GamePatch.Version}` : '(정보 없음)', inline: true},
-                {name: `고유번호`, value: `${itemDetail.ID}`, inline: true},
+                {name: `아이템 레벨`, value: `${filtered.itemLevel}`, inline: true},
+                {
+                    name: `출시 버전`,
+                    value: filtered.gamePatchVersion,
+                    inline: true
+                },
+                {name: `고유번호`, value: `${filtered.id}`, inline: true},
                 {name: `종류`, value: filtered.itemUiCategoryName, inline: true},
-                {name: `아이템 분해`, value: itemDetail.Desynth === 0 ? '불가' : '가능', inline: true},
-                {name: `아이템 정제`, value: itemDetail.IsCollectable === 0 ? '불가' : '가능', inline: true},
+                {name: `아이템 분해`, value: filtered.desynth === 0 ? '불가' : '가능', inline: true},
+                {name: `아이템 정제`, value: filtered.isCollectable === 0 ? '불가' : '가능', inline: true},
                 {name: `DB 링크`, value: dbLinks},
             )
-            .setThumbnail(`https://xivapi.com${itemDetail.IconHD}`)
+            .setThumbnail(`https://xivapi.com${filtered.itemIcon}`)
             .setTimestamp()
             .setFooter({
                 text: this.configService.get('APP_NAME'),
             });
-    }
-
-    private getDbSiteLinks(itemDetail, koreaDbLink: string) {
-        return `[FF14 글로벌 공식 DB](https://na.finalfantasyxiv.com/lodestone/playguide/db/search/?q=${itemDetail.Name_en.replace(/ /gm, '+')})` +
-            (koreaDbLink != '' ? `\n[FF14 한국 공식 DB](${koreaDbLink})` : '') +
-            `\n[Garland Tools](https://www.garlandtools.org/db/#item/${itemDetail.ID})` +
-            `\n[Teamcraft](https://ffxivteamcraft.com/db/ko/item/${itemDetail.ID})` +
-            `\n[XIVAPI](https://xivapi.com/item/${itemDetail.ID})` +
-            `\n[타르토맛 타르트](https://ff14.tar.to/item/view/${itemDetail.ID})` +
-            `\n[Project Anyder](https://anyder.vercel.app/item/${itemDetail.ID})` +
-            `\n[Gamerescape](https://ffxiv.gamerescape.com/wiki/${itemDetail.Name_en.replace(/ /gm, "_")})` +
-            `\n[Web Model Viewer](https://ffxiv.dlunch.net/model?itemId=${itemDetail.ID}&language=7)` +
-            `\n[FF14 인벤](https://ff14.inven.co.kr/dataninfo/item/detail.php?code=${itemDetail.ID})`;
     }
 }
