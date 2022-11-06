@@ -6,8 +6,8 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 
-import { Locales, SubscribeArticleCategory } from '../../../../enums/common.enum';
-import NewsCategories from '../../../../types/archive.constant';
+import { Locales, SubscribeArticleCategory } from '../../../../definitions/common.enum';
+import NewsCategories from '../../../../definitions/archive.constant';
 import { NoticeError } from "../../../../exceptions/notice.exception";
 
 @Injectable()

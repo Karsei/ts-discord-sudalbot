@@ -10,7 +10,7 @@ import NewsCategories, {
     NewsCategoryGlobal,
     NewsCategoryKorea,
     NewsContent
-} from '../../../../types/archive.constant';
+} from '../../../../definitions/archive.constant';
 import { ArchiveService } from './archive.service';
 import { PublishDiscordService } from './publish-discord.service';
 

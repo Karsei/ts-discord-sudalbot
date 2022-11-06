@@ -2,7 +2,7 @@ import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import Redis from 'ioredis';
 
-import NewsCategories, { NewsCategoryGlobal, NewsCategoryKorea, NewsContent } from '../../../../types/archive.constant';
+import NewsCategories, { NewsCategoryGlobal, NewsCategoryKorea, NewsContent } from '../../../../definitions/archive.constant';
 import { ArchiveFetchHelper } from './archive-fetch.helper';
 
 @Injectable()
