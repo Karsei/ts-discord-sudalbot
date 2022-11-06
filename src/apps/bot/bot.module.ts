@@ -22,6 +22,8 @@ import { XivItemCategories } from '../../entities/xiv-item-categories.entity';
 import { MarketService} from './commands/market/market.service';
 import { MarketCommand } from './commands/market/market.command';
 import { UniversalisService } from './commands/market/universalis.service';
+import { NoticeService } from './commands/notice/notice.service';
+import { NoticeCreateCommand } from './commands/notice/notice-create.command';
 
 @Module({
   imports: [
@@ -38,6 +40,7 @@ import { UniversalisService } from './commands/market/universalis.service';
     FashionCheckService, FashionCheckCommand,
     ItemSearchService, ItemSearchCommand, XivapiService,
     MarketService, MarketCommand, MarketService, UniversalisService,
+    NoticeService, NoticeCreateCommand,
   ]
 })
 export class BotModule {}
