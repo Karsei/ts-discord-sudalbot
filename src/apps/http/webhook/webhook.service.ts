@@ -5,8 +5,8 @@ import { RedisService } from '@liaoliaots/nestjs-redis';
 import Redis from 'ioredis';
 import { Repository } from 'typeorm';
 
-import NewsCategories, { LodestoneLocales } from '../../../types/archive.constant';
-import { YesNoFlag } from '../../../enums/common.enum';
+import NewsCategories, { LodestoneLocales } from '../../../definitions/archive.constant';
+import { YesNoFlag } from '../../../definitions/common.enum';
 import { SaveWebhookDto } from './dto/save-webhook.dto';
 import { Guild } from '../../../entities/guild.entity';
 import { News } from '../../../entities/news.entity';
