@@ -18,9 +18,9 @@ export class XivItemCategories {
     @ManyToOne(
         (type) => XivVersion,
         (version) => version.itemCategories,
-        { nullable: false, eager: false }
+        { nullable: false, eager: true }
     )
-    @JoinColumn({ name: 'version_idx' })
+    @JoinColumn({ name: 'version_ref_idx' })
     version: XivVersion;
 
     @Column({ name: 'item_category_idx', comment: '아이템 카테고리 ID', nullable: false })
