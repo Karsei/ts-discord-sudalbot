@@ -19,6 +19,9 @@ import { Contact } from '../../entities/contact.entity';
 import { XivVersion } from '../../entities/xiv-version.entity';
 import { XivItem } from '../../entities/xiv-item.entity';
 import { XivItemCategories } from '../../entities/xiv-item-categories.entity';
+import { MarketService} from './commands/market/market.service';
+import { MarketCommand } from './commands/market/market.command';
+import { UniversalisService } from './commands/market/universalis.service';
 
 @Module({
   imports: [
@@ -34,6 +37,7 @@ import { XivItemCategories } from '../../entities/xiv-item-categories.entity';
     ContactCommand,
     FashionCheckService, FashionCheckCommand,
     ItemSearchService, ItemSearchCommand, XivapiService,
+    MarketService, MarketCommand, MarketService, UniversalisService,
   ]
 })
 export class BotModule {}
