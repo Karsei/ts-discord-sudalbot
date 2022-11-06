@@ -35,11 +35,13 @@ export class ItemSearchCommand implements DiscordTransformedCommand<ItemSearchDt
         catch (e) {
             if (e instanceof ItemSearchError) {
                 await interaction.editReply(e.message);
-            } else if (e instanceof Error) {
+            }
+            else if (e instanceof Error) {
                 await interaction.editReply('오류가 발생해서 보여드릴 수 없네요.. 잠시 후에 다시 시도해보세요.');
                 this.loggerService.error(e.stack);
                 console.error(e);
-            } else {
+            }
+            else {
                 this.loggerService.error(e);
                 console.error(e);
             }

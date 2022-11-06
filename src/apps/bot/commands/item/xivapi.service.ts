@@ -28,7 +28,7 @@ export class XivapiService {
         return await this.fetchXivApiGet(`https://xivapi.com/search`, params);
     }
 
-    async fetchElasticSearch(pIndexes: string, pBody: object, pColumn: string = 'ID,Name') {
+    async fetchElasticSearch(pIndexes: string, pBody: object, pColumn: string = 'ID,Name,IconHD') {
         let data: any = {
             indexes: pIndexes,
             body: pBody,
