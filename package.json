@@ -40,6 +40,8 @@
     "cross-env": "^7.0.3",
     "discord.js": "^14.6.0",
     "ioredis": "^5.2.3",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.38",
     "mysql2": "^2.3.3",
     "nest-winston": "^1.8.0",
     "redis": "^4.3.1",
