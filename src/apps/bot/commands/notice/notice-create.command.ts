@@ -12,10 +12,12 @@ import {
     InjectDiscordClient,
     Payload,
     TransformedCommandExecutionContext,
+    UseCollectors,
     UsePipes,
 } from '@discord-nestjs/core';
 
 import { NoticeService } from './notice.service';
+import { NoticeCreatePostCollector } from './notice-create-post-collector';
 import { NoticeManageDto } from '../../dtos/notice-manage.dto';
 
 @Command({
@@ -23,6 +25,7 @@ import { NoticeManageDto } from '../../dtos/notice-manage.dto';
     description: '현재 서버에서 구독중인 소식 카테고리 중 하나를 추가합니다.',
 })
 @UsePipes(TransformPipe)
+@UseCollectors(NoticeCreatePostCollector)
 export class NoticeCreateCommand implements DiscordTransformedCommand<NoticeManageDto> {
     constructor(@InjectDiscordClient() private readonly client: Client,
                 @Inject(Logger) private readonly loggerService: LoggerService,
