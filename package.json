@@ -1,20 +1,22 @@
 {
-  "name": "ts-discord-sudalbot",
+  "name": "ts-discord-daldalee",
   "version": "1.0.0",
-  "description": "NestJS 테스트 및 사용법 관련",
-  "main": "index.js",
-  "scripts": {
-    "start:backend": "cd backend && npm run start",
-    "start:frontend": "cd frontend && npm run start"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Karsei/ts-discord-sudalbot.git"
-  },
-  "author": "",
+  "description": "달달이봇",
+  "author": "Karsei",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Karsei/ts-discord-sudalbot/issues"
   },
-  "homepage": "https://github.com/Karsei/ts-discord-sudalbot#readme"
+  "homepage": "https://github.com/Karsei/ts-discord-sudalbot#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Karsei/ts-discord-sudalbot.git"
+  },
+  "main": "index.js",
+  "scripts": {
+    "start:backend": "npm run --prefix backend start",
+    "start:frontend": "npm run --prefix frontend start",
+    "build:backend": "npm run --prefix backend build",
+    "build:frontend": "npm run --prefix frontend build"
+  }
 }

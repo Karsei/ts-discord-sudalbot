@@ -1,10 +1,17 @@
 {
-  "name": "ts-discord-daldaleebot-server",
-  "version": "0.0.1",
-  "description": "",
+  "name": "ts-discord-daldalee-backend",
+  "version": "2.0.0",
   "author": "Karsei",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Karsei/ts-discord-sudalbot/issues"
+  },
+  "homepage": "https://github.com/Karsei/ts-discord-sudalbot#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Karsei/ts-discord-sudalbot.git"
+  },
   "private": true,
-  "license": "MIT",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
