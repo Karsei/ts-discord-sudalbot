@@ -17,16 +17,16 @@ import {
 } from '@discord-nestjs/core';
 
 import { NoticeService } from './notice.service';
-import { NoticeCreatePostCollector } from './notice-create-post-collector';
+import { NoticeDeletePostCollector } from './notice-delete-post-collector';
 import { NoticeManageDto } from '../../dtos/notice-manage.dto';
 
 @Command({
-    name: '소식추가',
-    description: '현재 서버에서 구독중인 소식 카테고리 중 하나를 추가합니다.',
+    name: '소식삭제',
+    description: '현재 서버에서 구독중인 소식 카테고리 중 하나를 삭제합니다.',
 })
 @UsePipes(TransformPipe)
-@UseCollectors(NoticeCreatePostCollector)
-export class NoticeCreateCommand implements DiscordTransformedCommand<NoticeManageDto> {
+@UseCollectors(NoticeDeletePostCollector)
+export class NoticeDeleteCommand implements DiscordTransformedCommand<NoticeManageDto> {
     constructor(@InjectDiscordClient() private readonly client: Client,
                 @Inject(Logger) private readonly loggerService: LoggerService,
                 private readonly noticeService: NoticeService) {
@@ -46,7 +46,7 @@ export class NoticeCreateCommand implements DiscordTransformedCommand<NoticeMana
             await interaction.deferReply({ephemeral: true});
             const selectComponent = await this.noticeService.makeComponent(dto.locale, interaction.guild.id);
 
-            const editedMsg = await interaction.editReply({content: '추가할 소식을 선택해주세요.', components: [selectComponent]});
+            const editedMsg = await interaction.editReply({content: '삭제할 소식을 선택해주세요.', components: [selectComponent]});
             if (!(editedMsg instanceof Message)) return;
 
             setTimeout(async () => {
