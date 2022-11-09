@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RedisService } from '@liaoliaots/nestjs-redis';
@@ -17,7 +17,8 @@ const axios = require('axios');
 export class WebhookService {
     private readonly redis: Redis;
 
-    constructor(private readonly configService: ConfigService,
+    constructor(@Inject(Logger) private readonly loggerService: LoggerService,
+                private readonly configService: ConfigService,
                 private readonly redisService: RedisService,
                 @InjectRepository(Guild) private guildRepository: Repository<Guild>,
                 @InjectRepository(News) private newsRepository: Repository<News>) {
@@ -80,7 +81,20 @@ export class WebhookService {
         guild.webhookToken = webhookRes.hookData.webhook.token;
         guild.webhookUrl = webhookRes.hookData.webhook.url;
         guild.webhookChannelId = webhookRes.hookData.webhook.channel_id;
-        return await this.guildRepository.save(guild);
+
+        const savedGuild = await this.guildRepository.save(guild);
+
+        // Cache 추가
+        await this.addGuildsAll(webhookRes.hookData.guild.id, webhookRes.hookData.webhook.url);
+
+        // Webhook 추가
+        let existWebhook = await this.checkInAllWebhooks(webhookRes.hookData.webhook.url);
+        if (!existWebhook) {
+            await this.addUrlAll(webhookRes.hookData.webhook.url);
+            this.loggerService.log(`${webhookRes.hookData.guild.id} - ${webhookRes.hookData.webhook.url} 등록 완료`);
+        }
+
+        return savedGuild;
     }
 
     /**
@@ -140,5 +154,33 @@ export class WebhookService {
     private async checkExistWebhookNews(locale: string, type: string, url: string) {
         const news = await this.newsRepository.findBy({ locale: locale, type: type, url: url, delFlag: YesNoFlag.NO });
         return news && news.length > 0;
+    }
+
+    /**
+     * 모든 서버 고유번호 목록에 등록
+     *
+     * @param guildId Discord 서버 고유번호
+     * @param url Webhook URL
+     */
+    private async addGuildsAll(guildId: string, url: string) {
+        return this.redis.hset('all-guilds', guildId, url);
+    }
+
+    /**
+     * 모든 서버 Webhook 목록에 해당 url이 있는지 확인
+     *
+     * @param pUrl Webhook URL
+     */
+    private async checkInAllWebhooks(pUrl: string) {
+        return this.redis.sismember(`all-webhooks`, pUrl);
+    }
+
+    /**
+     * 모든 서버 Webhook 목록에 등록
+     *
+     * @param pUrl Webhook URL
+     */
+    private async addUrlAll(pUrl: string) {
+        return this.redis.sadd(`all-webhooks`, pUrl);
     }
 }
