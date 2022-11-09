@@ -12,7 +12,7 @@ import { NoticeError } from "../../../../exceptions/notice.exception";
 
 @Injectable()
 export class NoticeService {
-    private readonly menuComponentId = 'notify-create';
+    private readonly menuComponentId = 'notify-pickup';
 
     private readonly redis: Redis;
 
@@ -21,7 +21,7 @@ export class NoticeService {
         this.redis = this.redisService.getClient();
     }
 
-    async addSubscribe(locale: Locales, guildId: string) {
+    async makeComponent(locale: Locales, guildId: string) {
         const hookUrl = await this.getHookUrlByGuildId(guildId);
         if (!hookUrl) {
             throw new NoticeError('해당 디스코드 서버의 Webhook 을 찾지 못했어요!');
