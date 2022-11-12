@@ -24,6 +24,7 @@ import { MarketCommand } from './commands/market/market.command';
 import { UniversalisService } from './commands/market/universalis.service';
 import { NoticeService } from './commands/notice/notice.service';
 import { NoticeCreateCommand } from './commands/notice/notice-create.command';
+import { NoticeDeleteCommand } from './commands/notice/notice-delete.command';
 
 @Module({
   imports: [
@@ -40,7 +41,7 @@ import { NoticeCreateCommand } from './commands/notice/notice-create.command';
     FashionCheckService, FashionCheckCommand,
     ItemSearchService, ItemSearchCommand, XivapiService,
     MarketService, MarketCommand, MarketService, UniversalisService,
-    NoticeService, NoticeCreateCommand,
+    NoticeService, NoticeCreateCommand, NoticeDeleteCommand,
   ]
 })
 export class BotModule {}
