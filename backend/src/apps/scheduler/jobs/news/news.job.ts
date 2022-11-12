@@ -15,8 +15,7 @@ export class NewsJob {
     })
     async handleCron() {
         this.loggerService.log('execute publish');
-        const res = await this.publishService.publishAll();
-        console.log(res);
+        await this.publishService.publishAll();
     }
 
     @Cron('0,10,20,30,40,50 * * * *', {
@@ -24,8 +23,7 @@ export class NewsJob {
         timeZone: 'Asia/Seoul',
     })
     async handleResendCron() {
-        this.loggerService.log('execute publish');
-        const res = await this.publishService.publishResendAll();
-        console.log(res);
+        this.loggerService.log('execute resend publish');
+        await this.publishService.publishResendAll();
     }
 }
