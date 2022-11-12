@@ -21,13 +21,13 @@ export class NoticeService {
         this.redis = this.redisService.getClient();
     }
 
-    async makeComponent(locale: Locales, guildId: string) {
+    async makeComponent(locale: Locales, guildId: string, doCheckExist: boolean) {
         const hookUrl = await this.getHookUrlByGuildId(guildId);
         if (!hookUrl) {
             throw new NoticeError('해당 디스코드 서버의 Webhook 을 찾지 못했어요!');
         }
 
-        return await this.makeSelectComponent(locale, hookUrl);
+        return await this.makeSelectComponent(locale, hookUrl, doCheckExist);
     }
 
     /**
@@ -40,10 +40,10 @@ export class NoticeService {
         return this.redis.hget('all-guilds', guildId);
     }
 
-    private async makeSelectComponent(locale: Locales, hookUrl: string) {
-        const { showItems, selectItems } = await this.makeSelectValues(locale, hookUrl);
+    private async makeSelectComponent(locale: Locales, hookUrl: string, doCheckExist: boolean) {
+        const { showItems, selectItems } = await this.makeSelectValues(locale, hookUrl, doCheckExist);
         if (showItems.length <= 0) {
-            throw new NoticeError('존재하는 소식 알림이 없어요!');
+            throw new NoticeError('변경할 수 있는 소식 분류가 없어요!');
         }
 
         return new ActionRowBuilder<SelectMenuBuilder>()
@@ -55,7 +55,7 @@ export class NoticeService {
         );
     }
 
-    private async makeSelectValues(locale: Locales, hookUrl: string) {
+    private async makeSelectValues(locale: Locales, hookUrl: string, doCheckExist: boolean) {
         let showStrRes = [];
         let selectRes = [];
 
@@ -65,7 +65,7 @@ export class NoticeService {
             if (Locales[locales[localeIdx]] == locale) {
                 for (let typeIdx in types) {
                     let resCheck = await this.checkInWebhook(locale, types[typeIdx], hookUrl);
-                    if (!resCheck) {
+                    if (doCheckExist ? resCheck : !resCheck) {
                         showStrRes.push({locale: locale, type: types[typeIdx]});
                         selectRes.push({
                             //label: `${Locales[locales[localeIdx]].name} - ${NotifyCategory[types[typeIdx]].name}`,

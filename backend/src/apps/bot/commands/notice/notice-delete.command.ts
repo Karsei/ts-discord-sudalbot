@@ -19,6 +19,7 @@ import {
 import { NoticeService } from './notice.service';
 import { NoticeDeletePostCollector } from './notice-delete-post-collector';
 import { NoticeManageDto } from '../../dtos/notice-manage.dto';
+import { NoticeError } from '../../../../exceptions/notice.exception';
 
 @Command({
     name: '소식삭제',
@@ -44,7 +45,7 @@ export class NoticeDeleteCommand implements DiscordTransformedCommand<NoticeMana
 
         try {
             await interaction.deferReply({ephemeral: true});
-            const selectComponent = await this.noticeService.makeComponent(dto.locale, interaction.guild.id);
+            const selectComponent = await this.noticeService.makeComponent(dto.locale, interaction.guild.id, true);
 
             const editedMsg = await interaction.editReply({content: '삭제할 소식을 선택해주세요.', components: [selectComponent]});
             if (!(editedMsg instanceof Message)) return;
@@ -58,7 +59,10 @@ export class NoticeDeleteCommand implements DiscordTransformedCommand<NoticeMana
             }, 15000);
         }
         catch (e) {
-            if (e instanceof Error) {
+            if (e instanceof NoticeError) {
+                await interaction.editReply(e.message);
+            }
+            else if (e instanceof Error) {
                 await interaction.editReply('오류가 발생해서 보여드릴 수 없네요.. 잠시 후에 다시 시도해보세요.');
                 this.loggerService.error(e.stack);
                 console.error(e);
