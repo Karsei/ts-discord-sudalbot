@@ -1,5 +1,7 @@
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import * as winston from 'winston';
+import { join } from 'path';
 import {
   utilities as nestWinstonModuleUtilities,
   WinstonModule,
@@ -30,9 +32,10 @@ async function bootstrap() {
     console.error(error);
   });
 
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: logger,
   });
+  app.useStaticAssets(join(__dirname, '..', 'views'));
   await app.listen(process.env.SERVER_PORT);
 
   logger.log(`Current Server Profile: '${process.env.NODE_ENV}'`);
