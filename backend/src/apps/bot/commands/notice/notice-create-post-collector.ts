@@ -68,6 +68,5 @@ export class NoticeCreatePostCollector {
 
     @Once('end')
     onEnd(): void {
-        console.log('end');
     }
 }

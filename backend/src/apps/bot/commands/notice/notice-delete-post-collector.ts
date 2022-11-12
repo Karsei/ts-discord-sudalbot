@@ -68,6 +68,5 @@ export class NoticeDeletePostCollector {
 
     @Once('end')
     onEnd(): void {
-        console.log('end');
     }
 }
