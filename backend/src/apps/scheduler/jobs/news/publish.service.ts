@@ -49,6 +49,10 @@ export class PublishService {
         return jobs;
     }
 
+    async publishResendAll() {
+        return await this.publishDiscordService.resendNews();
+    }
+
     async publishGlobal(type: NewsCategoryGlobal, locale: string) {
         // 제공 카테고리 양식
         const content: NewsCategoryContents = NewsCategories.Global[type];
