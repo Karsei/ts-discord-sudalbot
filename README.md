@@ -1,36 +1,22 @@
 # 달달이봇
 
-파이널 판타지 14 와 관련된 소식이나 여러 기능을 디스코드를 통하여 이용할 수 있게 해줍니다. 현재 주요 기능은 로드스톤 또는 한국 서비스의 아카이브를 불러오거나 패션체크 등의 확인 기능이 있습니다.
+<p align="center">
+  <a href="" target="blank"><img src="./images/daldalee.png" width="256" alt="Daldalee Logo" /></a>
+</p>
 
-## 요구사항
-
-* Node.js 16.6.0 또는 그 이상의 버전
-* Redis 6.x 또는 그 이상의 버전
+  <p align="center">로드스톤에서 글로벌과 한국 서비스 소식을 구독하여 실시간으로 전달받거나 아이템 검색, 패션체크 등을 사람들과 함께 쉽게 이용할 수 있도록 만들어진 디스코드 봇입니다.</p>
 
 ## 사용법
 
+1. `.env` 파일에 필요한 사항을 적습니다.
+2. 해당 프로젝트는 docker 를 이용합니다. 아래 명령어를 통해 쉽게 이용할 수 있습니다.
+
 ```bash
-# install modules
-$ npm install
-
-# run
-$ npm start
+$ docker compose up
 ```
 
-`shared/constants.js` 파일을 열어서 디스코드 봇 토큰이나 여러 설정을 수정합니다.
+인프라만 따로 실행하고 싶다면 아래와 같이 입력하시면 됩니다.
 
-```
-// Discord Bot Client ID
-DISCORD_BOT_CLIENT_ID: '',
-
-// Discord Bot Client Secret
-DISCORD_BOT_CLIENT_SECRET: '',
-
-// Discord Bot Token
-DISCORD_BOT_TOKEN: '',
-
-// FFLogs 웹 토큰
-FFLOGS_WEB_TOKEN: '',
-
-...
+```bash
+$ docker compose --profile infra-only up
 ```

@@ -1,57 +1,24 @@
 {
-  "name": "ts-discord-sudalbot",
+  "name": "ts-discord-daldalee",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "start": "npm run build:live",
-    "build": "tsc -p .",
-    "build:live": "nodemon --watch 'src/**/*.ts' --exec \"ts-node\" src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Karsei/ts-discord-sudalbot.git"
-  },
-  "keywords": [],
+  "description": "달달이봇",
   "author": "Karsei",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Karsei/ts-discord-sudalbot/issues"
   },
   "homepage": "https://github.com/Karsei/ts-discord-sudalbot#readme",
-  "devDependencies": {
-    "axios": "^0.25.0",
-    "bluebird": "^3.7.2",
-    "body-parser": "^1.19.1",
-    "cookie-parser": "^1.4.6",
-    "ejs": "^3.1.6",
-    "express": "^4.17.2",
-    "helmet": "^5.0.2",
-    "mariadb": "^2.5.6",
-    "moment": "^2.29.1",
-    "nodemon": "^2.0.15",
-    "ts-node": "^10.4.0",
-    "typescript": "^4.5.5",
-    "winston": "^3.5.1",
-    "winston-daily-rotate-file": "^4.6.0"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Karsei/ts-discord-sudalbot.git"
   },
-  "dependencies": {
-    "@discordjs/builders": "^0.12.0",
-    "@discordjs/opus": "^0.5.3",
-    "@discordjs/rest": "^0.3.0",
-    "@types/cookie-parser": "^1.4.2",
-    "@types/dotenv": "^8.2.0",
-    "@types/express": "^4.17.13",
-    "@types/node": "^17.0.16",
-    "cheerio": "^1.0.0-rc.10",
-    "cli-progress": "^3.10.0",
-    "discord-api-types": "^0.26.1",
-    "discord-music-player": "^8.3.1",
-    "discord.js": "^13.6.0",
-    "dotenv": "^16.0.1",
-    "node-cron": "^3.0.0",
-    "redis": "^4.0.3",
-    "snoowrap": "^1.23.0"
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run --prefix backend start:prod",
+    "start:backend": "npm run --prefix backend start",
+    "start:frontend": "npm run --prefix frontend start",
+    "build": "npm run --prefix frontend build && mv frontend/build backend/src/static || move frontend/build backend/views && npm run --prefix backend build",
+    "build:backend": "npm run --prefix backend build",
+    "build:frontend": "npm run --prefix frontend build"
   }
 }
