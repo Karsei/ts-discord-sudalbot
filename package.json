@@ -14,8 +14,10 @@
   },
   "main": "index.js",
   "scripts": {
+    "start": "npm run --prefix backend start:prod",
     "start:backend": "npm run --prefix backend start",
     "start:frontend": "npm run --prefix frontend start",
+    "build": "npm run --prefix frontend build && mv frontend/build backend/src/static || move frontend/build backend/views && npm run --prefix backend build",
     "build:backend": "npm run --prefix backend build",
     "build:frontend": "npm run --prefix frontend build"
   }
