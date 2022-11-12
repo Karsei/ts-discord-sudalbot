@@ -188,4 +188,68 @@ export class PublishDiscordService {
     async delUrl(locale: string, type: string, url: string) {
         return this.redis.srem(`${locale}-${type}-webhooks`, url);
     }
+
+    /**
+     * 실패한 게시글을 다시 각 디스코드 서버에 배포합니다.
+     */
+    async resendNews() {
+        let count = await this.getResendItemLength();
+        if (count == 0) return;
+
+        this.loggerService.log(`총 ${count}개의 게시글을 다시 전송합니다...`);
+        let allCount = count;
+        let success = 0;
+
+        while (count > 0) {
+            let cachedData:any = await this.popResendItem();
+            if (cachedData) {
+                cachedData = JSON.parse(cachedData);
+
+                try {
+                    let resendRes = await axios({
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        url: cachedData.url,
+                        data: cachedData.body,
+                    });
+
+                    // 너무 많이 보낸 경우 미리 딜레이를 줌
+                    if (resendRes.headers['x-ratelimit-remaining'] == '0') {
+                        let time = (parseInt(resendRes.headers['x-ratelimit-reset']) * 1000) - (new Date().getTime());
+                        if (time > 0) {
+                            await PromiseAdv.delay(time + 1000);
+                        }
+                    }
+
+                    success++;
+                } catch (err) {
+                    this.loggerService.error('최종적으로 재전송이 실패하였습니다.', err);
+                    console.error(err);
+                }
+            }
+
+            // 다시 남아있는 개수 계산
+            count = await this.getResendItemLength();
+        }
+
+        this.loggerService.log(`총 ${allCount}개의 게시글 중에서 ${success}개가 재전송을 하는데 성공하였습니다.`);
+    }
+
+    /**
+     * 소식 다시 보낼 Webhook URL과 데이터가 있는 객체의 개수 조회
+     */
+    private async getResendItemLength() {
+        return this.redis.llen('webhooks-news-resend');
+    }
+
+    /**
+     * 소식 다시 보낼 Webhook URL과 데이터가 있는 객체 꺼냄
+     *
+     * @return url, body가 있는 객체
+     */
+    private async popResendItem() {
+        return this.redis.lpop('webhooks-news-resend');
+    }
 }

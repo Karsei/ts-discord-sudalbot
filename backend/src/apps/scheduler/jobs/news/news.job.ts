@@ -18,4 +18,14 @@ export class NewsJob {
         const res = await this.publishService.publishAll();
         console.log(res);
     }
+
+    @Cron('0,10,20,30,40,50 * * * *', {
+        name: 'publish-archives-resend',
+        timeZone: 'Asia/Seoul',
+    })
+    async handleResendCron() {
+        this.loggerService.log('execute publish');
+        const res = await this.publishService.publishResendAll();
+        console.log(res);
+    }
 }
