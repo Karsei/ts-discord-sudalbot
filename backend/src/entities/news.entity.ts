@@ -1,6 +1,7 @@
 import {
     Column,
     CreateDateColumn,
+    DeleteDateColumn,
     Entity,
     ManyToOne,
     JoinColumn,
@@ -42,6 +43,6 @@ export class News {
     @UpdateDateColumn({ name: 'updated_at', comment: '수정일', nullable: false })
     updatedAt!: Date;
 
-    @Column({ name: 'deleted_at', comment: '삭제일', nullable: true })
-    deletedAt: Date | undefined;
+    @DeleteDateColumn({ name: 'deleted_at', comment: '삭제일', nullable: true })
+    deletedAt: Date;
 }

@@ -1,14 +1,19 @@
 import { Message, PermissionsBitField, SelectMenuInteraction } from 'discord.js';
+import { Repository } from 'typeorm';
 import Redis from 'ioredis';
+import { RedisService } from '@liaoliaots/nestjs-redis';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Inject, Logger, LoggerService } from '@nestjs/common';
 import { InteractionEventCollector, On, Once } from '@discord-nestjs/core';
-import { RedisService } from '@liaoliaots/nestjs-redis';
+
+import { News } from '../../../../entities/news.entity';
 
 @InteractionEventCollector({ time: 15000 })
 export class NoticeDeletePostCollector {
     private readonly redis: Redis;
     constructor(@Inject(Logger) private readonly loggerService: LoggerService,
-                private readonly redisService: RedisService) {
+                private readonly redisService: RedisService,
+                @InjectRepository(News) private newsRepository: Repository<News>) {
         this.redis = this.redisService.getClient();
     }
 
@@ -28,7 +33,7 @@ export class NoticeDeletePostCollector {
             const values = interaction.values[0].split("||");
             const locale = values[0], topic = values[1];
 
-            await this.delUrl(locale, topic, hookUrl);
+            await this.delUrl(interaction.guildId, locale, topic, hookUrl);
             this.loggerService.log(`${interaction.guild} (${interaction.guildId}) - 언어: ${locale}, 카테고리: ${topic} - 소식을 삭제하였습니다.`);
             await interaction.editReply({content: '소식 삭제에 성공했어요!', components: []});
         }
@@ -58,12 +63,18 @@ export class NoticeDeletePostCollector {
     /**
      * 게시글별 Webhook URL Cache 삭제
      *
-     * @param pLocale 언어
-     * @param pType 카테고리
-     * @param pUrl Webhook URL
+     * @param guildId 서버 ID
+     * @param locale 언어
+     * @param type 카테고리
+     * @param url Webhook URL
      */
-    private async delUrl(pLocale: string, pType: string, pUrl: string) {
-        return this.redis.srem(`${pLocale}-${pType}-webhooks`, pUrl);
+    private async delUrl(guildId: string, locale: string, type: string, url: string) {
+        await this.newsRepository.delete({
+            guild: { id: guildId },
+            locale: locale,
+            type: type,
+        });
+        return this.redis.srem(`${locale}-${type}-webhooks`, url);
     }
 
     @Once('end')
