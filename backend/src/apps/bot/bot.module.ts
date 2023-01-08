@@ -18,6 +18,7 @@ import { XivapiService } from './commands/item/xivapi.service';
 import { Contact } from '../../entities/contact.entity';
 import { XivVersion } from '../../entities/xiv-version.entity';
 import { XivItem } from '../../entities/xiv-item.entity';
+import { News } from "../../entities/news.entity";
 import { XivItemCategories } from '../../entities/xiv-item-categories.entity';
 import { MarketService} from './commands/market/market.service';
 import { MarketCommand } from './commands/market/market.command';
@@ -26,11 +27,12 @@ import { NoticeService } from './commands/notice/notice.service';
 import { NoticeCreateCommand } from './commands/notice/notice-create.command';
 import { NoticeDeleteCommand } from './commands/notice/notice-delete.command';
 
+
 @Module({
   imports: [
     DiscordModule.forRootAsync(DiscordConfig),
     DiscordModule.forFeature(),
-    TypeOrmModule.forFeature([Contact, XivVersion, XivItem, XivItemCategories]),
+    TypeOrmModule.forFeature([Contact, XivVersion, XivItem, XivItemCategories, News]),
   ],
   providers: [
     Logger,
