@@ -20,5 +20,9 @@
     "build": "npm run --prefix frontend build && mv frontend/build backend/views || move frontend/build backend/views && npm run --prefix backend build",
     "build:backend": "npm run --prefix backend build",
     "build:frontend": "npm run --prefix frontend build"
+  },
+  "dependencies": {
+    "winston": "^3.8.2",
+    "winston-daily-rotate-file": "^4.7.1"
   }
 }
