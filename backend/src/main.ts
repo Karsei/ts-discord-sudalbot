@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as winston from 'winston';
+import * as winstonDaily from 'winston-daily-rotate-file';
 import { join } from 'path';
 import {
   utilities as nestWinstonModuleUtilities,
@@ -12,9 +13,25 @@ import { AppModule } from './app.module';
 // node 에서 허가되지 않은 인증 TLS 통신을 거부하지 않음
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
+const dailyOptions = (level: string) => {
+  return {
+    level,
+    datePattern: 'YYYY-MM-DD',
+    dirname: './logs',
+    filename: `%DATE%.${level}.log`,
+    maxFiles: 30,
+    zippedArchive: true,
+    handleExceptions: true,
+  }
+}
+
 async function bootstrap() {
   const logger = WinstonModule.createLogger({
     transports: [
+      // 파일 저장 (info)
+      new winstonDaily(dailyOptions('info')),
+      new winstonDaily(dailyOptions('error')),
+      // Console
       new winston.transports.Console({
         level: 'prod' === process.env.NODE_ENV ? 'info' : 'silly',
         format: winston.format.combine(
