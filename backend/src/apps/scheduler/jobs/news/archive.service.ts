@@ -3,6 +3,7 @@ import { RedisService } from '@liaoliaots/nestjs-redis';
 import Redis from 'ioredis';
 
 import NewsCategories, { NewsCategoryGlobal, NewsCategoryKorea, NewsContent } from '../../../../definitions/archive.constant';
+import GlobalErrorReport from '../../../../helpers/global-error-report.helper';
 import { ArchiveFetchHelper } from './archive-fetch.helper';
 
 @Injectable()
@@ -33,14 +34,8 @@ export class ArchiveService {
                 await this.setCache(JSON.stringify(data), type, locale);
                 return data;
             } catch (e) {
-                this.loggerService.error('글로벌 소식을 가져오는 과정에서 오류가 발생했습니다.', e);
-                console.error(e);
-                // if (e instanceof Error) {
-                //     Logger.error(e);
-                // }
-                // else {
-                //     Logger.error(e);
-                // }
+                GlobalErrorReport.report('warn', '글로벌 소식을 가져오는 과정에서 오류가 발생했습니다.');
+                this.loggerService.warn('글로벌 소식을 가져오는 과정에서 오류가 발생했습니다.', e);
                 let data = await this.getCache(type, locale);
                 return JSON.parse(data);
             }
@@ -76,8 +71,8 @@ export class ArchiveService {
                 await this.setCache(JSON.stringify(data), type, 'kr');
                 return data;
             } catch (e) {
-                this.loggerService.error('한국 소식을 가져오는 과정에서 오류가 발생했습니다.', e);
-                console.error(e);
+                GlobalErrorReport.report('warn', '한국 소식을 가져오는 과정에서 오류가 발생했습니다.');
+                this.loggerService.warn('한국 소식을 가져오는 과정에서 오류가 발생했습니다.', e);
                 let data = await this.getCache(type, 'kr');
                 return JSON.parse(data);
             }
