@@ -1,6 +1,6 @@
 {
   "name": "ts-discord-daldalee",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "달달이봇",
   "author": "Karsei",
   "license": "ISC",
@@ -14,10 +14,12 @@
   },
   "main": "index.js",
   "scripts": {
+    "init": "npm ci --prefix backend && npm ci --prefix frontend",
     "start": "npm run --prefix backend start:prod",
     "start:backend": "npm run --prefix backend start",
     "start:frontend": "npm run --prefix frontend start",
-    "build": "npm run --prefix frontend build && mv frontend/build backend/views || move frontend/build backend/views && npm run --prefix backend build",
+    "build:win": "npm run --prefix frontend build && move frontend/build backend/views && npm run --prefix backend build",
+    "build:linux": "npm run --prefix frontend build && mv frontend/build backend/views && npm run --prefix backend build",
     "build:backend": "npm run --prefix backend build",
     "build:frontend": "npm run --prefix frontend build",
     "test": "npm run --prefix backend test"
