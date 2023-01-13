@@ -1,6 +1,6 @@
 {
   "name": "ts-discord-daldalee",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "달달이봇",
   "author": "Karsei",
   "license": "ISC",
@@ -19,6 +19,7 @@
     "start:frontend": "npm run --prefix frontend start",
     "build": "npm run --prefix frontend build && mv frontend/build backend/views || move frontend/build backend/views && npm run --prefix backend build",
     "build:backend": "npm run --prefix backend build",
-    "build:frontend": "npm run --prefix frontend build"
+    "build:frontend": "npm run --prefix frontend build",
+    "test": "npm run --prefix backend test"
   }
 }
