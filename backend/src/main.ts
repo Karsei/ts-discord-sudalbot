@@ -9,6 +9,7 @@ import {
 } from 'nest-winston';
 
 import { AppModule } from './app.module';
+import GlobalErrorReport from './helpers/global-error-report.helper';
 
 // node 에서 허가되지 않은 인증 TLS 통신을 거부하지 않음
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -25,30 +26,25 @@ const dailyOptions = (level: string) => {
   }
 }
 
+const logger = WinstonModule.createLogger({
+  transports: [
+    // 파일 저장 (info)
+    new winstonDaily(dailyOptions('info')),
+    new winstonDaily(dailyOptions('error')),
+    // Console
+    new winston.transports.Console({
+      level: 'prod' === process.env.NODE_ENV ? 'info' : 'silly',
+      format: winston.format.combine(
+          winston.format.timestamp(),
+          nestWinstonModuleUtilities.format.nestLike(process.env.APP_NAME, {
+            prettyPrint: true,
+          }),
+      ),
+    }),
+  ],
+});
+
 async function bootstrap() {
-  const logger = WinstonModule.createLogger({
-    transports: [
-      // 파일 저장 (info)
-      new winstonDaily(dailyOptions('info')),
-      new winstonDaily(dailyOptions('error')),
-      // Console
-      new winston.transports.Console({
-        level: 'prod' === process.env.NODE_ENV ? 'info' : 'silly',
-        format: winston.format.combine(
-            winston.format.timestamp(),
-            nestWinstonModuleUtilities.format.nestLike(process.env.APP_NAME, {
-              prettyPrint: true,
-            }),
-        ),
-      }),
-    ],
-  });
-
-  process.on('uncaughtException', function(error) {
-    logger.error('Unexpected error occurred:', error.message);
-    console.error(error);
-  });
-
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: logger,
   });
@@ -59,3 +55,8 @@ async function bootstrap() {
   logger.log(`Listening HTTP Requests on ${process.env.SERVER_PORT}...`);
 }
 bootstrap();
+
+process.on('uncaughtException', function(error) {
+  GlobalErrorReport.report('critical', 'uncaughtException', error.message, error.stack);
+  logger.error('Unexpected error occurred:', error.stack);
+});
