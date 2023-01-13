@@ -34,6 +34,6 @@ export class Chat {
     @Column({ name: 'content', comment: '내용', nullable: true, type: 'text' })
     content!: string;
 
-    @CreateDateColumn({ name: 'created_at', comment: '생성일', nullable: false, type: 'timestamptz' })
+    @CreateDateColumn({ name: 'created_at', comment: '생성일', nullable: false })
     createdAt!: Date;
 }
