@@ -1,8 +1,12 @@
 import {InjectDiscordClient, Once, On, UseGuards} from '@discord-nestjs/core';
 import { Injectable, Logger } from '@nestjs/common';
-import {Client, Guild, Message} from 'discord.js';
+import {Client, Guild, Message, ModalSubmitInteraction} from 'discord.js';
 
 import { MessageFromUserGuard } from './guards/message-from-user.guard';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Contact } from '../../entities/contact.entity';
+import { Repository } from 'typeorm';
+import { Chat } from '../../entities/chat.entity';
 
 @Injectable()
 export class BotGateway {
@@ -11,6 +15,7 @@ export class BotGateway {
     constructor(
         @InjectDiscordClient()
         private readonly client: Client,
+        @InjectRepository(Chat) private chatRepository: Repository<Chat>
     ) {}
 
     @Once('ready')
@@ -38,6 +43,24 @@ export class BotGateway {
     @On('messageCreate')
     @UseGuards(MessageFromUserGuard)
     async onMessageCreate(message: Message) {
-        this.logger.log(`Incoming Message: ${message.content}`);
+        await this.saveChat(message);
+    }
+
+    /**
+     * 채팅 로그를 저장합니다.
+     * @param message message 객체
+     */
+    private async saveChat(message: Message) {
+        const serverId = message.guildId
+            , serverName = message.guild.name
+            , userId = message.author.id
+            , userName = message.author.username;
+        return await this.chatRepository.insert({
+            guild: { id: serverId },
+            guildName: serverName,
+            userId: userId,
+            userName: userName,
+            content: message.content,
+        });
     }
 }
