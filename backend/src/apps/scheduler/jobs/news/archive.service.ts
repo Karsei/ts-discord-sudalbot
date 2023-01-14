@@ -5,7 +5,7 @@ import Redis from 'ioredis';
 
 import { ArchiveFetchHelper } from './archive-fetch.helper';
 import NewsCategories, { NewsCategoryGlobal, NewsCategoryKorea, NewsContent } from '../../../../definitions/archive.constant';
-import GlobalErrorReport, {ErrorLevel} from '../../../../helpers/global-error-report.helper';
+import GlobalErrorReport, { ErrorLevel } from '../../../../helpers/global-error-report.helper';
 
 @Injectable()
 export class ArchiveService {

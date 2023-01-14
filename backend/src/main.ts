@@ -59,4 +59,5 @@ bootstrap();
 process.on('uncaughtException', function(error) {
   GlobalErrorReport.report('critical', 'uncaughtException', error.message, error.stack);
   logger.error('Unexpected error occurred:', error.stack);
+  console.error(error);
 });
