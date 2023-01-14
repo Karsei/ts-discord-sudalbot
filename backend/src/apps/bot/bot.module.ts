@@ -27,6 +27,8 @@ import { UniversalisService } from './commands/market/universalis.service';
 import { NoticeService } from './commands/notice/notice.service';
 import { NoticeCreateCommand } from './commands/notice/notice-create.command';
 import { NoticeDeleteCommand } from './commands/notice/notice-delete.command';
+import { ChatGptCommand } from './commands/openai/chatgpt.command';
+import { ChatGptService } from './commands/openai/chatgpt.service';
 
 @Module({
   imports: [
@@ -44,6 +46,7 @@ import { NoticeDeleteCommand } from './commands/notice/notice-delete.command';
     ItemSearchService, ItemSearchCommand, XivapiService,
     MarketService, MarketCommand, MarketService, UniversalisService,
     NoticeService, NoticeCreateCommand, NoticeDeleteCommand,
+    ChatGptService, ChatGptCommand,
   ]
 })
 export class BotModule {}
