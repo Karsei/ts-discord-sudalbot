@@ -5,7 +5,8 @@ import {
     Unique,
     OneToMany,
     PrimaryGeneratedColumn,
-    UpdateDateColumn
+    UpdateDateColumn,
+    DeleteDateColumn
 } from 'typeorm';
 
 import { XivItem } from './xiv-item.entity';
@@ -28,6 +29,9 @@ export class XivVersion {
 
     @UpdateDateColumn({ name: 'updated_at', comment: '수정일', nullable: false })
     updatedAt!: Date;
+
+    @DeleteDateColumn({ name: 'deleted_at', comment: '삭제일', nullable: true })
+    deletedAt: Date;
 
     @OneToMany(
         (type) => XivItem,
