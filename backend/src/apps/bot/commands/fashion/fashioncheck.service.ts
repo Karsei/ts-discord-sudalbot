@@ -10,7 +10,7 @@ export class FashionCheckService {
 
     getFashion(): Promise<Submission> {
         const reddit = new (require('snoowrap'))({
-            userAgent: this.configService.get('APP_NAME'),
+            userAgent: 'DalDalee Bot',
             clientId: this.configService.get('REDDIT_CLIENT_ID'),
             clientSecret: this.configService.get('REDDIT_CLIENT_SECRET'),
             refreshToken: this.configService.get('REDDIT_CLIENT_REFRESH_TOKEN'),
