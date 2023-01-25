@@ -36,50 +36,58 @@ export class ItemStoreService {
         const latestVersionDb = await this.getLatestKoreanVersionFromDB();
         const latestVersionRemote = await this.getLatestKoreanVersionFromRemote();
         if (latestVersionDb && latestVersionDb.version >= latestVersionRemote) return;
+
+        this.loggerService.log(`Found new version! - ${latestVersionRemote}`);
         
-        // TODO: transaction 구현
+        await this.xivVersionRepository.manager.transaction(async (transactionalEntityManager) => {
+            // 새로운 버전 데이터 저장
+            const xivVersion = new XivVersion();
+            xivVersion.version = latestVersionRemote;
+            xivVersion.locale = 'kr';
+            await transactionalEntityManager.save(xivVersion);
 
-        const xivVersion = new XivVersion();
-        xivVersion.version = latestVersionRemote;
-        xivVersion.locale = 'kr';
-        await this.xivVersionRepository.save(xivVersion);
+            // 아이템 데이터 저장
+            this.loggerService.log('Fetching Item...');
+            const itemRes = await this.fetch('Item');
+            const bItem = new cliProgress.Bar();
+            bItem.start(itemRes.length, 0);
+            for (let dataIdx = 0, dataTotal = itemRes.length; dataIdx < dataTotal; dataIdx++) {
+                let csvItem = itemRes[dataIdx];
+                if (csvItem.hasOwnProperty('_')) delete csvItem['_'];
 
-        // Item
-        this.loggerService.log('Fetching Item...');
-        const itemRes = await this.fetch('Item');
-        const bItem = new cliProgress.Bar();
-        bItem.start(itemRes.length, 0);
-        for (let dataIdx = 0, dataTotal = itemRes.length; dataIdx < dataTotal; dataIdx++) {
-            let csvItem = itemRes[dataIdx];
-            if (csvItem.hasOwnProperty('_')) delete csvItem['_'];
+                await transactionalEntityManager.insert(XivItem, {
+                    version: { idx: xivVersion.idx },
+                    itemIdx: csvItem['#'],
+                    name: csvItem['Name'],
+                    content: JSON.stringify(csvItem),
+                });
+                bItem.increment();
+            }
+            bItem.stop();
 
-            await this.xivItemRepository.insert({
-                version: { idx: xivVersion.idx },
-                itemIdx: csvItem['#'],
-                name: csvItem['Name'],
-                content: JSON.stringify(csvItem),
-            });
-            bItem.increment();
-        }
-        bItem.stop();
-        // ItemUiCategory
-        this.loggerService.log('Fetching ItemUICategory...');
-        const itemUiCategoryRes = await this.fetch('ItemUICategory');
-        const bItemUiCategory = new cliProgress.Bar();
-        bItemUiCategory.start(itemUiCategoryRes.length, 0);
-        for (let dataIdx = 0, dataTotal = itemUiCategoryRes.length; dataIdx < dataTotal; dataIdx++) {
-            const csvItem = itemUiCategoryRes[dataIdx];
-            if (csvItem.hasOwnProperty('_')) delete csvItem['_'];
+            // 아이템 카테고리 데이터 저장
+            // ItemUiCategory
+            this.loggerService.log('Fetching ItemUICategory...');
+            const itemUiCategoryRes = await this.fetch('ItemUICategory');
+            const bItemUiCategory = new cliProgress.Bar();
+            bItemUiCategory.start(itemUiCategoryRes.length, 0);
+            for (let dataIdx = 0, dataTotal = itemUiCategoryRes.length; dataIdx < dataTotal; dataIdx++) {
+                const csvItem = itemUiCategoryRes[dataIdx];
+                if (csvItem.hasOwnProperty('_')) delete csvItem['_'];
 
-            await this.xivItemCategoriesRepository.insert({
-                version: { idx: xivVersion.idx },
-                itemCategoryIdx: csvItem['#'],
-                name: csvItem['Name'],
-                content: JSON.stringify(csvItem),
-            });
-            bItemUiCategory.increment();
-        }
-        bItemUiCategory.stop();
+                await transactionalEntityManager.insert(XivItemCategories, {
+                    version: { idx: xivVersion.idx },
+                    itemCategoryIdx: csvItem['#'],
+                    name: csvItem['Name'],
+                    content: JSON.stringify(csvItem),
+                });
+                bItemUiCategory.increment();
+            }
+            bItemUiCategory.stop();
+
+            // 이전 데이터는 삭제 처리
+            await transactionalEntityManager.softDelete(XivVersion, { idx: latestVersionDb.idx });
+        });
     }
 
     private async getLatestKoreanVersionFromDB() {
