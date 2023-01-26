@@ -10,6 +10,7 @@ import {
 import { ItemSearchService } from './item-search.service';
 import { ItemSearchDto } from '../../dtos/itemsearch.dto';
 import { ItemSearchError } from '../../../../exceptions/item-search.exception';
+import {ActionRowBuilder, SelectMenuBuilder} from "discord.js";
 
 @Command({
     name: '아이템검색',
@@ -17,6 +18,8 @@ import { ItemSearchError } from '../../../../exceptions/item-search.exception';
 })
 @UsePipes(TransformPipe)
 export class ItemSearchCommand implements DiscordTransformedCommand<ItemSearchDto> {
+    private readonly menuComponentId = 'item-search';
+
     constructor(@Inject(Logger) private readonly loggerService: LoggerService,
                 private readonly itemSearchService: ItemSearchService) {
     }
@@ -46,5 +49,15 @@ export class ItemSearchCommand implements DiscordTransformedCommand<ItemSearchDt
                 console.error(e);
             }
         }
+    }
+
+    private makeSelectComponent(items: {label: string, value: any}[]) {
+        return new ActionRowBuilder<SelectMenuBuilder>()
+            .addComponents(
+                new SelectMenuBuilder()
+                    .setCustomId(this.menuComponentId)
+                    .setPlaceholder('선택해주세요')
+                    .addOptions(items),
+            );
     }
 }
