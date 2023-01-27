@@ -23,8 +23,8 @@ const dailyOptions = (level: string) => {
     maxFiles: 30,
     zippedArchive: true,
     handleExceptions: true,
-  }
-}
+  };
+};
 
 const logger = WinstonModule.createLogger({
   transports: [
@@ -35,10 +35,10 @@ const logger = WinstonModule.createLogger({
     new winston.transports.Console({
       level: 'prod' === process.env.NODE_ENV ? 'info' : 'silly',
       format: winston.format.combine(
-          winston.format.timestamp(),
-          nestWinstonModuleUtilities.format.nestLike(process.env.APP_NAME, {
-            prettyPrint: true,
-          }),
+        winston.format.timestamp(),
+        nestWinstonModuleUtilities.format.nestLike(process.env.APP_NAME, {
+          prettyPrint: true,
+        }),
       ),
     }),
   ],
@@ -56,8 +56,13 @@ async function bootstrap() {
 }
 bootstrap();
 
-process.on('uncaughtException', function(error) {
-  GlobalErrorReport.report('critical', 'uncaughtException', error.message, error.stack);
+process.on('uncaughtException', function (error) {
+  GlobalErrorReport.report(
+    'critical',
+    'uncaughtException',
+    error.message,
+    error.stack,
+  );
   logger.error('Unexpected error occurred:', error.stack);
   console.error(error);
 });
