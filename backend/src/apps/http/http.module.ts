@@ -10,10 +10,7 @@ import { Guild } from '../../entities/guild.entity';
 import { News } from '../../entities/news.entity';
 
 @Module({
-  imports: [
-    TerminusModule,
-    TypeOrmModule.forFeature([Guild, News]),
-  ],
+  imports: [TerminusModule, TypeOrmModule.forFeature([Guild, News])],
   controllers: [HealthController, WebhookController],
   providers: [Logger, SampleHealthIndicator, WebhookService],
 })
