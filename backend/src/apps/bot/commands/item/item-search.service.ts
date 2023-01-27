@@ -11,33 +11,25 @@ import { ItemSearchTooManyResultsError } from '../../../../exceptions/item-searc
 import { XivVersion } from '../../../../entities/xiv-version.entity';
 import { XivItem } from '../../../../entities/xiv-item.entity';
 import { XivItemCategories } from '../../../../entities/xiv-item-categories.entity';
+import { AggregatedItemInfo } from '../../../../definitions/xivitem.type';
 
-export interface AggregatedItemInfo {
-    id: number;
-    name: string | null;
-    nameEn: string | null;
-    nameKr: string | null;
-    nameJa: string | null;
-    nameFr: string | null;
-    nameDe: string | null;
-    desc: string | null;
-    descKr: string | null;
-    itemIcon: string;
-    itemUiCategoryName: string;
-    itemUiCategoryNameKr: string | null;
-    itemLevel: number;
-    isCollectable: number;
-    desynth: number;
-    gamePatchVersion: string;
+export interface ItemSearchList {
+    pagination: { ResultsTotal: number };
+    data: ItemSearchListItem[];
+}
+
+export interface ItemSearchListItem {
+    Name: string;
+    ID: number;
 }
 
 @Injectable()
 export class ItemSearchService {
     constructor(private readonly configService: ConfigService,
-                private readonly xivapiService: XivapiService,
-                @InjectRepository(XivVersion) private xivVersionRepository: Repository<XivVersion>,
-                @InjectRepository(XivItem) private xivItemRepository: Repository<XivItem>,
-                @InjectRepository(XivItemCategories) private xivItemCategoriesRepository: Repository<XivItemCategories>) {
+        private readonly xivapiService: XivapiService,
+        @InjectRepository(XivVersion) private xivVersionRepository: Repository<XivVersion>,
+        @InjectRepository(XivItem) private xivItemRepository: Repository<XivItem>,
+        @InjectRepository(XivItemCategories) private xivItemCategoriesRepository: Repository<XivItemCategories>) {
     }
 
     async search(keyword: string) {
@@ -68,17 +60,21 @@ export class ItemSearchService {
     }
 
     async fetchSearchItem(keyword: string) {
-        const { pagination, results } = await this.fetchSearchItems(keyword);
+        const { pagination, data } = await this.fetchSearchItems(keyword);
 
-        if (results.length < 1)
+        if (data.length < 1)
             throw new ItemSearchError('데이터를 발견하지 못했어요!');
-        if (results.length > 1 && results[0].Name.toLowerCase() !== keyword)
-            throw new ItemSearchTooManyResultsError('아이템 검색 결과가 많아요! 이름을 정확하게 입력하고 다시 시도해보세요.', pagination, results);
+        if (data.length > 1 && data[0].Name.toLowerCase() !== keyword)
+            throw new ItemSearchTooManyResultsError('아이템 검색 결과가 많아요! 이름을 정확하게 입력하고 다시 시도해보세요.', pagination, data);
 
-        return await this.aggregateKoreanItemInfo(results[0].ID);
+        return await this.aggregateKoreanItemInfo(data[0].ID);
     }
 
-    async fetchSearchItems(keyword: string) {
+    async fetchSearchItemById(itemId: number) {
+        return await this.aggregateKoreanItemInfo(itemId);
+    }
+
+    async fetchSearchItems(keyword: string): Promise<ItemSearchList> {
         let searchRes;
         if (!/[가-힣]/gi.test(keyword)) {
             searchRes = await this.searchFromGlobal(keyword);
@@ -88,7 +84,7 @@ export class ItemSearchService {
 
         return {
             pagination: searchRes.data.Pagination,
-            results: searchRes.data.Results,
+            data: searchRes.data.Results,
         };
     }
 
@@ -148,27 +144,27 @@ export class ItemSearchService {
                 version: { locale: locale },
                 itemIdx: idx
             },
-            order: { version: { version: 'DESC' }}
+            order: { version: { version: 'DESC' } }
         });
     }
 
     private async getItemsByName(locale: string, name: string) {
         return await this.xivItemRepository.find({
             where: {
-                version: {locale: locale},
+                version: { locale: locale },
                 name: Like(`%${name}%`),
             },
-            order: { version: { version: 'DESC' }}
+            order: { version: { version: 'DESC' } }
         });
     }
 
     private async getItemCategoriesByIdx(locale: string, idx: number) {
         return await this.xivItemCategoriesRepository.find({
             where: {
-                version: {locale: locale},
+                version: { locale: locale },
                 itemCategoryIdx: idx,
             },
-            order: { version: { version: 'DESC' }}
+            order: { version: { version: 'DESC' } }
         });
     }
 
@@ -248,14 +244,14 @@ export class ItemSearchService {
     }
 
     private makeItemRemainListInfoEmbedMessage(keyword: string,
-                                               pagination: { ResultsTotal: number },
-                                               itmListstr: string) {
+        pagination: { ResultsTotal: number },
+        itmListstr: string) {
         return new EmbedBuilder()
             .setColor('#0099ff')
             .setTitle(`아이템 검색`)
             .setDescription(`상세 정보를 보려면 이름을 완전히 똑같이 해서 검색하세요.`)
             .addFields(
-                {name: `"${keyword}" 검색 결과 (총 ${pagination.ResultsTotal}개)`, value: itmListstr},
+                { name: `"${keyword}" 검색 결과 (총 ${pagination.ResultsTotal}개)`, value: itmListstr },
             )
             .setTimestamp(new Date())
             .setFooter({
@@ -284,7 +280,7 @@ export class ItemSearchService {
     }
 
     private makeItemInfoEmbedMessage(filtered: AggregatedItemInfo,
-                                     dbLinks: string) {
+        dbLinks: string) {
         return new EmbedBuilder()
             .setColor('#0099ff')
             .setTitle(filtered.nameKr ? filtered.nameKr : filtered.name)
@@ -294,17 +290,17 @@ export class ItemSearchService {
                     name: `아이템 이름`,
                     value: `:flag_us: ${filtered.nameEn}\n:flag_jp: ${filtered.nameJa}\n:flag_kr: ${filtered.nameKr ? filtered.nameKr : '(알 수 없음)'}\n:flag_de: ${filtered.nameDe}\n:flag_fr: ${filtered.nameFr}`
                 },
-                {name: `아이템 레벨`, value: `${filtered.itemLevel}`, inline: true},
+                { name: `아이템 레벨`, value: `${filtered.itemLevel}`, inline: true },
                 {
                     name: `출시 버전`,
                     value: filtered.gamePatchVersion,
                     inline: true
                 },
-                {name: `고유번호`, value: `${filtered.id}`, inline: true},
-                {name: `종류`, value: filtered.itemUiCategoryName, inline: true},
-                {name: `아이템 분해`, value: filtered.desynth === 0 ? '불가' : '가능', inline: true},
-                {name: `아이템 정제`, value: filtered.isCollectable === 0 ? '불가' : '가능', inline: true},
-                {name: `DB 링크`, value: dbLinks},
+                { name: `고유번호`, value: `${filtered.id}`, inline: true },
+                { name: `종류`, value: filtered.itemUiCategoryName, inline: true },
+                { name: `아이템 분해`, value: filtered.desynth === 0 ? '불가' : '가능', inline: true },
+                { name: `아이템 정제`, value: filtered.isCollectable === 0 ? '불가' : '가능', inline: true },
+                { name: `DB 링크`, value: dbLinks },
             )
             .setThumbnail(`https://xivapi.com${filtered.itemIcon}`)
             .setTimestamp()
