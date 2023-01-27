@@ -6,7 +6,7 @@ import { SampleHealthIndicator } from './sample.health';
 export class HealthController {
   constructor(
     private readonly health: HealthCheckService,
-    private readonly sampleHealthIndicator: SampleHealthIndicator
+    private readonly sampleHealthIndicator: SampleHealthIndicator,
   ) {}
 
   @Get()

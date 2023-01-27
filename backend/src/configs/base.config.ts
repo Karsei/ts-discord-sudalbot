@@ -1,4 +1,4 @@
 export const BaseConfig = {
-    isGlobal: true,
-    envFilePath: `../.env`,
+  isGlobal: true,
+  envFilePath: `../.env`,
 };

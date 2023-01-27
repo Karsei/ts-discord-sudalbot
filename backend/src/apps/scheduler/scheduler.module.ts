@@ -13,14 +13,18 @@ import { ItemJob } from './jobs/item/item.job';
 import { ItemStoreService } from './jobs/item/item-store.service';
 
 @Module({
-    imports: [
-        ScheduleModule.forRoot(),
-        TypeOrmModule.forFeature([XivVersion, XivItem, XivItemCategories]),
-    ],
-    providers: [
-      Logger,
-      NewsJob, PublishService, PublishDiscordService, ArchiveService,
-      ItemJob, ItemStoreService,
-    ],
+  imports: [
+    ScheduleModule.forRoot(),
+    TypeOrmModule.forFeature([XivVersion, XivItem, XivItemCategories]),
+  ],
+  providers: [
+    Logger,
+    NewsJob,
+    PublishService,
+    PublishDiscordService,
+    ArchiveService,
+    ItemJob,
+    ItemStoreService,
+  ],
 })
 export class SchedulerModule {}
