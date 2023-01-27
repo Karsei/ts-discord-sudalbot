@@ -30,6 +30,7 @@ import { NoticeDeleteCommand } from './commands/notice/notice-delete.command';
 import { ChatGptCommand } from './commands/openai/chatgpt.command';
 import { ChatGptService } from './commands/openai/chatgpt.service';
 import { ItemSearchInteractionService } from './commands/item/item-search-interaction.service';
+import { ShopCommand } from './commands/shop/shop.command';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { ItemSearchInteractionService } from './commands/item/item-search-intera
     NoticeDeleteCommand,
     ChatGptService,
     ChatGptCommand,
+    ShopCommand,
   ],
 })
 export class BotModule {}
