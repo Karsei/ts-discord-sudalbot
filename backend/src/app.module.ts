@@ -25,6 +25,6 @@ import { SchedulerModule } from './apps/scheduler/scheduler.module';
     // For Scheduler
     SchedulerModule,
   ],
-  providers: [ Logger ],
+  providers: [Logger],
 })
 export class AppModule {}
