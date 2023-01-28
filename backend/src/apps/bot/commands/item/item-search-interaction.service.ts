@@ -3,6 +3,7 @@ import {
   ChatInputCommandInteraction,
   ContextMenuCommandInteraction,
   EmbedBuilder,
+  Message,
   SelectMenuBuilder,
   SelectMenuInteraction,
 } from 'discord.js';
@@ -15,6 +16,7 @@ import { GuideFetchHelper } from './guide-fetch.helper';
 @Injectable()
 export class ItemSearchInteractionService {
   public static readonly MENU_PAGE_VALUE = 'item-search-page-';
+  public static readonly MAX_COMPONENT_TIMEOUT = 30000; // ms
   private static readonly MENU_COMPONENT_ID = 'item-search';
   private static readonly MAX_NUMBER_VIEW_ON_SELECT = 10;
 
@@ -77,6 +79,18 @@ export class ItemSearchInteractionService {
       embeds: [embedMsg],
       components: [component],
     });
+
+    setTimeout(async () => {
+      const fetchMsg = await interaction.fetchReply();
+      if (!(fetchMsg instanceof Message)) return;
+      if (fetchMsg.components.length == 0) return;
+
+      await interaction.editReply({
+        content: '시간이 꽤 지나서 다시 명령어를 이용해주세요.',
+        embeds: [],
+        components: [],
+      });
+    }, ItemSearchInteractionService.MAX_COMPONENT_TIMEOUT);
   }
 
   async info(
