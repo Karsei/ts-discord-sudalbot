@@ -1,16 +1,14 @@
-import { SelectMenuInteraction } from 'discord.js';
+import { DiscordAPIError, SelectMenuInteraction } from 'discord.js';
 import { Inject, Logger, LoggerService } from '@nestjs/common';
-import {
-  InteractionEventCollector,
-  On,
-  Once,
-  UseCollectors,
-} from '@discord-nestjs/core';
+import { InteractionEventCollector, On, Once } from '@discord-nestjs/core';
 
 import { ItemSearchService } from './item-search.service';
 import { ItemSearchInteractionService } from './item-search-interaction.service';
 
-@InteractionEventCollector({ time: 30000, maxComponents: 30 })
+@InteractionEventCollector({
+  time: ItemSearchInteractionService.MAX_COMPONENT_TIMEOUT,
+  maxComponents: 30,
+})
 export class ItemSearchInteractionPostCollector {
   constructor(
     @Inject(Logger) private readonly loggerService: LoggerService,
@@ -21,7 +19,17 @@ export class ItemSearchInteractionPostCollector {
   @On('collect')
   async onCollect(interaction: SelectMenuInteraction): Promise<void> {
     try {
-      await interaction.deferUpdate();
+      if (!interaction.deferred && !interaction.replied) {
+        try {
+          await interaction.deferUpdate();
+        } catch (error) {
+          if (error instanceof DiscordAPIError) {
+            // ignore
+          } else {
+            throw error;
+          }
+        }
+      }
 
       const values = interaction.values[0].split('||');
       const keyword = values[0],
