@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { YesNoFlag } from '../definitions/common.enum';
+import { YesNoFlag } from '../definitions/common.type';
 import { Guild } from './guild.entity';
 
 @Entity('News')

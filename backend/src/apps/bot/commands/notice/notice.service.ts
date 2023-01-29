@@ -9,7 +9,7 @@ import { RedisService } from '@liaoliaots/nestjs-redis';
 import {
   Locales,
   SubscribeArticleCategory,
-} from '../../../../definitions/common.enum';
+} from '../../../../definitions/common.type';
 import NewsCategories from '../../../../definitions/archive.constant';
 import { NoticeError } from '../../../../exceptions/notice.exception';
 
