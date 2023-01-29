@@ -1,6 +1,6 @@
 import { Choice, Param } from '@discord-nestjs/core';
 
-import { Locales } from '../../../definitions/common.enum';
+import { Locales } from '../../../definitions/common.type';
 
 export class NoticeManageDto {
   @Choice(Locales)

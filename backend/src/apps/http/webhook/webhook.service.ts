@@ -8,7 +8,7 @@ import { Repository } from 'typeorm';
 import NewsCategories, {
   LodestoneLocales,
 } from '../../../definitions/archive.constant';
-import { YesNoFlag } from '../../../definitions/common.enum';
+import { YesNoFlag } from '../../../definitions/common.type';
 import { SaveWebhookDto } from './dto/save-webhook.dto';
 import { Guild } from '../../../entities/guild.entity';
 import { News } from '../../../entities/news.entity';

@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { YesNoFlag } from '../definitions/common.enum';
+import { YesNoFlag } from '../definitions/common.type';
 import { News } from './news.entity';
 import { Contact } from './contact.entity';
 

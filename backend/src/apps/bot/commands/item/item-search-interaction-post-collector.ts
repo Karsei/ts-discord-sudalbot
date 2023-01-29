@@ -49,13 +49,13 @@ export class ItemSearchInteractionPostCollector {
 
       if (page > 0) {
         const searchResults = await this.itemSearchService.fetchSearchItems(
-          keyword,
+          keyword, { page, perPage: ItemSearchInteractionService.MAX_NUMBER_VIEW_ON_SELECT }
         );
         await this.itemSearchInteractionService.list(
           interaction,
           keyword,
           searchResults,
-          page,
+            { page, perPage: ItemSearchInteractionService.MAX_NUMBER_VIEW_ON_SELECT },
         );
       } else {
         const info = await this.itemSearchService.fetchSearchItemById(itemId);
