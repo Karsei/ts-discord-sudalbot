@@ -12,13 +12,14 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ItemSearchList } from './item-search.service';
 import { GuideFetchHelper } from './guide-fetch.helper';
+import {PaginationParams} from "../../../../definitions/common.type";
 
 @Injectable()
 export class ItemSearchInteractionService {
   public static readonly MENU_PAGE_VALUE = 'item-search-page-';
   public static readonly MAX_COMPONENT_TIMEOUT = 30000; // ms
+  public static readonly MAX_NUMBER_VIEW_ON_SELECT = 10;
   private static readonly MENU_COMPONENT_ID = 'item-search';
-  private static readonly MAX_NUMBER_VIEW_ON_SELECT = 10;
 
   constructor(private readonly configService: ConfigService) {}
 
@@ -29,32 +30,34 @@ export class ItemSearchInteractionService {
       | SelectMenuInteraction,
     keyword: string,
     searchResults: ItemSearchList,
-    page: number,
+    paginationParams: PaginationParams,
   ) {
     const itmStart =
-        (page - 1) * ItemSearchInteractionService.MAX_NUMBER_VIEW_ON_SELECT,
-      itmEnd = page * ItemSearchInteractionService.MAX_NUMBER_VIEW_ON_SELECT,
-      isNext = itmEnd < searchResults.data.length,
-      isPrev = page > 1;
+        (paginationParams.page - 1) * ItemSearchInteractionService.MAX_NUMBER_VIEW_ON_SELECT,
+      itmEnd = paginationParams.page * ItemSearchInteractionService.MAX_NUMBER_VIEW_ON_SELECT,
+      isNext = itmEnd < searchResults.pagination.ResultsTotal,
+      isPrev = paginationParams.page > 1;
 
     const itemList: { label: string; value: any }[] = [];
     for (
-      let itmIdx = itmStart,
+      let itmIdxList = 1,
+          itmIdx = itmStart,
         itmLen =
-          itmEnd < searchResults.data.length
+          itmEnd < searchResults.pagination.ResultsTotal
             ? itmEnd
-            : searchResults.data.length;
+            : searchResults.pagination.ResultsTotal;
       itmIdx < itmLen;
-      itmIdx++
+      itmIdx++, itmIdxList++
     ) {
       itemList.push({
-        label: `${itmIdx + 1}. ${searchResults.data[itmIdx].Name}`,
-        value: `${keyword}||${searchResults.data[itmIdx].ID}`,
+        label: `${itmIdxList}. ${searchResults.data[itmIdxList - 1].Name}`,
+        value: `${keyword}||${searchResults.data[itmIdxList - 1].ID}`,
       });
     }
 
     const embedMsg = this.makeItemRemainListInfoEmbedMessage(
       keyword,
+      paginationParams,
       searchResults.pagination,
       itemList.map((e) => e.label).join('\n'),
     );
@@ -62,14 +65,14 @@ export class ItemSearchInteractionService {
       itemList.unshift({
         label: '...이전',
         value: `${keyword}||${ItemSearchInteractionService.MENU_PAGE_VALUE}${
-          page - 1
+            paginationParams.page - 1
         }`,
       });
     if (isNext)
       itemList.push({
         label: '...다음',
         value: `${keyword}||${ItemSearchInteractionService.MENU_PAGE_VALUE}${
-          page + 1
+            paginationParams.page + 1
         }`,
       });
     const component = this.makeSelectComponent(itemList);
@@ -121,15 +124,17 @@ export class ItemSearchInteractionService {
 
   private makeItemRemainListInfoEmbedMessage(
     keyword: string,
+    paginationParams: PaginationParams,
     pagination: { ResultsTotal: number },
     itmListStr: string,
   ) {
+    const totalPage = Math.ceil(pagination.ResultsTotal / paginationParams.perPage);
     return new EmbedBuilder()
       .setColor('#0099ff')
       .setTitle(`아이템 검색`)
       .setDescription(`여러 개의 아이템이 검색되었습니다. 아래에서 선택하세요.`)
       .addFields({
-        name: `"${keyword}" 검색 결과 (총 ${pagination.ResultsTotal}개)`,
+        name: `"${keyword}" 검색 결과 (총 ${pagination.ResultsTotal}개, 페이지 ${paginationParams.page} / ${totalPage})`,
         value: itmListStr,
       })
       .setTimestamp(new Date())

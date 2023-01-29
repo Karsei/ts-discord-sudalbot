@@ -12,6 +12,7 @@ import { XivVersion } from '../../../../entities/xiv-version.entity';
 import { XivItem } from '../../../../entities/xiv-item.entity';
 import { XivItemCategories } from '../../../../entities/xiv-item-categories.entity';
 import { AggregatedItemInfo } from '../../../../definitions/xivitem.type';
+import {PaginationParams} from "../../../../definitions/common.type";
 
 export interface ItemSearchList {
   pagination: { ResultsTotal: number };
@@ -69,7 +70,7 @@ export class ItemSearchService {
   }
 
   async fetchSearchItem(keyword: string) {
-    const { pagination, data } = await this.fetchSearchItems(keyword);
+    const { pagination, data } = await this.fetchSearchItems(keyword, { page: 1, perPage: 10 });
 
     if (data.length < 1)
       throw new ItemSearchError('데이터를 발견하지 못했어요!');
@@ -87,12 +88,12 @@ export class ItemSearchService {
     return await this.aggregateKoreanItemInfo(itemId);
   }
 
-  async fetchSearchItems(keyword: string): Promise<ItemSearchList> {
+  async fetchSearchItems(keyword: string, paginationParams: PaginationParams): Promise<ItemSearchList> {
     let searchRes;
     if (!/[가-힣]/gi.test(keyword)) {
-      searchRes = await this.searchFromGlobal(keyword);
+      searchRes = await this.searchFromGlobal(keyword, paginationParams);
     } else {
-      searchRes = await this.searchFromKorea(keyword);
+      searchRes = await this.searchFromKorea(keyword, paginationParams);
     }
 
     return {
@@ -169,13 +170,14 @@ export class ItemSearchService {
     });
   }
 
-  private async getItemsByName(locale: string, name: string) {
-    return await this.xivItemRepository.find({
+  private async getItemsByName(locale: string, name: string, paginationParams: PaginationParams) {
+    return await this.xivItemRepository.findAndCount({
       where: {
         version: { locale: locale },
         name: Like(`%${name}%`),
       },
-      order: { version: { version: 'DESC' } },
+      take: paginationParams.perPage,
+      skip: (paginationParams.page - 1) * paginationParams.perPage,
     });
   }
 
@@ -189,7 +191,7 @@ export class ItemSearchService {
     });
   }
 
-  private async searchFromGlobal(keyword: string) {
+  private async searchFromGlobal(keyword: string, paginationParams: PaginationParams) {
     keyword = keyword.toLowerCase();
 
     const constSearchBody: object = {
@@ -219,10 +221,11 @@ export class ItemSearchService {
           ],
         },
       },
-      from: 0,
+      from: (paginationParams.page - 1) * paginationParams.perPage,
+      size: paginationParams.perPage,
     };
     const searchRes = await this.xivapiService.fetchElasticSearch(
-      'instantcontent',
+      'item',
       constSearchBody,
     );
     if (
@@ -241,7 +244,7 @@ export class ItemSearchService {
     return searchRes;
   }
 
-  private async searchFromKorea(keyword: string) {
+  private async searchFromKorea(keyword: string, pagination: PaginationParams) {
     // 데이터 초기화
     const searchRes = {
       data: {
@@ -253,10 +256,10 @@ export class ItemSearchService {
     };
 
     // 이름을 찾는다.
-    const kNames: any = await this.getItemsByName('kr', keyword);
-    for (const itemIdx of Object.keys(kNames)) {
+    const [data, total] = await this.getItemsByName('kr', keyword, pagination);
+    for (const itemIdx of Object.keys(data)) {
       if (itemIdx == 'meta') continue;
-      const item = kNames[itemIdx];
+      const item = data[itemIdx];
       if (item.name.toLowerCase().includes(keyword)) {
         searchRes.data.Results.push({
           Name: item.name,
@@ -264,7 +267,7 @@ export class ItemSearchService {
         });
       }
     }
-    searchRes.data.Pagination.ResultsTotal = searchRes.data.Results.length;
+    searchRes.data.Pagination.ResultsTotal = total;
 
     if (
       Array.isArray(searchRes.data.Results) &&
