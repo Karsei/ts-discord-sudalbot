@@ -39,9 +39,13 @@ export class ItemSearchCommand
     await interaction.deferReply();
 
     try {
-      const searchPagination = { page: 1, perPage: ItemSearchInteractionService.MAX_NUMBER_VIEW_ON_SELECT };
+      const searchPagination = {
+        page: 1,
+        perPage: ItemSearchInteractionService.MAX_NUMBER_VIEW_ON_SELECT,
+      };
       const searchResults = await this.itemSearchService.fetchSearchItems(
-        dto.keyword, searchPagination
+        dto.keyword,
+        searchPagination,
       );
       if (searchResults.data.length == 1) {
         const info = await this.itemSearchService.fetchSearchItemById(
@@ -53,7 +57,7 @@ export class ItemSearchCommand
           interaction,
           dto.keyword,
           searchResults,
-            searchPagination,
+          searchPagination,
         );
       }
     } catch (e) {

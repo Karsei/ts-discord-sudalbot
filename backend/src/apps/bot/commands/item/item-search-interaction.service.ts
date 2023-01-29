@@ -12,7 +12,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ItemSearchList } from './item-search.service';
 import { GuideFetchHelper } from './guide-fetch.helper';
-import {PaginationParams} from "../../../../definitions/common.type";
+import { PaginationParams } from '../../../../definitions/common.type';
 
 @Injectable()
 export class ItemSearchInteractionService {
@@ -33,15 +33,18 @@ export class ItemSearchInteractionService {
     paginationParams: PaginationParams,
   ) {
     const itmStart =
-        (paginationParams.page - 1) * ItemSearchInteractionService.MAX_NUMBER_VIEW_ON_SELECT,
-      itmEnd = paginationParams.page * ItemSearchInteractionService.MAX_NUMBER_VIEW_ON_SELECT,
+        (paginationParams.page - 1) *
+        ItemSearchInteractionService.MAX_NUMBER_VIEW_ON_SELECT,
+      itmEnd =
+        paginationParams.page *
+        ItemSearchInteractionService.MAX_NUMBER_VIEW_ON_SELECT,
       isNext = itmEnd < searchResults.pagination.ResultsTotal,
       isPrev = paginationParams.page > 1;
 
     const itemList: { label: string; value: any }[] = [];
     for (
       let itmIdxList = 1,
-          itmIdx = itmStart,
+        itmIdx = itmStart,
         itmLen =
           itmEnd < searchResults.pagination.ResultsTotal
             ? itmEnd
@@ -65,14 +68,14 @@ export class ItemSearchInteractionService {
       itemList.unshift({
         label: '...이전',
         value: `${keyword}||${ItemSearchInteractionService.MENU_PAGE_VALUE}${
-            paginationParams.page - 1
+          paginationParams.page - 1
         }`,
       });
     if (isNext)
       itemList.push({
         label: '...다음',
         value: `${keyword}||${ItemSearchInteractionService.MENU_PAGE_VALUE}${
-            paginationParams.page + 1
+          paginationParams.page + 1
         }`,
       });
     const component = this.makeSelectComponent(itemList);
@@ -128,7 +131,9 @@ export class ItemSearchInteractionService {
     pagination: { ResultsTotal: number },
     itmListStr: string,
   ) {
-    const totalPage = Math.ceil(pagination.ResultsTotal / paginationParams.perPage);
+    const totalPage = Math.ceil(
+      pagination.ResultsTotal / paginationParams.perPage,
+    );
     return new EmbedBuilder()
       .setColor('#0099ff')
       .setTitle(`아이템 검색`)

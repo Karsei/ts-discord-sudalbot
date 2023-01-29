@@ -12,7 +12,7 @@ import { XivVersion } from '../../../../entities/xiv-version.entity';
 import { XivItem } from '../../../../entities/xiv-item.entity';
 import { XivItemCategories } from '../../../../entities/xiv-item-categories.entity';
 import { AggregatedItemInfo } from '../../../../definitions/xivitem.type';
-import {PaginationParams} from "../../../../definitions/common.type";
+import { PaginationParams } from '../../../../definitions/common.type';
 
 export interface ItemSearchList {
   pagination: { ResultsTotal: number };
@@ -70,7 +70,10 @@ export class ItemSearchService {
   }
 
   async fetchSearchItem(keyword: string) {
-    const { pagination, data } = await this.fetchSearchItems(keyword, { page: 1, perPage: 10 });
+    const { pagination, data } = await this.fetchSearchItems(keyword, {
+      page: 1,
+      perPage: 10,
+    });
 
     if (data.length < 1)
       throw new ItemSearchError('데이터를 발견하지 못했어요!');
@@ -88,7 +91,10 @@ export class ItemSearchService {
     return await this.aggregateKoreanItemInfo(itemId);
   }
 
-  async fetchSearchItems(keyword: string, paginationParams: PaginationParams): Promise<ItemSearchList> {
+  async fetchSearchItems(
+    keyword: string,
+    paginationParams: PaginationParams,
+  ): Promise<ItemSearchList> {
     let searchRes;
     if (!/[가-힣]/gi.test(keyword)) {
       searchRes = await this.searchFromGlobal(keyword, paginationParams);
@@ -170,7 +176,11 @@ export class ItemSearchService {
     });
   }
 
-  private async getItemsByName(locale: string, name: string, paginationParams: PaginationParams) {
+  private async getItemsByName(
+    locale: string,
+    name: string,
+    paginationParams: PaginationParams,
+  ) {
     return await this.xivItemRepository.findAndCount({
       where: {
         version: { locale: locale },
@@ -191,7 +201,10 @@ export class ItemSearchService {
     });
   }
 
-  private async searchFromGlobal(keyword: string, paginationParams: PaginationParams) {
+  private async searchFromGlobal(
+    keyword: string,
+    paginationParams: PaginationParams,
+  ) {
     keyword = keyword.toLowerCase();
 
     const constSearchBody: object = {
