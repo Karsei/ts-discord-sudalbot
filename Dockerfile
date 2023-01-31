@@ -23,14 +23,16 @@ RUN apk --no-cache add tzdata && \
 WORKDIR /app
 
 # Only copy the source files to work directory
+COPY backend ./
+COPY frontend ./
+COPY .env ./
 COPY src ./
-COPY tsconfig*.json ./
 COPY package*.json ./
-RUN npm install
+RUN npm run init
 
 # wait-for-it.sh
 COPY wait-for-it.sh ./
 RUN chmod +x wait-for-it.sh
 
 # Docker Demon Port Mapping
-EXPOSE 80
+EXPOSE 8080
