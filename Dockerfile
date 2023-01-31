@@ -23,12 +23,13 @@ RUN apk --no-cache add tzdata && \
 WORKDIR /app
 
 # Only copy the source files to work directory
-COPY backend ./
-COPY frontend ./
+COPY backend ./backend
+COPY frontend ./frontend
 COPY .env ./
-COPY src ./
 COPY package*.json ./
 RUN npm run init
+RUN npm audit fix
+RUN npm run build:linux
 
 # wait-for-it.sh
 COPY wait-for-it.sh ./
