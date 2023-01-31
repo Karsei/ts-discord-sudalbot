@@ -12,10 +12,13 @@ services:
       - app
       - mariadb
       - redis
+    networks:
+      - backend
   app:
     build:
       context: .
       dockerfile: ./Dockerfile
+    container_name: app
     ports:
       - "8080:8080"
     profiles:
@@ -53,7 +56,7 @@ services:
       - backend
     restart: on-failure
 
-  redis-prod:
+  redis:
     image: bitnami/redis:6.2
     ports:
       - "6379:6379"
