@@ -39,9 +39,10 @@ services:
       - backend
     volumes:
       - ./:/src
-    # healthcheck:
-    #   interval: 10s
-    #   retries: 12
+    healthcheck:
+      interval: 10s
+      retries: 10
+    restart: on-failure
 
   mariadb:
     image: mariadb:10.8.2
