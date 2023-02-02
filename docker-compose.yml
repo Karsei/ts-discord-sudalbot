@@ -1,116 +1,76 @@
 version: "3.9"
 
 services:
-  app-dev:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+  nginx:
+    image: nginx:1.23.3-alpine
     ports:
       - "80:80"
-    profiles:
-      - dev
-    env_file:
-      - .env.dev
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    container_name: nginx-proxy
     depends_on:
-      - mariadb-dev
-      - redis-dev
-    command:
-      - bash
-      - -c
-      - |
-        npm run build
-        npm run start
+      - app
+      - mariadb
+      - redis
     networks:
       - backend
-    volumes:
-      - ./:/src
-
-  app-prod:
+  app:
     build:
       context: .
       dockerfile: ./Dockerfile
+    container_name: app
     ports:
-      - "80:80"
-    profiles:
-      - prod
+      - "8080:8080"
     env_file:
       - .env
     depends_on:
-      - mariadb-prod
-      - redis-prod
+      - mariadb
+      - redis
     command:
       - bash
       - -c
       - |
-        npm run build
-        npm run start:prod
-        #/app/wait-for-it.sh db:5432 -t 10
-        #npm run local
+        while ! nc -z mariadb 3306; do sleep 3; done
+        while ! nc -z redis 6379; do sleep 3; done
+        npm run --prefix backend build
+        npm run --prefix backend start:prod
     networks:
       - backend
     volumes:
       - ./:/src
-    # healthcheck:
-    #   interval: 10s
-    #   retries: 12
-
-  mariadb-dev:
-    image: mariadb:10.8.2
-    ports:
-      - "3306:3306"
-    profiles:
-      - dev
-      - infra-only
-    env_file:
-      - .env.dev
-    networks:
-      - backend
+    healthcheck:
+      interval: 10s
+      retries: 10
     restart: on-failure
 
-  mariadb-prod:
+  mariadb:
     image: mariadb:10.8.2
     ports:
       - "3306:3306"
-    profiles:
-      - prod
     env_file:
       - .env
     networks:
       - backend
     restart: on-failure
 
-  redis-dev:
-    image: bitnami/redis:6.2
-    ports:
-      - "6379:6379"
-    env_file:
-      - .env.dev
-    profiles:
-      - dev
-      - infra-only
-    networks:
-      - backend
-
-  redis-prod:
+  redis:
     image: bitnami/redis:6.2
     ports:
       - "6379:6379"
     env_file:
       - .env
-    profiles:
-      - prod
     networks:
       - backend
+    restart: on-failure
     #deploy:
     #  replicas: 2
     #  update_config:
     #    parallelism: 2
     #    delay: 10s
-    #  restart_policy:
-    #    condition: on-failure
 
 networks:
   backend:
+    driver: bridge
 
 volumes:
   mysql-data:
