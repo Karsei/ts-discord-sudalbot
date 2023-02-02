@@ -21,8 +21,6 @@ services:
     container_name: app
     ports:
       - "8080:8080"
-    profiles:
-      - app
     env_file:
       - .env
     depends_on:
@@ -49,9 +47,6 @@ services:
     image: mariadb:10.8.2
     ports:
       - "3306:3306"
-    profiles:
-      - app
-      - infra-only
     env_file:
       - .env
     networks:
@@ -64,9 +59,6 @@ services:
       - "6379:6379"
     env_file:
       - .env
-    profiles:
-      - app
-      - infra-only
     networks:
       - backend
     restart: on-failure

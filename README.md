@@ -14,9 +14,3 @@
 ```bash
 $ docker compose up
 ```
-
-인프라만 따로 실행하고 싶다면 아래와 같이 입력하시면 됩니다.
-
-```bash
-$ docker compose --profile infra-only up
-```
