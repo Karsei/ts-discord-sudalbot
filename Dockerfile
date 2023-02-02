@@ -31,9 +31,5 @@ RUN npm run init
 RUN npm audit fix
 RUN npm run build:linux
 
-# wait-for-it.sh
-COPY wait-for-it.sh ./
-RUN chmod +x wait-for-it.sh
-
 # Docker Demon Port Mapping
 EXPOSE 8080

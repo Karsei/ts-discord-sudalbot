@@ -32,9 +32,10 @@ services:
       - bash
       - -c
       - |
+        while ! nc -z mariadb 3306; do sleep 3; done
+        while ! nc -z redis 6379; do sleep 3; done
         npm run --prefix backend build
         npm run --prefix backend start:prod
-        #/app/wait-for-it.sh db:5432 -t 10
     networks:
       - backend
     volumes:
@@ -68,16 +69,16 @@ services:
       - infra-only
     networks:
       - backend
+    restart: on-failure
     #deploy:
     #  replicas: 2
     #  update_config:
     #    parallelism: 2
     #    delay: 10s
-    #  restart_policy:
-    #    condition: on-failure
 
 networks:
   backend:
+    driver: bridge
 
 volumes:
   mysql-data:
