@@ -42,6 +42,8 @@ services:
       interval: 10s
       retries: 10
     restart: on-failure
+    volumes:
+      - app-data
 
   mariadb:
     image: mariadb:10.8.2
@@ -52,6 +54,8 @@ services:
     networks:
       - backend
     restart: on-failure
+    volumes:
+      - mysql-data
 
   redis:
     image: bitnami/redis:6.2
@@ -62,6 +66,8 @@ services:
     networks:
       - backend
     restart: on-failure
+    volumes:
+      - redis-data
     #deploy:
     #  replicas: 2
     #  update_config:
@@ -75,3 +81,4 @@ networks:
 volumes:
   mysql-data:
   redis-data:
+  app-data:
