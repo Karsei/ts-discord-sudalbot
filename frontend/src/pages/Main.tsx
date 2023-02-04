@@ -1,10 +1,25 @@
-import React from 'react';
-import { Alert, Layout, Image, Button, Typography, Card, Col, Row } from 'antd';
+import React from "react";
+import { Alert, Layout, Image, Button, Typography, Card, Col, Row } from "antd";
 
-import './Main.scss';
+import "./Main.scss";
 
 const { Header, Content, Footer } = Layout;
 const { Title, Paragraph, Text, Link } = Typography;
+
+const getRedirectUrl = () => {
+    const saveUrl = new URL(`${process.env.DISCORD_URL_BOT_HOST}/webhook/save`)
+        , authUrl = new URL(`https://discord.com/api/oauth2/authorize`)
+        , clientId = `${process.env.DISCORD_BOT_CLIENT_ID}`
+        , scopes = ["bot", "webhook.incoming", "messages.read", "applications.commands"];
+
+    const authParams = new URLSearchParams();
+    authParams.append("client_id", clientId);
+    authParams.append("permissions", "0");
+    authParams.append("redirect_uri", saveUrl.toString());
+    authParams.append("scopes", scopes.join(" "));
+
+    return `${authUrl.toString()}?${authParams.toString()}`;
+};
 
 export default function Main() {
     return (
@@ -25,7 +40,7 @@ export default function Main() {
                         <Title level={3}>달달이봇</Title>
                         <p className="lead">파이널판타지 14 공식 홈페이지 소식과 아이템 검색, 패션체크 등<br/>디스코드에서 실시간으로 이용해보세요!</p>
 
-                        <Button type={"primary"} href={"https://discord.com/api/oauth2/authorize?client_id=994586249690095666&permissions=0&redirect_uri=http%3A%2F%2Flocalhost%2Fwebhook%2Fsave&response_type=code&scope=bot%20webhook.incoming%20messages.read%20applications.commands"}>봇 추가하기</Button>
+                        <Button type={"primary"} href={getRedirectUrl()}>봇 추가하기</Button>
                     </div>
                     <div className={"feature-content"}>
                         <Typography>
