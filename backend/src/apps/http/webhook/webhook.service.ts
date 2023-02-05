@@ -51,14 +51,14 @@ export class WebhookService {
   async makeWebhook(code: string) {
     // https://discord.com/developers/docs/resources/webhook#webhook-object
     const data =
-      `client_id=${this.configService.get('DISCORD_BOT_CLIENT_ID')}&` +
+      `client_id=${this.configService.get('REACT_APP_DISCORD_BOT_CLIENT_ID')}&` +
       `client_secret=${this.configService.get('DISCORD_BOT_CLIENT_SECRET')}` +
       `&grant_type=authorization_code` +
       `&code=${code}` +
       // Dev Portal 에 명시되어 있음 - If you pass a URI in an OAuth request, it must exactly match one of the URIs you enter here.
       // 완전히 반드시 똑같아야 함
       `&redirect_uri=${this.configService.get(
-        'DISCORD_URL_BOT_HOST',
+        'REACT_APP_DISCORD_URL_BOT_HOST',
       )}${this.configService.get('DISCORD_URL_BOT_AUTHORIZE_URI')}`;
 
     const res = await axios({
