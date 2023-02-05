@@ -7,18 +7,18 @@ const { Header, Content, Footer } = Layout;
 const { Title, Paragraph, Text, Link } = Typography;
 
 const getRedirectUrl = () => {
-    const saveUrl = new URL(`${process.env.DISCORD_URL_BOT_HOST}/webhook/save`)
-        , authUrl = new URL(`https://discord.com/api/oauth2/authorize`)
-        , clientId = `${process.env.DISCORD_BOT_CLIENT_ID}`
+    const saveUrl = `${process.env.REACT_APP_DISCORD_URL_BOT_HOST}/webhook/save`
+        , authUrl = `https://discord.com/api/oauth2/authorize`
+        , clientId = `${process.env.REACT_APP_DISCORD_BOT_CLIENT_ID}`
         , scopes = ["bot", "webhook.incoming", "messages.read", "applications.commands"];
 
     const authParams = new URLSearchParams();
     authParams.append("client_id", clientId);
     authParams.append("permissions", "0");
-    authParams.append("redirect_uri", saveUrl.toString());
-    authParams.append("scopes", scopes.join(" "));
+    authParams.append("redirect_uri", saveUrl);
+    authParams.append("scope", scopes.join(" "));
 
-    return `${authUrl.toString()}?${authParams.toString()}`;
+    return `${authUrl}?${authParams.toString()}`;
 };
 
 export default function Main() {
