@@ -51,7 +51,9 @@ export class WebhookService {
   async makeWebhook(code: string) {
     // https://discord.com/developers/docs/resources/webhook#webhook-object
     const data =
-      `client_id=${this.configService.get('REACT_APP_DISCORD_BOT_CLIENT_ID')}&` +
+      `client_id=${this.configService.get(
+        'REACT_APP_DISCORD_BOT_CLIENT_ID',
+      )}&` +
       `client_secret=${this.configService.get('DISCORD_BOT_CLIENT_SECRET')}` +
       `&grant_type=authorization_code` +
       `&code=${code}` +
