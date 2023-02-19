@@ -10,8 +10,6 @@ services:
     container_name: nginx-proxy
     depends_on:
       - app
-      - mariadb
-      - redis
     networks:
       - backend
   app:
@@ -23,21 +21,14 @@ services:
       - "8080:8080"
     env_file:
       - .env
-    depends_on:
-      - mariadb
-      - redis
     command:
       - bash
       - -c
       - |
-        while ! nc -z mariadb 3306; do sleep 3; done
-        while ! nc -z redis 6379; do sleep 3; done
         npm run --prefix backend build
         npm run --prefix backend start:prod
     networks:
       - backend
-    volumes:
-      - ./:/src
     healthcheck:
       interval: 10s
       retries: 10
@@ -53,6 +44,8 @@ services:
       - .env
     networks:
       - backend
+    profiles:
+      - infra
     restart: on-failure
     volumes:
       - mysql-data
@@ -65,6 +58,8 @@ services:
       - .env
     networks:
       - backend
+    profiles:
+      - infra
     restart: on-failure
     volumes:
       - redis-data
