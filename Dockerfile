@@ -31,5 +31,7 @@ RUN npm run init
 RUN npm audit fix
 RUN npm run build:linux
 
+ENTRYPOINT ["npm", "run", "start"]
+
 # Docker Demon Port Mapping
 EXPOSE 8080
