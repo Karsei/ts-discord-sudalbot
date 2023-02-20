@@ -1,4 +1,4 @@
-import { RedisManager, RedisService } from '@liaoliaots/nestjs-redis';
+import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -33,9 +33,7 @@ const mockRedisService = {
 };
 
 const mockWebhookService = {
-  subscribe: jest.fn(function (param) {
-    return {};
-  }),
+  subscribe: jest.fn().mockResolvedValue({}),
 };
 
 describe('WebhookController', () => {
@@ -64,13 +62,17 @@ describe('WebhookController', () => {
   });
 
   describe('root', () => {
-    it('webhook test', () => {
+    it('webhook test', async () => {
       const dto: SaveWebhookDto = {
         code: '',
         guild_id: '',
         permissions: 0,
       };
-      expect(webhookController.save(dto, null)).toBe({});
+      const resParam = {
+        send: jest.fn((str) => ''),
+      };
+      const res = await webhookController.save(dto, resParam);
+      expect(res).toBe(undefined);
     });
   });
 });
