@@ -12,7 +12,7 @@ import { WebhookController } from './webhook.controller';
 import { WebhookService } from './webhook.service';
 
 export type MockType<T> = {
-  [P in keyof T]?: jest.Mock<{}>;
+  [P in keyof T]?: jest.Mock<null>;
 };
 
 export const repositoryMockFactory: () => MockType<Repository<any>> = jest.fn(
@@ -32,11 +32,11 @@ const mockRedisService = {
   getClient: jest.fn(() => mockRedis),
 };
 
-const mockWebhookService = {
-  subscribe: jest.fn().mockResolvedValue({}),
-};
+describe('WebhookControllerSuccess', () => {
+  const mockWebhookService = {
+    subscribe: jest.fn().mockResolvedValue({}),
+  };
 
-describe('WebhookController', () => {
   let webhookController: WebhookController;
 
   beforeEach(async () => {
@@ -62,17 +62,61 @@ describe('WebhookController', () => {
   });
 
   describe('root', () => {
-    it('webhook test', async () => {
+    it('webhook success test', async () => {
       const dto: SaveWebhookDto = {
-        code: '',
-        guild_id: '',
+        code: '123',
+        guild_id: '123123123123',
         permissions: 0,
       };
       const resParam = {
-        send: jest.fn((str) => ''),
+        send: jest.fn(() => ''),
       };
       const res = await webhookController.save(dto, resParam);
       expect(res).toBe(undefined);
+    });
+  });
+});
+
+describe('WebhookControllerFail', () => {
+  const mockWebhookService = {
+    subscribe: jest.fn().mockRejectedValue(new Error('webhook send error!')),
+  };
+
+  let webhookController: WebhookController;
+
+  beforeEach(async () => {
+    const app: TestingModule = await Test.createTestingModule({
+      controllers: [WebhookController],
+      providers: [
+        Logger,
+        ConfigService,
+        { provide: WebhookService, useValue: mockWebhookService },
+        { provide: RedisService, useValue: mockRedisService },
+        {
+          provide: getRepositoryToken(Guild),
+          useFactory: repositoryMockFactory,
+        },
+        {
+          provide: getRepositoryToken(News),
+          useFactory: repositoryMockFactory,
+        },
+      ],
+    }).compile();
+
+    webhookController = app.get<WebhookController>(WebhookController);
+  });
+
+  describe('root', () => {
+    it('webhook fail test', async () => {
+      const dto: SaveWebhookDto = {
+        code: '123123123',
+        guild_id: '123123123123',
+        permissions: 0,
+      };
+      const resParam = {
+        send: jest.fn(() => ''),
+      };
+      await webhookController.save(dto, resParam);
     });
   });
 });
