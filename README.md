@@ -8,8 +8,18 @@
 
 ## 사용법
 
-1. `.env` 파일에 필요한 사항을 적습니다.
-2. 해당 프로젝트는 docker 를 이용합니다. 아래 명령어를 통해 쉽게 이용할 수 있습니다.
+1. `.env.dev` 를 참고하여 `.env` 파일을 작성합니다. 어플리케이션 구동에 필요한 API 키들을 입력합니다.
+2. 두 가지 방법으로 이용할 수 있습니다.
+
+### npm
+
+```bash
+$ npm run init
+$ npm run build:linux or build:win
+$ npm run start
+```
+
+### docker
 
 ```bash
 $ docker compose up
