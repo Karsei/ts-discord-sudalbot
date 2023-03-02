@@ -7,7 +7,7 @@ import {
   SelectMenuBuilder,
   SelectMenuInteraction,
 } from 'discord.js';
-import { AggregatedItemInfo } from '../../../../definitions/xivitem.type';
+import { AggregatedItemInfo } from '../../../../definitions/interface/xivitem';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ItemSearchList } from './item-search.service';

@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 
-import NewsCategories from '../../../../definitions/archive.constant';
+import NewsCategories from '../../../../definitions/interface/archive';
 import { NoticeError } from '../../../../exceptions/notice.exception';
 import {
   Locales,
