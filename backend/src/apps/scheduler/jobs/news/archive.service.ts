@@ -8,7 +8,7 @@ import NewsCategories, {
   NewsCategoryGlobal,
   NewsCategoryKorea,
   NewsContent,
-} from '../../../../definitions/archive.constant';
+} from '../../../../definitions/interface/archive';
 import GlobalErrorReport, {
   ErrorLevel,
 } from '../../../../helpers/global-error-report.helper';
