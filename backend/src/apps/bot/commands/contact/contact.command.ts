@@ -37,6 +37,10 @@ export class ContactCommand implements DiscordCommand {
     @InjectRepository(Contact) private contactRepository: Repository<Contact>,
   ) {}
 
+  /**
+   * 명령어 핸들러
+   * @param interaction 명령 상호작용
+   */
   async handler(interaction: CommandInteraction): Promise<void> {
     const modal = new ModalBuilder()
       .setTitle('제보하기')
@@ -64,6 +68,10 @@ export class ContactCommand implements DiscordCommand {
     await interaction.showModal(modal);
   }
 
+  /**
+   * Modal 에서 '확인' 버튼을 통해 제보할 경우
+   * @param modal 제출 상호작용
+   */
   @On('interactionCreate')
   @UseGuards(IsModalInteractionGuard)
   async onModuleSubmit(modal: ModalSubmitInteraction) {
@@ -82,8 +90,8 @@ export class ContactCommand implements DiscordCommand {
   }
 
   /**
-   * 제보를 저장합니다.
-   * @param modal modal 객체
+   * 제보 저장
+   * @param modal modal 제출 상호작용
    */
   private async saveContact(modal: ModalSubmitInteraction) {
     return await this.contactRepository.insert({

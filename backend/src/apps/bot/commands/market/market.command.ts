@@ -28,12 +28,26 @@ export class MarketCommand
     private readonly marketService: MarketService,
   ) {}
 
+  /**
+   * 명령어 핸들러
+   * @param dto 시장 검색 DTO
+   * @param interaction 명령 상호작용
+   */
   async handler(
     @Payload() dto: MarketSearchDto,
     { interaction }: TransformedCommandExecutionContext,
   ): Promise<void> {
-    await interaction.deferReply();
+    // 응답 대기 전송
     try {
+      await interaction.deferReply();
+    }
+    catch (e) {
+      this.loggerService.error('시장 defer 오류: ', e);
+      return;
+    }
+
+    try {
+      // 시장 검색 후 메시지 생성
       const embedMsg = await this.marketService.getInfo(
         dto.server,
         dto.keyword,
