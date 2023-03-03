@@ -1,10 +1,9 @@
 import { InjectDiscordClient, Once, On, UseGuards } from '@discord-nestjs/core';
 import { Injectable, Logger } from '@nestjs/common';
-import { Client, Guild, Message, ModalSubmitInteraction } from 'discord.js';
+import { Client, Guild, Message } from 'discord.js';
 
 import { MessageFromUserGuard } from './guards/message-from-user.guard';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Contact } from '../../entities/contact.entity';
 import { Repository } from 'typeorm';
 import { Chat } from '../../entities/chat.entity';
 
@@ -27,7 +26,7 @@ export class BotGateway {
   @Once('disconnect')
   onDisconnect() {
     this.logger.log(`application was disconnected.`);
-    process.exit(102);
+    // process.exit(102);
   }
 
   @On('guildCreate')
