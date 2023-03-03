@@ -1,3 +1,4 @@
+import { Inject, Logger, LoggerService } from "@nestjs/common";
 import { TransformPipe } from '@discord-nestjs/common';
 import {
   Command,
@@ -17,18 +18,39 @@ import { ChatGptDto } from '../../dtos/chatgpt.dto';
 })
 @UsePipes(TransformPipe)
 export class ChatGptCommand implements DiscordTransformedCommand<ChatGptDto> {
-  constructor(private readonly chatGptService: ChatGptService) {}
+  constructor(
+    private readonly chatGptService: ChatGptService,
+    @Inject(Logger) private readonly loggerService: LoggerService,
+  ) {}
 
+  /**
+   * 명령어 핸들러
+   * @param dto GPT DTO
+   * @param interaction 명령 상호작용
+   */
   async handler(
     @Payload() dto: ChatGptDto,
     { interaction }: TransformedCommandExecutionContext,
   ) {
-    await interaction.deferReply();
-    const res = await this.chatGptService.converse(
-      interaction.guildId,
-      interaction.user.id,
-      dto.message,
-    );
-    await interaction.editReply(res);
+    // 응답 대기 전송
+    try {
+      await interaction.deferReply();
+    }
+    catch (e) {
+      this.loggerService.error('GPT defer 오류: ', e);
+      return;
+    }
+
+    try {
+      const res = await this.chatGptService.converse(
+        interaction.guildId,
+        interaction.user.id,
+        dto.message,
+      );
+      await interaction.editReply(res);
+    }
+    catch (e) {
+      this.loggerService.error('GPT 응답 오류: ', e);
+    }
   }
 }

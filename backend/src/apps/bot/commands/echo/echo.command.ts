@@ -18,6 +18,11 @@ import { EchoDto } from '../../dtos/echo.dto';
 export class EchoCommand implements DiscordTransformedCommand<EchoDto> {
   constructor(private readonly echoService: EchoService) {}
 
+  /**
+   * 명령어 핸들러
+   * @param dto 따라하기 DTO
+   * @param interaction 명령 상호작용
+   */
   handler(
     @Payload() dto: EchoDto,
     { interaction }: TransformedCommandExecutionContext,
