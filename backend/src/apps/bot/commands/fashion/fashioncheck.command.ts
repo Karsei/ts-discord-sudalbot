@@ -25,8 +25,7 @@ export class FashionCheckCommand implements DiscordTransformedCommand<any> {
     // 응답 대기 전송
     try {
       await interaction.deferReply();
-    }
-    catch (e) {
+    } catch (e) {
       this.loggerService.error('패션체크 defer 실패: ', e);
       return;
     }

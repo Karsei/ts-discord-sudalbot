@@ -7,11 +7,12 @@ import {
   SelectMenuBuilder,
   SelectMenuInteraction,
 } from 'discord.js';
-import { AggregatedItemInfo } from '../../../../definitions/interface/xivitem';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+
 import { ItemSearchList } from './item-search.service';
 import { GuideFetchHelper } from './guide-fetch.helper';
+import { AggregatedItemInfo } from '../../../../definitions/interface/xivitem';
 import { PaginationParams } from '../../../../definitions/common.type';
 
 @Injectable()

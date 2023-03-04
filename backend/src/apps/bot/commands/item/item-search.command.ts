@@ -44,8 +44,7 @@ export class ItemSearchCommand
     // 응답 대기 전송
     try {
       await interaction.deferReply();
-    }
-    catch (e) {
+    } catch (e) {
       this.loggerService.error('아이템검색 defer 오류: ', e);
       return;
     }

@@ -1,4 +1,4 @@
-import { Inject, Logger, LoggerService } from "@nestjs/common";
+import { Inject, Logger, LoggerService } from '@nestjs/common';
 import { TransformPipe } from '@discord-nestjs/common';
 import {
   Command,
@@ -35,8 +35,7 @@ export class ChatGptCommand implements DiscordTransformedCommand<ChatGptDto> {
     // 응답 대기 전송
     try {
       await interaction.deferReply();
-    }
-    catch (e) {
+    } catch (e) {
       this.loggerService.error('GPT defer 오류: ', e);
       return;
     }
@@ -48,8 +47,7 @@ export class ChatGptCommand implements DiscordTransformedCommand<ChatGptDto> {
         dto.message,
       );
       await interaction.editReply(res);
-    }
-    catch (e) {
+    } catch (e) {
       this.loggerService.error('GPT 응답 오류: ', e);
     }
   }
