@@ -38,8 +38,7 @@ export class ShopCommand
         content:
           '현재 데이터셋 리뉴얼 준비중이에요. 죄송하지만.. 나중에 이용해주세요.',
       });
-    }
-    catch (e) {
+    } catch (e) {
       this.loggerService.error('상점 응답 오류: ', e);
     }
   }

@@ -40,8 +40,7 @@ export class MarketCommand
     // 응답 대기 전송
     try {
       await interaction.deferReply();
-    }
-    catch (e) {
+    } catch (e) {
       this.loggerService.error('시장 defer 오류: ', e);
       return;
     }

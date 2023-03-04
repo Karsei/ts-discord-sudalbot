@@ -6,7 +6,7 @@ import { RedditError } from '../../../../exceptions/reddit.exception';
 @Injectable()
 export class FashionCheckService {
   private readonly reddit;
-  
+
   constructor(private readonly configService: ConfigService) {
     this.reddit = new (require('snoowrap'))({
       userAgent: 'DalDalee Bot',
