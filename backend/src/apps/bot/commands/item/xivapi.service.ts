@@ -2,6 +2,16 @@ import axios from 'axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+export interface FetchXivApiSearchProps {
+  indexes: string;
+  string?: string;
+  string_algo?: string;
+  page?: string;
+  sort_field?: string;
+  sort_order?: string;
+  limit?: string;
+}
+
 @Injectable()
 export class XivapiService {
   constructor(private readonly configService: ConfigService) {}
@@ -16,7 +26,7 @@ export class XivapiService {
     pSortOrder = '',
     pLimit = '',
   ) {
-    let params: any = {
+    const params: FetchXivApiSearchProps = {
       indexes: pIndexes,
       string: pString,
       string_algo: pStringAlgo,
@@ -32,9 +42,9 @@ export class XivapiService {
   async fetchElasticSearch(
     pIndexes: string,
     pBody: object,
-    pColumn: string = 'ID,Name,IconHD',
+    pColumn = 'ID,Name,IconHD',
   ) {
-    let data: any = {
+    const data: any = {
       indexes: pIndexes,
       body: pBody,
     };
@@ -43,14 +53,14 @@ export class XivapiService {
   }
 
   async fetchItem(pId: number, pLimit = '100') {
-    let params = {
+    const params = {
       limit: pLimit,
     };
     return await this.fetchXivApiGet(`https://xivapi.com/item/${pId}`, params);
   }
 
   async fetchInstance(pId: number, pLimit = '100') {
-    let params = {
+    const params = {
       limit: pLimit,
     };
     return await this.fetchXivApiGet(

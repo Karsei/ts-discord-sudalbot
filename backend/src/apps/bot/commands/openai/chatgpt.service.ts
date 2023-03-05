@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { RedisService } from '@liaoliaots/nestjs-redis';
+
 import GlobalErrorReport from '../../../../helpers/global-error-report.helper';
 
 const { Configuration, OpenAIApi } = require('openai');

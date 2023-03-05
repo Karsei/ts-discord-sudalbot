@@ -16,9 +16,21 @@ export class FashionCheckCommand implements DiscordTransformedCommand<any> {
     private readonly configService: ConfigService,
     private readonly fashionCheckService: FashionCheckService,
   ) {}
-  async handler(interaction: ContextMenuCommandInteraction): Promise<void> {
-    await interaction.deferReply();
 
+  /**
+   * 명령어 핸들러
+   * @param interaction 명령 상호작용
+   */
+  async handler(interaction: ContextMenuCommandInteraction): Promise<void> {
+    // 응답 대기 전송
+    try {
+      await interaction.deferReply();
+    } catch (e) {
+      this.loggerService.error('패션체크 defer 실패: ', e);
+      return;
+    }
+
+    // 패션체크 메시지 전송
     this.fashionCheckService
       .getFashion()
       .then(async (fashionInfo) => {
@@ -34,6 +46,11 @@ export class FashionCheckCommand implements DiscordTransformedCommand<any> {
       });
   }
 
+  /**
+   * Embed 메시지 생성
+   * @param fashionInfo Reddit 데이터 정보
+   * @private
+   */
   private getEmbedMessage(fashionInfo: Submission) {
     return new EmbedBuilder()
       .setColor('#fc03f4')

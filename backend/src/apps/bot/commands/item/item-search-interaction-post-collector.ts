@@ -1,4 +1,4 @@
-import { DiscordAPIError, SelectMenuInteraction } from 'discord.js';
+import { DiscordAPIError, Message, SelectMenuInteraction } from 'discord.js';
 import { Inject, Logger, LoggerService } from '@nestjs/common';
 import { InteractionEventCollector, On, Once } from '@discord-nestjs/core';
 
@@ -55,8 +55,7 @@ export class ItemSearchInteractionPostCollector {
             perPage: ItemSearchInteractionService.MAX_NUMBER_VIEW_ON_SELECT,
           },
         );
-        await this.itemSearchInteractionService.list(
-          interaction,
+        const { embedMsg, component } = this.itemSearchInteractionService.list(
           keyword,
           searchResults,
           {
@@ -64,9 +63,32 @@ export class ItemSearchInteractionPostCollector {
             perPage: ItemSearchInteractionService.MAX_NUMBER_VIEW_ON_SELECT,
           },
         );
+
+        await interaction.editReply({
+          content: '',
+          embeds: [embedMsg],
+          components: [component],
+        });
+
+        setTimeout(async () => {
+          const fetchMsg = await interaction.fetchReply();
+          if (!(fetchMsg instanceof Message)) return;
+          if (fetchMsg.components.length == 0) return;
+
+          await interaction.editReply({
+            content: '시간이 꽤 지나서 다시 명령어를 이용해주세요.',
+            embeds: [],
+            components: [],
+          });
+        }, ItemSearchInteractionService.MAX_COMPONENT_TIMEOUT);
       } else {
         const info = await this.itemSearchService.fetchSearchItemById(itemId);
-        await this.itemSearchInteractionService.info(interaction, info);
+        const { embedMsg } = await this.itemSearchInteractionService.info(info);
+        await interaction.editReply({
+          content: '',
+          embeds: [embedMsg],
+          components: [],
+        });
       }
     } catch (e) {
       if (e instanceof Error) {

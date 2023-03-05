@@ -11,7 +11,7 @@ import { ItemSearchTooManyResultsError } from '../../../../exceptions/item-searc
 import { XivVersion } from '../../../../entities/xiv-version.entity';
 import { XivItem } from '../../../../entities/xiv-item.entity';
 import { XivItemCategories } from '../../../../entities/xiv-item-categories.entity';
-import { AggregatedItemInfo } from '../../../../definitions/xivitem.type';
+import { AggregatedItemInfo } from '../../../../definitions/interface/xivitem';
 import { PaginationParams } from '../../../../definitions/common.type';
 
 export interface ItemSearchList {

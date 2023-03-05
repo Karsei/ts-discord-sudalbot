@@ -7,7 +7,7 @@ import { Repository } from 'typeorm';
 
 import NewsCategories, {
   LodestoneLocales,
-} from '../../../definitions/archive.constant';
+} from '../../../definitions/interface/archive';
 import { YesNoFlag } from '../../../definitions/common.type';
 import { SaveWebhookDto } from './dto/save-webhook.dto';
 import { Guild } from '../../../entities/guild.entity';
@@ -103,7 +103,7 @@ export class WebhookService {
     );
 
     // Webhook 추가
-    let existWebhook = await this.checkInAllWebhooks(
+    const existWebhook = await this.checkInAllWebhooks(
       webhookRes.hookData.webhook.url,
     );
     if (!existWebhook) {

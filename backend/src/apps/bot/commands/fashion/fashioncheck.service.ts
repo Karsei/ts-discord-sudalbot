@@ -5,18 +5,23 @@ import { RedditError } from '../../../../exceptions/reddit.exception';
 
 @Injectable()
 export class FashionCheckService {
-  constructor(private readonly configService: ConfigService) {}
+  private readonly reddit;
 
-  getFashion(): Promise<Submission> {
-    const reddit = new (require('snoowrap'))({
+  constructor(private readonly configService: ConfigService) {
+    this.reddit = new (require('snoowrap'))({
       userAgent: 'DalDalee Bot',
       clientId: this.configService.get('REDDIT_CLIENT_ID'),
       clientSecret: this.configService.get('REDDIT_CLIENT_SECRET'),
       refreshToken: this.configService.get('REDDIT_CLIENT_REFRESH_TOKEN'),
     });
+  }
 
+  /**
+   * 패션체크 정보 조회
+   */
+  getFashion(): Promise<Submission> {
     return new Promise((resolve, reject) => {
-      reddit
+      this.reddit
         .getSubreddit('ffxiv')
         .search({
           query: 'author:kaiyoko Fashion Report',
