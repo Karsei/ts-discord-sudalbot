@@ -103,7 +103,7 @@ export class WebhookService {
     );
 
     // Webhook 추가
-    let existWebhook = await this.checkInAllWebhooks(
+    const existWebhook = await this.checkInAllWebhooks(
       webhookRes.hookData.webhook.url,
     );
     if (!existWebhook) {

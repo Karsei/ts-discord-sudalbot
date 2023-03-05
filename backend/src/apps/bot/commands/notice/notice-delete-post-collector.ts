@@ -103,5 +103,7 @@ export class NoticeDeletePostCollector {
   }
 
   @Once('end')
-  onEnd(): void {}
+  onEnd(): void {
+    //
+  }
 }

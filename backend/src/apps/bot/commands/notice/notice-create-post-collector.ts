@@ -104,5 +104,7 @@ export class NoticeCreatePostCollector {
   }
 
   @Once('end')
-  onEnd(): void {}
+  onEnd(): void {
+    //
+  }
 }
