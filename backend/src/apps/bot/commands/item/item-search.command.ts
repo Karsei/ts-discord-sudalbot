@@ -15,6 +15,7 @@ import { ItemSearchInteractionService } from './item-search-interaction.service'
 import { ItemSearchInteractionPostCollector } from './item-search-interaction-post-collector';
 import { ItemSearchDto } from '../../dtos/itemsearch.dto';
 import { ItemSearchError } from '../../../../exceptions/item-search.exception';
+import { Message } from 'discord.js';
 
 @Command({
   name: '아이템검색',
@@ -65,16 +66,37 @@ export class ItemSearchCommand
         const info = await this.itemSearchService.fetchSearchItemById(
           searchResults.data[0].ID,
         );
-        await this.itemSearchInteractionService.info(interaction, info);
+        const { embedMsg } = await this.itemSearchInteractionService.info(info);
+        await interaction.editReply({
+          content: '',
+          embeds: [embedMsg],
+          components: [],
+        });
       }
       // 여러 개일 경우 선택지를 제공함
       else if (searchResults.data.length > 1) {
-        await this.itemSearchInteractionService.list(
-          interaction,
+        const { embedMsg, component } = this.itemSearchInteractionService.list(
           dto.keyword,
           searchResults,
           searchPagination,
         );
+        await interaction.editReply({
+          content: '',
+          embeds: [embedMsg],
+          components: [component],
+        });
+
+        setTimeout(async () => {
+          const fetchMsg = await interaction.fetchReply();
+          if (!(fetchMsg instanceof Message)) return;
+          if (fetchMsg.components.length == 0) return;
+
+          await interaction.editReply({
+            content: '시간이 꽤 지나서 다시 명령어를 이용해주세요.',
+            embeds: [],
+            components: [],
+          });
+        }, ItemSearchInteractionService.MAX_COMPONENT_TIMEOUT);
       }
     } catch (e) {
       if (e instanceof ItemSearchError) {

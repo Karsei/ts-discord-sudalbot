@@ -4,9 +4,9 @@ import { EmbedBuilder } from 'discord.js';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { MarketError } from '../../../../exceptions/market.exception';
 import { UniversalisService } from './universalis.service';
 import { ItemSearchService } from '../item/item-search.service';
+import { MarketError } from '../../../../exceptions/market.exception';
 import { AggregatedItemInfo } from '../../../../definitions/interface/xivitem';
 
 @Injectable()

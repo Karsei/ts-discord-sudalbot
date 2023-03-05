@@ -2,6 +2,16 @@ import axios from 'axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+export interface FetchXivApiSearchProps {
+  indexes: string;
+  string?: string;
+  string_algo?: string;
+  page?: string;
+  sort_field?: string;
+  sort_order?: string;
+  limit?: string;
+}
+
 @Injectable()
 export class XivapiService {
   constructor(private readonly configService: ConfigService) {}
@@ -16,7 +26,7 @@ export class XivapiService {
     pSortOrder = '',
     pLimit = '',
   ) {
-    const params: any = {
+    const params: FetchXivApiSearchProps = {
       indexes: pIndexes,
       string: pString,
       string_algo: pStringAlgo,
