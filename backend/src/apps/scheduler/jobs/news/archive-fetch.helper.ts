@@ -1,6 +1,6 @@
 import { load as CheerioAPILoad } from 'cheerio';
 
-import { NewsContent } from '../../../../definitions/archive.constant';
+import { NewsContent } from '../../../../definitions/interface/archive';
 import { ArchiveParseHelper } from './archive-parse.helper';
 
 const axios = require('axios');

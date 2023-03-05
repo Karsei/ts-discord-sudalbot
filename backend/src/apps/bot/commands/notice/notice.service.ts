@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 
-import NewsCategories from '../../../../definitions/archive.constant';
+import NewsCategories from '../../../../definitions/interface/archive';
 import { NoticeError } from '../../../../exceptions/notice.exception';
 import {
   Locales,
@@ -72,20 +72,20 @@ export class NoticeService {
     hookUrl: string,
     doCheckExist: boolean,
   ) {
-    let showStrRes = [];
-    let selectRes = [];
+    const showStrRes = [];
+    const selectRes = [];
 
-    let locales = Object.keys(Locales).filter((locale) => locale);
-    let types = [
+    const locales = Object.keys(Locales).filter((locale) => locale);
+    const types = [
       ...new Set([
         ...Object.keys(NewsCategories.Global),
         ...Object.keys(NewsCategories.Korea),
       ]),
     ];
-    for (let localeIdx in locales) {
+    for (const localeIdx in locales) {
       if (Locales[locales[localeIdx]] == locale) {
-        for (let typeIdx in types) {
-          let resCheck = await this.checkInWebhook(
+        for (const typeIdx in types) {
+          const resCheck = await this.checkInWebhook(
             locale,
             types[typeIdx],
             hookUrl,

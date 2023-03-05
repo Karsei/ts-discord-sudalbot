@@ -9,7 +9,6 @@ import {
 } from 'nest-winston';
 
 import { AppModule } from './app.module';
-import GlobalErrorReport from './helpers/global-error-report.helper';
 
 // node 에서 허가되지 않은 인증 TLS 통신을 거부하지 않음
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -56,13 +55,6 @@ async function bootstrap() {
 }
 bootstrap();
 
-process.on('uncaughtException', function (error) {
-  GlobalErrorReport.report(
-    'critical',
-    'uncaughtException',
-    error.message,
-    error.stack,
-  );
-  logger.error('Unexpected error occurred:', error.stack);
-  console.error(error);
+process.on('unhandledRejection', (error) => {
+  console.error('Unhandled promise rejection:', error);
 });

@@ -1,17 +1,10 @@
-import {
-  ActionRowBuilder,
-  ChatInputCommandInteraction,
-  ContextMenuCommandInteraction,
-  EmbedBuilder,
-  Message,
-  SelectMenuBuilder,
-  SelectMenuInteraction,
-} from 'discord.js';
-import { AggregatedItemInfo } from '../../../../definitions/xivitem.type';
+import { ActionRowBuilder, EmbedBuilder, SelectMenuBuilder } from 'discord.js';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+
 import { ItemSearchList } from './item-search.service';
 import { GuideFetchHelper } from './guide-fetch.helper';
+import { AggregatedItemInfo } from '../../../../definitions/interface/xivitem';
 import { PaginationParams } from '../../../../definitions/common.type';
 
 @Injectable()
@@ -23,11 +16,7 @@ export class ItemSearchInteractionService {
 
   constructor(private readonly configService: ConfigService) {}
 
-  async list(
-    interaction:
-      | ChatInputCommandInteraction
-      | ContextMenuCommandInteraction
-      | SelectMenuInteraction,
+  list(
     keyword: string,
     searchResults: ItemSearchList,
     paginationParams: PaginationParams,
@@ -80,40 +69,17 @@ export class ItemSearchInteractionService {
       });
     const component = this.makeSelectComponent(itemList);
 
-    await interaction.editReply({
-      content: '',
-      embeds: [embedMsg],
-      components: [component],
-    });
-
-    setTimeout(async () => {
-      const fetchMsg = await interaction.fetchReply();
-      if (!(fetchMsg instanceof Message)) return;
-      if (fetchMsg.components.length == 0) return;
-
-      await interaction.editReply({
-        content: '시간이 꽤 지나서 다시 명령어를 이용해주세요.',
-        embeds: [],
-        components: [],
-      });
-    }, ItemSearchInteractionService.MAX_COMPONENT_TIMEOUT);
+    return {
+      embedMsg,
+      component,
+    };
   }
 
-  async info(
-    interaction:
-      | ChatInputCommandInteraction
-      | ContextMenuCommandInteraction
-      | SelectMenuInteraction,
-    info: AggregatedItemInfo,
-  ) {
+  async info(info: AggregatedItemInfo) {
     const dbLinks = await this.getDbSiteLinks(info),
       embedMsg = this.makeItemInfoEmbedMessage(info, dbLinks);
 
-    await interaction.editReply({
-      content: '',
-      embeds: [embedMsg],
-      components: [],
-    });
+    return { embedMsg };
   }
 
   private makeSelectComponent(items: { label: string; value: any }[]) {
