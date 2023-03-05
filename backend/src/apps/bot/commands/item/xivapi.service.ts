@@ -16,7 +16,7 @@ export class XivapiService {
     pSortOrder = '',
     pLimit = '',
   ) {
-    let params: any = {
+    const params: any = {
       indexes: pIndexes,
       string: pString,
       string_algo: pStringAlgo,
@@ -32,9 +32,9 @@ export class XivapiService {
   async fetchElasticSearch(
     pIndexes: string,
     pBody: object,
-    pColumn: string = 'ID,Name,IconHD',
+    pColumn = 'ID,Name,IconHD',
   ) {
-    let data: any = {
+    const data: any = {
       indexes: pIndexes,
       body: pBody,
     };
@@ -43,14 +43,14 @@ export class XivapiService {
   }
 
   async fetchItem(pId: number, pLimit = '100') {
-    let params = {
+    const params = {
       limit: pLimit,
     };
     return await this.fetchXivApiGet(`https://xivapi.com/item/${pId}`, params);
   }
 
   async fetchInstance(pId: number, pLimit = '100') {
-    let params = {
+    const params = {
       limit: pLimit,
     };
     return await this.fetchXivApiGet(

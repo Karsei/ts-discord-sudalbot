@@ -9,8 +9,8 @@ export class GuideParseHelper {
     const $ = CheerioAPILoad(data);
     let findUrl = '';
 
-    let $targetTable = $('.base_tb');
-    let $list = $targetTable.find('tr');
+    const $targetTable = $('.base_tb');
+    const $list = $targetTable.find('tr');
     if ($list && $list.length > 0) {
       $list.each(function () {
         const $conItem = $(this).find('td:first');
