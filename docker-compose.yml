@@ -12,7 +12,7 @@ services:
       - backend
     restart: on-failure
     volumes:
-      - mysql-data:/mysql-data
+      - ./mysql:/var/lib/mysql
 
   redis:
     image: redis:7.0.9-alpine
@@ -24,13 +24,13 @@ services:
     networks:
       - backend
     restart: on-failure
+    command:
+      - /bin/sh
+      - -c
+      - redis-server --requirepass "$${REDIS_PASSWORD:?REDIS_PASSWORD variable is not set}"
     volumes:
-      - redis-data:/data
+      - ./redis:/data
 
 networks:
   backend:
     driver: bridge
-
-volumes:
-  mysql-data:
-  redis-data:
