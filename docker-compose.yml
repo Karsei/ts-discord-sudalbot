@@ -3,6 +3,7 @@ version: "3.9"
 services:
   mariadb:
     image: mariadb:10.8.2
+    container_name: app-mariadb
     ports:
       - "3306:3306"
     env_file:
@@ -10,9 +11,12 @@ services:
     networks:
       - backend
     restart: on-failure
+    volumes:
+      - ./mysql:/var/lib/mysql
 
   redis:
-    image: bitnami/redis:6.2
+    image: redis:7.0.9-alpine
+    container_name: app-redis
     ports:
       - "6379:6379"
     env_file:
@@ -20,12 +24,13 @@ services:
     networks:
       - backend
     restart: on-failure
+    command:
+      - /bin/sh
+      - -c
+      - redis-server --requirepass "$${REDIS_PASSWORD:?REDIS_PASSWORD variable is not set}"
+    volumes:
+      - ./redis:/data
 
 networks:
   backend:
     driver: bridge
-
-volumes:
-  mysql-data:
-  redis-data:
-  app-data:
