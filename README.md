@@ -9,8 +9,6 @@
 
 `.env.dev` 를 참고하여 `.env` 파일을 작성합니다.
 
-### npm
-
 ```bash
 $ npm run init
 $ npm run build:linux or build:win
