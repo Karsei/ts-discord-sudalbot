@@ -1,4 +1,3 @@
-import { AxiosError } from 'axios';
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import Redis from 'ioredis';
@@ -9,9 +8,6 @@ import NewsCategories, {
   NewsCategoryKorea,
   NewsContent,
 } from '../../../../definitions/interface/archive';
-import GlobalErrorReport, {
-  ErrorLevel,
-} from '../../../../helpers/global-error-report.helper';
 
 @Injectable()
 export class ArchiveService {
@@ -51,8 +47,7 @@ export class ArchiveService {
         await this.setCache(JSON.stringify(data), type, locale);
         return data;
       } catch (e) {
-        this.logMessage(
-          'warn',
+        this.loggerService.error(
           '글로벌 소식을 가져오는 과정에서 오류가 발생했습니다.',
           e,
         );
@@ -102,8 +97,7 @@ export class ArchiveService {
         await this.setCache(JSON.stringify(data), type, 'kr');
         return data;
       } catch (e) {
-        this.logMessage(
-          'warn',
+        this.loggerService.error(
           '한국 소식을 가져오는 과정에서 오류가 발생했습니다.',
           e,
         );
@@ -161,13 +155,5 @@ export class ArchiveService {
     let timestamp = await this.redis.hget(`${locale}-news-timestamp`, type);
     let cacheTime = timestamp ? parseInt(timestamp) : new Date(0).getTime();
     return new Date().getTime() > cacheTime + ArchiveService.CACHE_EXPIRE_IN;
-  }
-
-  private async logMessage(level: ErrorLevel, title: string, error: Error) {
-    if (error instanceof AxiosError) {
-      GlobalErrorReport.report(level, title, error.message, error.stack);
-    }
-    if (level === 'warn') this.loggerService.warn(title, error);
-    else if (level === 'error') this.loggerService.error(title, error);
   }
 }
