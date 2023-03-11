@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { ItemSearchList } from './item-search.service';
 import { GuideFetchHelper } from './guide-fetch.helper';
 import { AggregatedItemInfo } from '../../../../definitions/interface/xivitem';
-import { PaginationParams } from '../../../../definitions/common.type';
+import { PaginationParams } from '../../../../definitions/interface/archive';
 
 @Injectable()
 export class ItemSearchInteractionService {
