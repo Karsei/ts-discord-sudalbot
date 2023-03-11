@@ -23,25 +23,25 @@ export class PublishDiscordService {
     type: string,
     locale: string,
   ) {
-    let result = {
+    const result = {
       success: 0,
       removed: 0,
       fail: 0,
       limited: 0,
     };
 
-    let originNewPosts = post.length;
-    let originWhLists = whiteList.length;
+    const originNewPosts = post.length;
+    const originWhLists = whiteList.length;
     while (post.length) {
       // 10개씩 게시글을 묶는다.
-      let embedPosts = post.splice(0, 10);
-      let posts = { embeds: embedPosts };
+      const embedPosts = post.splice(0, 10);
+      const posts = { embeds: embedPosts };
 
       while (whiteList.length) {
         // 20개씩 묶어서 Webhook 호출하면서 보낸다.
-        let hookUrls = whiteList.splice(0, 20);
+        const hookUrls = whiteList.splice(0, 20);
 
-        let hookRes = await Promise.all(
+        const hookRes = await Promise.all(
           hookUrls.map((hookUrl: string) =>
             this.deployNews(hookUrl, posts, type, locale),
           ),
@@ -65,7 +65,7 @@ export class PublishDiscordService {
       }
     }
 
-    let numUrls = originWhLists - result.removed;
+    const numUrls = originWhLists - result.removed;
     if (result.removed > 0)
       this.loggerService.log(
         `${result.removed}개의 Webhook 이 제거되었습니다.`,
@@ -151,7 +151,7 @@ export class PublishDiscordService {
 
   private static async delayIfManyRequests(res) {
     if (res.headers['x-ratelimit-remaining'] == '0') {
-      let time =
+      const time =
         parseInt(res.headers['x-ratelimit-reset']) * 1000 -
         new Date().getTime();
       if (time > 0) {
@@ -272,7 +272,7 @@ export class PublishDiscordService {
     if (count == 0) return;
 
     this.loggerService.log(`총 ${count}개의 게시글을 다시 전송합니다...`);
-    let allCount = count;
+    const allCount = count;
     let success = 0;
 
     while (count > 0) {
@@ -281,7 +281,7 @@ export class PublishDiscordService {
         cachedData = JSON.parse(cachedData);
 
         try {
-          let resendRes = await axios({
+          const resendRes = await axios({
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -292,7 +292,7 @@ export class PublishDiscordService {
 
           // 너무 많이 보낸 경우 미리 딜레이를 줌
           if (resendRes.headers['x-ratelimit-remaining'] == '0') {
-            let time =
+            const time =
               parseInt(resendRes.headers['x-ratelimit-reset']) * 1000 -
               new Date().getTime();
             if (time > 0) {

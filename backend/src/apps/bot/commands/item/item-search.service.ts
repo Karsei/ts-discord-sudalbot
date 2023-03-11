@@ -12,7 +12,7 @@ import { XivVersion } from '../../../../entities/xiv-version.entity';
 import { XivItem } from '../../../../entities/xiv-item.entity';
 import { XivItemCategories } from '../../../../entities/xiv-item-categories.entity';
 import { AggregatedItemInfo } from '../../../../definitions/interface/xivitem';
-import { PaginationParams } from '../../../../definitions/common.type';
+import { PaginationParams } from '../../../../definitions/interface/archive';
 
 export interface ItemSearchList {
   pagination: { ResultsTotal: number };
@@ -41,7 +41,7 @@ export class ItemSearchService {
     try {
       const aggregated = await this.fetchSearchItem(keyword);
 
-      let dbLinks = await this.getDbSiteLinks(aggregated);
+      const dbLinks = await this.getDbSiteLinks(aggregated);
       embedMsg = this.makeItemInfoEmbedMessage(aggregated, dbLinks);
     } catch (e) {
       // 데이터가 너무 많은 경우 목록을 보여줌
@@ -110,7 +110,7 @@ export class ItemSearchService {
 
   private async aggregateKoreanItemInfo(itemId: number) {
     // 한 번 더 검색을 한다.
-    let itemRes = await this.xivapiService.fetchItem(itemId);
+    const itemRes = await this.xivapiService.fetchItem(itemId);
     if (
       !itemRes.hasOwnProperty('data') ||
       !itemRes.data.hasOwnProperty('Name')

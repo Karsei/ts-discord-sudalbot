@@ -1,9 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { RedisService } from '@liaoliaots/nestjs-redis';
-
-import GlobalErrorReport from '../../../../helpers/global-error-report.helper';
 
 const { Configuration, OpenAIApi } = require('openai');
 
@@ -13,6 +11,7 @@ export class ChatGptService {
   private readonly redis: Redis;
   private readonly openai;
   constructor(
+    @Inject(Logger) private readonly loggerService: LoggerService,
     private readonly configService: ConfigService,
     private readonly redisService: RedisService,
   ) {
@@ -51,11 +50,7 @@ export class ChatGptService {
         await this.setConverseLock(guildId, userId, 0);
         return '너무 많은 내용을 기억하기가 어려워요. 기억을 비웠으니 다시 물어보세요!';
       } else {
-        await GlobalErrorReport.report(
-          'error',
-          'GPT-3 대화 오류가 발생했습니다.',
-          e,
-        );
+        this.loggerService.error('GPT-3 대화 오류가 발생했습니다.', e);
       }
     }
     await this.setConverseLock(guildId, userId, 0);
