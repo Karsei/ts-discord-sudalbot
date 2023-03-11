@@ -22,8 +22,3 @@ export enum SubscribeArticleCategory {
   EVENT = '이벤트',
   PATCHNOTE = '패치노트',
 }
-
-export interface PaginationParams {
-  page: number;
-  perPage: number;
-}

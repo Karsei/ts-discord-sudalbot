@@ -156,4 +156,9 @@ export interface NewsContent {
   summary?: string;
 }
 
+export interface PaginationParams {
+  page: number;
+  perPage: number;
+}
+
 export default Categories;
