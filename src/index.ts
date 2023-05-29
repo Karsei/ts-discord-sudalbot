@@ -11,6 +11,13 @@ const DiscordTypes = require('discord-api-types/v9');
 // DB
 import mariadb from "mariadb";
 import { createClient as RedisCreateClient, RedisClientType } from "redis";
+// Service
+import NewsArchiveService from "./service/news-archive-service";
+import NewsWebhookService from "./service/news-webhook.service";
+import NewsSchedulerService from "./service/news-scheduler.service";
+// Adapter
+import MariadbAdapter from "./lib/mariadb.adapter";
+import RedisAdapter from "./lib/redis.adapter";
 // Logger
 const Logger = require('./lib/logger');
 // Http Server
@@ -20,10 +27,8 @@ import Setting from './definition/setting';
 // @ts-ignore
 import {author, version} from '../package.json';
 
-import NewsArchiveService from "./service/news-archive-service";
-import NewsWebhookService from "./service/news-webhook.service";
-import NewsSchedulerService from "./service/news-scheduler.service";
-import RedisAdapter from "./lib/redis.adapter";
+
+
 
 // # 초기화 -----------------------------------------
 // 시작
@@ -70,9 +75,11 @@ function makeMariaDbConnection(): Promise<void> {
                 acquireTimeout: 5000,
                 idleTimeout: 0,
             });
-            discordBot.mariadb = await dbPool.getConnection();
+            const dbCon = await dbPool.getConnection();
+            discordBot.mariadb = new MariadbAdapter(dbCon);
+
             setInterval(() => {
-                discordBot.mariadb.query(`SELECT 1`);
+                discordBot.mariadb.selectOne();
             }, 1000);
         }
         catch (err) {
