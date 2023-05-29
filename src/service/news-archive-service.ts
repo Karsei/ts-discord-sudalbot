@@ -1,6 +1,5 @@
 import axios from 'axios';
 import cheerio, {CheerioAPI} from 'cheerio';
-import RedisConnection from '../lib/redis';
 const Logger = require('../lib/logger');
 // Config
 import NewsCategories, {NewsCategoryGlobal, NewsCategoryKorea} from '../definition/newsCategories';
@@ -12,7 +11,10 @@ import Setting from '../definition/setting';
  */
 export default class NewsArchiveService
 {
-    private static redisCon: any = RedisConnection.instance();
+    private readonly discordBot: any;
+    constructor(discordBot: any) {
+        this.discordBot = discordBot;
+    }
 
     /**
      * 글로벌 서비스의 특정 카테고리의 소식을 조회합니다.
@@ -20,12 +22,12 @@ export default class NewsArchiveService
      * @param pLocale 언어
      * @param pSkipCache Cache 사용 여부
      */
-    static async fetchGlobal(pType: NewsCategoryGlobal, pLocale: string, pSkipCache: boolean = false): Promise<Array<NewsContent>> {
-        let outdate = await NewsCache.isOutDate(pType, pLocale);
+    async fetchGlobal(pType: NewsCategoryGlobal, pLocale: string, pSkipCache: boolean = false): Promise<Array<NewsContent>> {
+        let outdate = await this.discordBot.redis.isOutDate(pType, pLocale);
         if (pSkipCache || outdate) {
             try {
                 let data = await NewsFetcher.withGlobal(NewsCategories.Global[pType].url, pType, pLocale);
-                await NewsCache.setCache(JSON.stringify(data), pType, pLocale);
+                await this.discordBot.redis.setCache(JSON.stringify(data), pType, pLocale);
                 return data;
             } catch (e) {
                 Logger.error('글로벌 소식을 가져오는 과정에서 오류가 발생했습니다.', e);
@@ -35,11 +37,11 @@ export default class NewsArchiveService
                 // else {
                 //     Logger.error(e);
                 // }
-                let data = await NewsCache.getCache(pType, pLocale);
+                let data = await this.discordBot.redis.getCache(pType, pLocale);
                 return JSON.parse(data);
             }
         } else {
-            let data = await NewsCache.getCache(pType, pLocale);
+            let data = await this.discordBot.redis.getCache(pType, pLocale);
             return JSON.parse(data);
         }
     }
@@ -48,7 +50,7 @@ export default class NewsArchiveService
      * 글로벌 서비스의 모든 카테고리 소식을 조회합니다.
      * @param pLocale
      */
-    static async fetchGlobalAll(pLocale: string): Promise<Array<any>> {
+    async fetchGlobalAll(pLocale: string): Promise<Array<any>> {
         // Promise.all 로 하면 429 오류가 뜨면서 요청이 많다고 뜨므로 하나씩 해주자
         let results = [];
         for (let idx in NewsCategoryGlobal) {
@@ -62,20 +64,20 @@ export default class NewsArchiveService
      * @param pType 카테고리
      * @param pSkipCache Cache 사용 여부
      */
-    static async fetchKorea(pType: NewsCategoryKorea, pSkipCache: boolean = false): Promise<Array<NewsContent>> {
-        let outdate = await NewsCache.isOutDate(pType, 'kr');
+    async fetchKorea(pType: NewsCategoryKorea, pSkipCache: boolean = false): Promise<Array<NewsContent>> {
+        let outdate = await this.discordBot.redis.isOutDate(pType, 'kr');
         if (pSkipCache || outdate) {
             try {
                 let data = await NewsFetcher.withKorea(NewsCategories.Korea[pType].url, pType);
-                await NewsCache.setCache(JSON.stringify(data), pType, 'kr');
+                await this.discordBot.redis.setCache(JSON.stringify(data), pType, 'kr');
                 return data;
             } catch (e) {
                 Logger.error('한국 소식을 가져오는 과정에서 오류가 발생했습니다.', e);
-                let data = await NewsCache.getCache(pType, 'kr');
+                let data = await this.discordBot.redis.getCache(pType, 'kr');
                 return JSON.parse(data);
             }
         } else {
-            let data = await NewsCache.getCache(pType, 'kr');
+            let data = await this.discordBot.redis.getCache(pType, 'kr');
             return JSON.parse(data);
         }
     }
@@ -83,7 +85,7 @@ export default class NewsArchiveService
     /**
      * 한국 서비스의 모든 카테고리 소식을 조회합니다.
      */
-    static async fetchKoreaAll(): Promise<Array<any>> {
+    async fetchKoreaAll(): Promise<Array<any>> {
         // Promise.all 로 하면 429 오류가 뜨면서 요청이 많다고 뜨므로 하나씩 해주자
         let results = [];
         for (let idx in NewsCategoryKorea) {
@@ -96,7 +98,7 @@ export default class NewsArchiveService
      * 모든 서비스의 모든 카테고리 소식을 조회합니다.
      * @param pLocale
      */
-    static async fetchAll(pLocale: string): Promise<Object>
+    async fetchAll(pLocale: string): Promise<Object>
     {
         return { global: await this.fetchGlobalAll(pLocale), korea: await this.fetchKoreaAll() };
     }
@@ -584,49 +586,5 @@ class NewsParser
             }
         }
         return content;
-    }
-}
-
-/**
- * 소식 Cache 라이브러리
- */
-class NewsCache
-{
-    private static redisCon: any = RedisConnection.instance();
-
-    /**
-     * 수정 확인을 위한 Cache 유지 시간
-     */
-    static readonly CACHE_EXPIRE_IN = 600;
-
-    /**
-     * 소식 Cache 설정
-     * @param pNews 데이터
-     * @param pType 타입
-     * @param pLocale 언어
-     */
-    static async setCache(pNews: string, pType: string, pLocale: string): Promise<void> {
-        this.redisCon.hSet(`${pLocale}-news-data`, pType, pNews);
-        this.redisCon.hSet(`${pLocale}-news-timestamp`, pType, new Date().getTime());
-    }
-
-    /**
-     * 소식 Cache 조회
-     * @param pType 타입
-     * @param pLocale 언어
-     */
-    static async getCache(pType: string, pLocale: string): Promise<string> {
-        return await this.redisCon.hGet(`${pLocale}-news-data`, pType);
-    }
-
-    /**
-     * 소식 갱신 시간이 지났는지 확인
-     * @param pType 타입
-     * @param pLocale 언어
-     */
-    static async isOutDate(pType: string, pLocale: string): Promise<boolean> {
-        let timestamp = await this.redisCon.hGet(`${pLocale}-news-timestamp`, pType);
-        let cacheTime = timestamp ? timestamp : new Date(0).getTime();
-        return new Date().getTime() > (parseInt(cacheTime) + NewsCache.CACHE_EXPIRE_IN);
     }
 }

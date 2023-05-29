@@ -48,9 +48,9 @@
     "cli-progress": "^3.10.0",
     "discord-api-types": "^0.26.1",
     "discord.js": "^13.6.0",
-    "dotenv": "^16.0.1",
+    "dotenv": "^16.0.3",
     "node-cron": "^3.0.0",
-    "redis": "^4.0.3",
+    "redis": "^4.3.1",
     "snoowrap": "^1.23.0"
   }
 }

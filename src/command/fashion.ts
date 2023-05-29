@@ -38,7 +38,7 @@ module.exports = {
                 .setImage(latest.url)
                 .setThumbnail('https://styles.redditmedia.com/t5_c3dzb/styles/profileIcon_ugxkdcpuxbp51.png?width=256&height=256&crop=256:256,smart&s=a1f754e55d562256c326bbc97302bc7d895e3806')
                 .setFooter({
-                    text: Setting.APP_NAME,
+                    text: Setting.APP_NAME as string,
                 })
             ;
             await interaction.editReply({ embeds: [embedMsg] });

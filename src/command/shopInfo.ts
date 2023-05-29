@@ -100,7 +100,7 @@ module.exports = {
                     .addFields(fields)
                     .setTimestamp(new Date())
                     .setFooter({
-                        text: Setting.APP_NAME,
+                        text: Setting.APP_NAME as string,
                     });
                 await interaction.editReply({embeds: [embedMsg]});
             }

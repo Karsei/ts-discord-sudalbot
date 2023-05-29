@@ -1,22 +1,29 @@
 import fs from 'fs';
 import readline from 'readline';
+import dotenv from "dotenv";
+dotenv.config();
+
 // Discord
 const Discord = require('discord.js');
 import {CommandInteraction, Guild as DiscordGuild, Message, Message as DiscordMessage} from 'discord.js';
 const DiscordRest = require('@discordjs/rest');
 const DiscordTypes = require('discord-api-types/v9');
+// DB
+import mariadb from "mariadb";
+import { createClient as RedisCreateClient, RedisClientType } from "redis";
 // Logger
 const Logger = require('./lib/logger');
-// MariaDb
-import MariaDbConnection from './lib/mariadb';
-// Redis
-import RedisConnection from './lib/redis';
 // Http Server
 import HttpServer from './server';
 // Configs
 import Setting from './definition/setting';
 // @ts-ignore
 import {author, version} from '../package.json';
+
+import NewsArchiveService from "./service/news-archive-service";
+import NewsWebhookService from "./service/news-webhook.service";
+import NewsSchedulerService from "./service/news-scheduler.service";
+import RedisAdapter from "./lib/redis.adapter";
 
 // # 초기화 -----------------------------------------
 // 시작
@@ -52,7 +59,21 @@ function makeMariaDbConnection(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('MariaDb 연결중...');
         try {
-            await MariaDbConnection.init();
+            const dbPool = mariadb.createPool({
+                host: Setting.MARIADB_HOST,
+                database: Setting.MARIADB_DATABASE,
+                user: Setting.MARIADB_USER,
+                password: Setting.MARIADB_PASSWORD,
+                port: Setting.MARIADB_PORT,
+                connectionLimit: Setting.MARIADB_CONNECTION_LIMIT,
+                connectTimeout: 5000,
+                acquireTimeout: 5000,
+                idleTimeout: 0,
+            });
+            discordBot.mariadb = await dbPool.getConnection();
+            setInterval(() => {
+                discordBot.mariadb.query(`SELECT 1`);
+            }, 1000);
         }
         catch (err) {
             Logger.error('MariaDb 에 연결하는 과정에서 오류가 발생했습니다.', err);
@@ -67,13 +88,45 @@ function makeRedisConnection(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('Redis 연결중...');
         try {
-            await RedisConnection.init();
+            console.log(Setting);
+            const redisCon: RedisClientType<any, any> = RedisCreateClient({
+                socket: {
+                    // localAddress: Setting.REDIS_HOST,
+                    // localPort: Setting.REDIS_PORT,
+                    host: Setting.REDIS_HOST,
+                    port: Setting.REDIS_PORT
+                },
+                database: Setting.REDIS_DB,
+                password: Setting.REDIS_PASSWORD
+            });
+            await redisCon.on('error', (err: any) => {
+                Logger.error('Redis 오류가 발생했습니다.', err);
+            });
+            await redisCon.connect();
+            discordBot.redis = new RedisAdapter(redisCon);
         }
         catch (err) {
             Logger.error('Redis 에 연결하는 과정에서 오류가 발생했습니다.', err);
             process.exit(3);
         }
         Logger.info(`Redis 연결 완료`);
+        resolve();
+    });
+}
+// 서비스 초기화
+function makeServiceInitialization() {
+    return new Promise<void>(async (resolve) => {
+        try {
+            discordBot.service = {};
+            discordBot.service.newsArchiveService = new NewsArchiveService(discordBot);
+            discordBot.service.newsWebhookService = new NewsWebhookService(discordBot, discordBot.service.newsArchiveService);
+            discordBot.service.newsSchedulerService = new NewsSchedulerService(discordBot.service.newsWebhookService);
+        }
+        catch (err) {
+            Logger.error('디스코드 서비스를 등록하는 과정에서 오류가 발생했습니다.', err);
+            process.exit(3);
+        }
+        Logger.info(`디스코드 서비스 등록 완료`);
         resolve();
     });
 }
@@ -278,12 +331,7 @@ function makeScheduler(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('스케줄러 등록중...');
         try {
-            const NewsSchedulerService = require('./service/news-scheduler.service');
-            const scheduler = new NewsSchedulerService();
-            scheduler.run();
-            const ConnectionSchedulerService = require('./service/connection-scheduler.service');
-            const conScheduler = new ConnectionSchedulerService();
-            conScheduler.run();
+            discordBot.service.newsSchedulerService.run();
             Logger.info(`스케줄러 등록 완료`);
             resolve();
         }
@@ -360,6 +408,7 @@ function makeCli(): Promise<void> {
 
 makeMariaDbConnection()
     .then(() => makeRedisConnection())
+    .then(() => makeServiceInitialization())
     .then(() => makeKoreanGameDatas())
     .then(() => makeCommandList())
     .then(() => makeSlashCommandList())

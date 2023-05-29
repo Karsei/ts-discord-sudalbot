@@ -56,7 +56,7 @@ function init() {
                 .setDescription(`봇을 추가하셔서 고맙습니다! 파이널 판타지 14 관련 소식은 앞으로 해당 채널에 등록되게 되어요. 채널을 변경하고 싶다면, 서버 설정의 '연동' 에서 '달달이' 의 웹훅 설정을 변경해주세요.\n참고로 소식 종류는 \`/소식추가\` 또는 \`/소식삭제\` 명령어로 변경하실 수 있어요.`)
                 .setTimestamp(new Date())
                 .setFooter({
-                    text: Setting.APP_NAME,
+                    text: Setting.APP_NAME as string,
                 });
             await axios({
                 method: 'POST',

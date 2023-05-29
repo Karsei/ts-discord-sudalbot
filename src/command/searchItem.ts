@@ -119,7 +119,7 @@ module.exports = {
                     )
                     .setTimestamp(new Date())
                     .setFooter({
-                        text: Setting.APP_NAME,
+                        text: Setting.APP_NAME as string,
                     });
             }
             else {
@@ -196,7 +196,7 @@ module.exports = {
                     .setThumbnail(`https://xivapi.com${itemDetail.IconHD}`)
                     .setTimestamp()
                     .setFooter({
-                        text: Setting.APP_NAME,
+                        text: Setting.APP_NAME as string,
                     });
             }
 

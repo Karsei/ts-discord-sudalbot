@@ -149,7 +149,7 @@ module.exports = {
                 .setThumbnail(`https://xivapi.com${results[0].IconHD}`)
                 .setTimestamp()
                 .setFooter({
-                    text: Setting.APP_NAME,
+                    text: Setting.APP_NAME as string,
                 });
 
             await interaction.editReply({embeds: [embedMsg]});

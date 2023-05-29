@@ -5,10 +5,7 @@ import {
     SelectMenuInteraction
 } from 'discord.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
-import RedisConnection from '../lib/redis';
 const Logger = require('../lib/logger');
-// Service
-import {WebhookCache} from '../service/news-webhook.service';
 // Config
 import NewsCategories from '../definition/newsCategories';
 import {NotifyCategory, Locales} from '../definition/locales';
@@ -31,6 +28,8 @@ module.exports = {
         ),
     async selectExecute(interaction: SelectMenuInteraction) {
         try {
+            const discordBot: any = interaction.client;
+
             const roles = interaction.member?.permissions;
             if (roles instanceof Permissions) {
                 if (!roles.has([Permissions.FLAGS.ADMINISTRATOR, Permissions.FLAGS.MANAGE_MESSAGES])) {
@@ -45,13 +44,13 @@ module.exports = {
 
             await interaction.deferUpdate();
 
-            const hookUrl = await WebhookCache.getHookUrlByGuildId(interaction.guildId || '');
+            const hookUrl = await this.discordBot.service.web.getHookUrlByGuildId(interaction.guildId || '');
             const selectId = interaction.customId;
 
             const values = interaction.values[0].split("||");
             const locale = values[0], topic = values[1];
 
-            await WebhookCache.addUrl(locale, topic, hookUrl);
+            await discordBot.redis.addUrl(locale, topic, hookUrl);
             Logger.info(`${interaction.guild} (${interaction.guildId}) - 언어: ${locale}, 카테고리: ${topic} - 소식을 추가하였습니다.`);
             await interaction.editReply({content: '소식 추가에 성공했어요!', components: []});
         }
@@ -65,6 +64,8 @@ module.exports = {
 
         try
         {
+            const discordBot: any = interaction.client;
+
             const roles = interaction.member?.permissions;
             if (roles instanceof Permissions) {
                 if (!roles.has([Permissions.FLAGS.ADMINISTRATOR, Permissions.FLAGS.MANAGE_MESSAGES])) {
@@ -79,10 +80,8 @@ module.exports = {
 
             await interaction.deferReply({ephemeral: true});
 
-            const redisCon = RedisConnection.instance();
-
             // 해당 서버의 Webhook URL 확인
-            let hookUrl = await WebhookCache.getHookUrlByGuildId(interaction.guildId || '');
+            let hookUrl = await discordBot.redis.getHookUrlByGuildId(interaction.guildId || '');
             if (!hookUrl) {
                 await interaction.editReply('해당 디스코드 서버의 Webhook 을 찾지 못했어요!');
                 return;
@@ -96,7 +95,7 @@ module.exports = {
             for (let localeIdx in locales) {
                 if (locales[localeIdx] == selLocale) {
                     for (let typeIdx in types) {
-                        let resCheck = await WebhookCache.checkInWebhook(locales[localeIdx], types[typeIdx], hookUrl);
+                        let resCheck = await discordBot.redis.checkInWebhook(locales[localeIdx], types[typeIdx], hookUrl);
                         if (!resCheck) {
                             res.push({locale: locales[localeIdx], type: types[typeIdx]});
                             selectRes.push({

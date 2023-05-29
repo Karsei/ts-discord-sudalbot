@@ -1,5 +1,4 @@
 const mariadb = require('mariadb');
-const Logger = require('.//logger');
 // Config
 import Setting from '../definition/setting';
 
