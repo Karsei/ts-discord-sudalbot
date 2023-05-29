@@ -13,6 +13,7 @@ const getRedirectUrl = () => {
         , scopes = ["bot", "webhook.incoming", "messages.read", "applications.commands"];
 
     const authParams = new URLSearchParams();
+    authParams.append("response_type", "code");
     authParams.append("client_id", clientId);
     authParams.append("permissions", "0");
     authParams.append("redirect_uri", saveUrl);
