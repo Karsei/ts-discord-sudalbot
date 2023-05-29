@@ -1,7 +1,7 @@
 import {createClient as RedisCreateClient} from "redis";
-const Logger = require('../libs/logger');
+const Logger = require('.//logger');
 // Config
-import Setting from '../shared/setting';
+import Setting from '../definition/setting';
 
 export default class RedisConnection {
     private static redisCon: any;

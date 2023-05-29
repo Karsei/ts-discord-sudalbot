@@ -1,10 +1,10 @@
 import {CommandInteraction, EmbedFieldData, MessageEmbed} from 'discord.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
-const Logger = require('../libs/logger');
+const Logger = require('../lib/logger');
 // Service
-import SellInfoService from '../services/SellInfoService';
+import SellInfoService from '../service/sell-info.service';
 // Config
-import Setting from '../shared/setting';
+import Setting from '../definition/setting';
 
 module.exports = {
     data: new SlashCommandBuilder()

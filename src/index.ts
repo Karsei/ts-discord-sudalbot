@@ -6,15 +6,15 @@ import {CommandInteraction, Guild as DiscordGuild, Message, Message as DiscordMe
 const DiscordRest = require('@discordjs/rest');
 const DiscordTypes = require('discord-api-types/v9');
 // Logger
-const Logger = require('./libs/logger');
+const Logger = require('./lib/logger');
 // MariaDb
-import MariaDbConnection from './libs/mariadb';
+import MariaDbConnection from './lib/mariadb';
 // Redis
-import RedisConnection from './libs/redis';
+import RedisConnection from './lib/redis';
 // Http Server
 import HttpServer from './server';
 // Configs
-import Setting from './shared/setting';
+import Setting from './definition/setting';
 // @ts-ignore
 import {author, version} from '../package.json';
 
@@ -82,7 +82,7 @@ function makeKoreanGameDatas(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('한국어 게임 데이터 초기화중...');
         try {
-            //await require('./serverTask/storeKoreanData').default.init();
+            //await require('./task/storeKoreanData').default.init();
         }
         catch (err) {
             Logger.error('한국어 게임 데이터를 초기화하는 과정에서 오류가 발생했습니다.', err);
@@ -97,9 +97,9 @@ function makeCommandList(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('명령어 목록 초기화중...');
         try {
-            for (const file of fs.readdirSync('./src/commands').filter(file => file.endsWith('.ts'))) {
+            for (const file of fs.readdirSync('./src/command').filter(file => file.endsWith('.ts'))) {
                 Logger.info(`명령어 발견 - ${file}`);
-                await import(`./commands/${file}`)
+                await import(`./command/${file}`)
                     .then(cModule => {
                         discordBot.commands.set(cModule.data.name, cModule);
                         commands.push(cModule.data.toJSON());
@@ -278,10 +278,10 @@ function makeScheduler(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('스케줄러 등록중...');
         try {
-            const NewsSchedulerService = require('./services/NewsSchedulerService');
+            const NewsSchedulerService = require('./service/news-scheduler.service');
             const scheduler = new NewsSchedulerService();
             scheduler.run();
-            const ConnectionSchedulerService = require('./services/ConnectionSchedulerService');
+            const ConnectionSchedulerService = require('./service/connection-scheduler.service');
             const conScheduler = new ConnectionSchedulerService();
             conScheduler.run();
             Logger.info(`스케줄러 등록 완료`);

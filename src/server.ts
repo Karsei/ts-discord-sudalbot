@@ -7,19 +7,19 @@ import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import helmet from 'helmet';
 import path from 'path';
-const Logger = require('./libs/logger');
+const Logger = require('./lib/logger');
 
 // Config
-import Setting from './shared/setting';
-import BotAuthParams from './shared/botAuthParams';
+import Setting from './definition/setting';
+import BotAuthParams from './definition/botAuthParams';
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(cookieParser());
 // app.use(helmet());
 
-const viewsDir = path.join(__dirname, 'views');
-app.set('views', viewsDir);
+const viewsDir = path.join(__dirname, 'view');
+app.set('view', viewsDir);
 const staticDir = path.join(__dirname, 'public');
 
 app.use(express.static(staticDir));
@@ -49,7 +49,7 @@ function init() {
                 throw new Error(`parameter 'guild_id' is not found`);
             }
 
-            const webhookUrl = await require('./services/NewsWebhookService').default.subscribe(params);
+            const webhookUrl = await require('./service/news-webhook.service').default.subscribe(params);
             const msg =  new MessageEmbed()
                 .setColor('#0c9c54')
                 .setTitle('이곳에 소식이 추가될 예정이에요!')

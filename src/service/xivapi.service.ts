@@ -1,8 +1,8 @@
 const axios = require('axios');
 // Config
-import Setting from '../shared/setting';
+import Setting from '../definition/setting';
 
-export default class XivApiFetchService
+export default class XivapiService
 {
     private static async fetchXivApiGet(pUrl: string, pData: object) {
         return await axios.get(`${pUrl}`, {

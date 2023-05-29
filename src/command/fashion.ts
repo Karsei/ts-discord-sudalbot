@@ -1,10 +1,10 @@
 import {CommandInteraction,MessageEmbed} from 'discord.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
 import SnooWrap from 'snoowrap';
-import RedditError from '../exceptions/RedditError';
-const Logger = require('../libs/logger');
+import RedditError from '../exception/RedditError';
+const Logger = require('../lib/logger');
 // Config
-import Setting from '../shared/setting';
+import Setting from '../definition/setting';
 
 module.exports = {
     data: new SlashCommandBuilder()

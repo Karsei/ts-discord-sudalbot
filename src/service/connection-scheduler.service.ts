@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-import MariaDbConnection from '../libs/mariadb';
+import MariaDbConnection from '../lib/mariadb';
 
 class ConnectionSchedulerService
 {

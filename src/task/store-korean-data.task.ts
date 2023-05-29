@@ -1,11 +1,11 @@
-import MariaDbConnection from '../libs/mariadb';
+import MariaDbConnection from '../lib/mariadb';
 const axios = require('axios');
 const cliProgress = require('cli-progress');
 
 // Logger
-const Logger = require('../libs/logger');
+const Logger = require('../lib/logger');
 
-export default class StoreKoreanData
+export default class StoreKoreanDataTask
 {
     private static async fetchCsv(pName: string) {
         return axios.get(`https://raw.githubusercontent.com/Ra-Workspace/ffxiv-datamining-ko/master/csv/${pName}.csv`);

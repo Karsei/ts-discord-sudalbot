@@ -5,13 +5,13 @@ import {
     SelectMenuInteraction
 } from 'discord.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
-import RedisConnection from '../libs/redis';
-const Logger = require('../libs/logger');
+import RedisConnection from '../lib/redis';
+const Logger = require('../lib/logger');
 // Service
-import {WebhookCache} from '../services/NewsWebhookService';
+import {WebhookCache} from '../service/news-webhook.service';
 // Config
-import NewsCategories from '../shared/newsCategories';
-import {NotifyCategory, Locales} from '../shared/locales';
+import NewsCategories from '../definition/newsCategories';
+import {NotifyCategory, Locales} from '../definition/locales';
 
 module.exports = {
     data: new SlashCommandBuilder()

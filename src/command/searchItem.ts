@@ -1,14 +1,14 @@
 import {CommandInteraction,MessageEmbed} from 'discord.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
-import RedditError from '../exceptions/RedditError';
-const Logger = require('../libs/logger');
+import RedditError from '../exception/RedditError';
+const Logger = require('../lib/logger');
 // Task
-import {GameContentDb} from '../serverTask/storeKoreanData';
+import {GameContentDb} from '../task/store-korean-data.task';
 // Service
-import GuideItemFetcher from '../services/FfxivKoreanGuideService';
-import XivApiFetchService from '../services/XivApiFetchService';
+import GuideItemFetcher from '../service/ffxiv-korean-guide.service';
+import XivapiService from '../service/xivapi.service';
 // Config
-import Setting from '../shared/setting';
+import Setting from '../definition/setting';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -58,7 +58,7 @@ module.exports = {
                     },
                     from: 0
                 };
-                searchRes = await XivApiFetchService.fetchElasticSearch('instantcontent', constSearchBody, 'ID,Name');
+                searchRes = await XivapiService.fetchElasticSearch('instantcontent', constSearchBody, 'ID,Name');
                 if (!searchRes.hasOwnProperty('data') || !searchRes.data.hasOwnProperty('Results')) {
                     await interaction.editReply('정보를 불러오는 과정에서 오류가 발생했어요!');
                     return;
@@ -124,7 +124,7 @@ module.exports = {
             }
             else {
                 // 한 번 더 검색을 한다.
-                let itemRes = await XivApiFetchService.fetchItem(results[0].ID);
+                let itemRes = await XivapiService.fetchItem(results[0].ID);
                 if (!itemRes.hasOwnProperty('data') || !itemRes.data.hasOwnProperty('Name')) {
                     await interaction.editReply('정보를 불러오는 과정에서 오류가 발생했어요!');
                     return;

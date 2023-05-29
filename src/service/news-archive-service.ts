@@ -1,11 +1,11 @@
 import axios from 'axios';
 import cheerio, {CheerioAPI} from 'cheerio';
-import RedisConnection from '../libs/redis';
-const Logger = require('../libs/logger');
+import RedisConnection from '../lib/redis';
+const Logger = require('../lib/logger');
 // Config
-import NewsCategories, {NewsCategoryGlobal, NewsCategoryKorea} from '../shared/newsCategories';
-import NewsContent from '../shared/newsContent';
-import Setting from '../shared/setting';
+import NewsCategories, {NewsCategoryGlobal, NewsCategoryKorea} from '../definition/newsCategories';
+import NewsContent from '../definition/newsContent';
+import Setting from '../definition/setting';
 
 /**
  * 소식 아카이브 서비스

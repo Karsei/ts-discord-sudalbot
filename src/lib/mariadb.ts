@@ -1,7 +1,7 @@
 const mariadb = require('mariadb');
-const Logger = require('../libs/logger');
+const Logger = require('.//logger');
 // Config
-import Setting from '../shared/setting';
+import Setting from '../definition/setting';
 
 export default class MariaDbConnection {
     private static dbPool: any;

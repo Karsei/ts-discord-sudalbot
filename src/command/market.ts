@@ -1,12 +1,12 @@
 import {CommandInteraction,MessageEmbed} from 'discord.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
 import moment from 'moment';
-const Logger = require('../libs/logger');
+const Logger = require('../lib/logger');
 // Service
-import MarketService from '../services/MarketService';
-import XivApiFetchService from '../services/XivApiFetchService';
+import MarketService from '../service/market.service';
+import XivapiService from '../service/xivapi.service';
 // Config
-import Setting from '../shared/setting';
+import Setting from '../definition/setting';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -70,7 +70,7 @@ module.exports = {
                 },
                 from: 0
             };
-            searchRes = await XivApiFetchService.fetchElasticSearch('instantcontent', constSearchBody, 'ID,Name,IconHD');
+            searchRes = await XivapiService.fetchElasticSearch('instantcontent', constSearchBody, 'ID,Name,IconHD');
             if (!searchRes.hasOwnProperty('data') || !searchRes.data.hasOwnProperty('Results')) {
                 await interaction.editReply('정보를 불러오는 과정에서 오류가 발생했어요!');
                 return;

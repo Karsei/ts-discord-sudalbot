@@ -1,7 +1,7 @@
 import axios from 'axios';
 import cheerio, {CheerioAPI} from 'cheerio';
 // Config
-const Logger = require('../libs/logger');
+const Logger = require('../lib/logger');
 
 const DB_KOREA = 'https://guide.ff14.co.kr';
 

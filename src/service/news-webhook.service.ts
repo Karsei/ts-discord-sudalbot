@@ -1,16 +1,16 @@
 import axios from 'axios';
 import {MessageEmbed} from 'discord.js';
 const PromiseAdv = require('bluebird');
-import RedisConnection from '../libs/redis';
-const Logger = require('../libs/logger');
+import RedisConnection from '../lib/redis';
+const Logger = require('../lib/logger');
 // Service
-import NewsArchiveService from "./NewsArchiveService";
+import NewsArchiveService from "./news-archive-service";
 // Config
-import NewsContent from '../shared/newsContent';
-import NewsCategories, {NewsCategoryContents, NewsCategoryGlobal, NewsCategoryKorea} from '../shared/newsCategories';
-import LodestoneLocales from '../shared/lodestoneLocales';
-import BotAuthParams from '../shared/botAuthParams';
-import Setting from '../shared/setting';
+import NewsContent from '../definition/newsContent';
+import NewsCategories, {NewsCategoryContents, NewsCategoryGlobal, NewsCategoryKorea} from '../definition/newsCategories';
+import LodestoneLocales from '../definition/lodestoneLocales';
+import BotAuthParams from '../definition/botAuthParams';
+import Setting from '../definition/setting';
 
 /**
  * 소식 웹훅 서비스
