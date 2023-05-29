@@ -107,8 +107,8 @@ module.exports = {
         }
         catch (e) {
             if (e instanceof Error) {
-                await interaction.editReply('오류가 발생해서 보여드릴 수 없네요.. 잠시 후에 다시 시도해보세요.');
                 Logger.error(e.stack);
+                await interaction.editReply('오류가 발생해서 보여드릴 수 없네요.. 잠시 후에 다시 시도해보세요.');
             } else {
                 Logger.error(e);
             }
