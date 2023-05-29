@@ -2,10 +2,9 @@ import fs from 'fs';
 import readline from 'readline';
 // Discord
 const Discord = require('discord.js');
-import {CommandInteraction, Guild as DiscordGuild, Message, Message as DiscordMessage, MessageEmbed} from 'discord.js';
+import {CommandInteraction, Guild as DiscordGuild, Message, Message as DiscordMessage} from 'discord.js';
 const DiscordRest = require('@discordjs/rest');
 const DiscordTypes = require('discord-api-types/v9');
-const { Player } = require('discord-music-player');
 // Logger
 const Logger = require('./libs/logger');
 // MariaDb
@@ -18,7 +17,6 @@ import HttpServer from './server';
 import Setting from './shared/setting';
 // @ts-ignore
 import {author, version} from '../package.json';
-import {Playlist, Queue, Song} from "discord-music-player";
 
 // # 초기화 -----------------------------------------
 // 시작
@@ -43,14 +41,6 @@ const discordBot = new Discord.Client({
         Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
         Discord.Intents.FLAGS.GUILD_VOICE_STATES,
     ]});
-// 디스모크 음악 플레이어 초기화
-const discordPlayer = new Player(discordBot, {
-    leaveOnEmpty: true,
-    leaveOnStop: false,
-    leaveOnEnd: false,
-    timeout: 60000,
-});
-discordBot.player = discordPlayer;
 // 디스코드 봇 Rest 초기화
 const discordRestBot = new DiscordRest.REST({ version: '9'}).setToken(Setting.DISCORD_BOT_TOKEN);
 // 명령어 목록 로드
@@ -320,108 +310,6 @@ function makeHttpServer(): Promise<void> {
         }
     });
 }
-// 음악 초기화
-function makeMusicPlayer(): Promise<void> {
-    return new Promise<void>(async (resolve) => {
-        Logger.info('음악 플레이어 초기화중...');
-        try {
-            discordBot.player
-                // 음성 채팅방에 아무도 없을 때
-                .on('channelEmpty', (queue: Queue) => {
-                    const interaction: CommandInteraction = queue.data.interaction;
-                    interaction.channel?.send('현재 음성 채팅 방에 아무도 없어서 재생을 중단할게요.');
-                })
-                // 대기열에 음악이 추가되었을 경우
-                .on('songAdd', (queue: Queue, song: Song) => {
-                    const interaction: CommandInteraction = queue.data.interaction;
-                    interaction.channel?.send(`대기열에 \`${song}\` 음악이 추가되었어요.`);
-                })
-                // 대기열에 재생목록이 추가되었을 때
-                .on('playlistAdd', (queue: Queue, playlist: Playlist) => {
-                    const interaction: CommandInteraction = queue.data.interaction;
-                    interaction.channel?.send(`총 ${playlist.songs.length}개의 음악이 담긴 \`${playlist}\` 재생목록이 대기열에 추가되었어요.`);
-                })
-                // 더 이상 재생할 음악이 없을 때
-                .on('queueDestroyed', (queue: Queue) => {
-                    const interaction: CommandInteraction = queue.data.interaction;
-                    interaction.channel?.send(`재생할 음악이 없어요!`);
-                })
-                // 대기열에 더 이상 재생할 음악이 없을 때 (끝나거나 멈추었을 경우)
-                .on('queueEnd', (queue: Queue) => {
-                    const interaction: CommandInteraction = queue.data.interaction;
-                    interaction.channel?.send(`재생이 종료되었어요.`);
-                })
-                // 음악이 변경될 때
-                .on('songChanged', async (queue: Queue, newSong: Song, oldSong: Song) => {
-                    const interaction: CommandInteraction = queue.data.interaction;
-                    const embedMsg: MessageEmbed = new MessageEmbed()
-                        .setColor('#eb8634')
-                        .setTitle(`${newSong.name}`)
-                        .setAuthor({
-                            name: '지금 재생중'
-                        })
-                        .addFields(
-                            { name: `올린이`, value: newSong.author, inline: true },
-                            { name: `재생 시간`, value: newSong.duration, inline: true },
-                            { name: `요청자`, value: newSong.requestedBy?.username || '' },
-                        )
-                        .setTimestamp(new Date())
-                        .setURL(newSong.url)
-                        .setThumbnail(newSong.thumbnail)
-                        .setFooter({
-                            text: Setting.APP_NAME,
-                        });
-                    await interaction.channel?.send({ embeds: [embedMsg] });
-                })
-                // 대기열에 있는 첫 번째 음악이 이제 막 재생을 시작할 때
-                .on('songFirst', async (queue: Queue, song: Song) => {
-                    const interaction: CommandInteraction = queue.data.interaction;
-                    const embedMsg: MessageEmbed = new MessageEmbed()
-                        .setColor('#eb8634')
-                        .setTitle(`${song.name}`)
-                        .setAuthor({
-                            name: '지금 재생중'
-                        })
-                        .addFields(
-                            { name: `올린이`, value: song.author, inline: true },
-                            { name: `재생 시간`, value: song.duration, inline: true },
-                            { name: `요청자`, value: song.requestedBy?.username || '' },
-                        )
-                        .setTimestamp(new Date())
-                        .setURL(song.url)
-                        .setThumbnail(song.thumbnail)
-                        .setFooter({
-                            text: Setting.APP_NAME,
-                        });
-                    await interaction.channel?.send({ embeds: [embedMsg] });
-                })
-                // 채널에서 봇을 추방했을 경우
-                //.on('clientDisconnect', (queue: Queue) => {
-                //    const interaction: CommandInteraction = queue.data.interaction;
-                //    if (interaction.channel) {
-                //        interaction.channel.send(`채널에서 추방되어 음악 재생이 중단되었어요.`);
-                //    }
-                //})
-                // 음소거가 되었을 경우
-                .on('clientUndeafen', (queue: Queue) => {
-                    const interaction: CommandInteraction = queue.data.interaction;
-                    interaction.channel?.send(`음소거 상태에요.`);
-                })
-                // 실행중인 상태에서 오류가 발생할 때
-                .on('error', (error: any, queue: Queue) => {
-                    const interaction: CommandInteraction = queue.data.interaction;
-                    interaction.channel?.send(`오류가 발생했어요! 다시 시도해주세요.`);
-                    Logger.error(`음악 조작 시 오류가 발생했습니다: [${queue.guild.name}] ${error}`);
-                });
-            Logger.info(`음악 플레이어 초기화 완료`);
-            resolve();
-        }
-        catch (err) {
-            Logger.error('음악 플레이어 초기화를 하는 과정에서 오류가 발생했습니다.', err);
-            process.exit(10);
-        }
-    });
-}
 // Cli 구성
 function makeCli(): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
@@ -479,7 +367,6 @@ makeMariaDbConnection()
     .then(() => makeDiscordBotLogin())
     .then(() => makeScheduler())
     .then(() => makeHttpServer())
-    .then(() => makeMusicPlayer())
     .then(() => makeCli())
     .catch(err => {
         Logger.error(err);
