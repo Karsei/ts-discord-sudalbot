@@ -9,6 +9,7 @@ import {CommandInteraction, Guild as DiscordGuild, Message, Message as DiscordMe
 const DiscordRest = require('@discordjs/rest');
 const DiscordTypes = require('discord-api-types/v9');
 // DB
+import "reflect-metadata"
 import mariadb from "mariadb";
 import { createClient as RedisCreateClient, RedisClientType } from "redis";
 // Service

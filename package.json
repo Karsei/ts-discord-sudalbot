@@ -51,6 +51,8 @@
     "dotenv": "^16.0.3",
     "node-cron": "^3.0.0",
     "redis": "^4.3.1",
-    "snoowrap": "^1.23.0"
+    "reflect-metadata": "^0.1.13",
+    "snoowrap": "^1.23.0",
+    "typeorm": "^0.3.16"
   }
 }
