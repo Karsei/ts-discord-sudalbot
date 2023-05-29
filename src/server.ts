@@ -18,8 +18,8 @@ app.use(express.urlencoded({extended: true}));
 app.use(cookieParser());
 // app.use(helmet());
 
-const viewsDir = path.join(__dirname, 'view');
-app.set('view', viewsDir);
+const viewsDir = path.join(__dirname, 'views');
+app.set('views', viewsDir);
 const staticDir = path.join(__dirname, 'public');
 
 app.use(express.static(staticDir));
