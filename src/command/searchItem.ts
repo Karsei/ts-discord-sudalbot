@@ -2,8 +2,6 @@ import {CommandInteraction,MessageEmbed} from 'discord.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
 import RedditError from '../exception/RedditError';
 const Logger = require('../lib/logger');
-// Task
-import {GameContentDb} from '../task/store-korean-data.task';
 // Service
 import GuideItemFetcher from '../service/ffxiv-korean-guide.service';
 import XivapiService from '../service/xivapi.service';
@@ -25,6 +23,8 @@ module.exports = {
 
         try {
             await interaction.deferReply();
+
+            const discordBot: any = interaction.client;
 
             let searchRes: any;
             // 글로벌
@@ -80,7 +80,7 @@ module.exports = {
                 }
 
                 // 이름을 찾는다.
-                const kNames: any = await GameContentDb.getItemByName('kr', searchWord);
+                const kNames: any = await discordBot.mariadb.getItemByName('kr', searchWord);
                 for (const itemIdx of Object.keys(kNames)) {
                     if (itemIdx == 'meta') continue;
                     const item = kNames[itemIdx];
@@ -143,7 +143,7 @@ module.exports = {
 
                 // 한국어 관련
                 // 아이템
-                const koreanItemFetch = await GameContentDb.getItemByIdx('kr', results[0].ID);
+                const koreanItemFetch = await discordBot.mariadb.getItemByIdx('kr', results[0].ID);
                 if (koreanItemFetch && koreanItemFetch.length > 0) {
                     const itemParsed = JSON.parse(koreanItemFetch[0].content);
                     if (itemParsed.Name && itemParsed.Name.length > 0) {
@@ -154,7 +154,7 @@ module.exports = {
                         filtered.desc = itemParsed.Description;
                     }
 
-                    const koreanItemUiCategory = await GameContentDb.getItemUiCategory('kr', itemDetail.ItemUICategory.ID);
+                    const koreanItemUiCategory = await discordBot.mariadb.getItemUiCategory('kr', itemDetail.ItemUICategory.ID);
                     if (koreanItemUiCategory && koreanItemUiCategory.length > 0) {
                         const itemUiParsed = JSON.parse(koreanItemUiCategory[0].content);
                         filtered.itemUiCategoryName = itemUiParsed.Name;
