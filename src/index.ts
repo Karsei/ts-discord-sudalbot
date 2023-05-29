@@ -27,9 +27,6 @@ import Setting from './definition/setting';
 // @ts-ignore
 import {author, version} from '../package.json';
 
-
-
-
 // # 초기화 -----------------------------------------
 // 시작
 console.log('FFXIV DalDalEE Tool Discord Bot');
@@ -95,11 +92,8 @@ function makeRedisConnection(): Promise<void> {
     return new Promise<void>(async (resolve) => {
         Logger.info('Redis 연결중...');
         try {
-            console.log(Setting);
             const redisCon: RedisClientType<any, any> = RedisCreateClient({
                 socket: {
-                    // localAddress: Setting.REDIS_HOST,
-                    // localPort: Setting.REDIS_PORT,
                     host: Setting.REDIS_HOST,
                     port: Setting.REDIS_PORT
                 },
