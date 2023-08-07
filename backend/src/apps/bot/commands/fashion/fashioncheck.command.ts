@@ -1,8 +1,8 @@
 import { Inject, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Command, DiscordTransformedCommand } from '@discord-nestjs/core';
-import { ContextMenuCommandInteraction, EmbedBuilder } from 'discord.js';
-import { Submission } from 'snoowrap';
+import { ContextMenuCommandInteraction } from 'discord.js';
+
 import { FashionCheckService } from './fashioncheck.service';
 
 @Command({
