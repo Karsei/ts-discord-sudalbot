@@ -50,6 +50,7 @@ export class FashionCheckNoticeRegistCommand
       this.loggerService.error('패션체크 소식 등록 defer 실패: ', e);
       return;
     }
+    await this.fashionCheckService.publishAll();
 
     try {
       // 웹후크 기록 찾음
@@ -63,7 +64,7 @@ export class FashionCheckNoticeRegistCommand
       );
       if (filtered.size > 0) {
         await interaction.editReply(
-          '이미 소식을 받고 있어요! 다시 등록하고 싶으시다면 `서버 설정 > 연동 > 달달이`에 들어가셔서 웹후크에 있는 `달달이 패션체크 소식` 을 삭제하고 다시 진행해주세요.',
+          '이미 소식을 받고 있어요! 다시 등록하고 싶으시다면 `서버 설정 > 연동 > 달달이`에 들어가셔서 웹후크에 있는 `달달이 패션체크`를 삭제하고 다시 진행해주세요.',
         );
       } else {
         this.createWebhook(interaction);
@@ -85,7 +86,7 @@ export class FashionCheckNoticeRegistCommand
     interaction.guild.channels
       .createWebhook({
         channel: interaction.channelId,
-        name: '달달이 패션체크 소식',
+        name: '달달이 패션체크',
         avatar:
           'https://cdn.discordapp.com/avatars/589775904163627026/f235dc93edba16f1bf154f8807ff602f.webp?size=256',
         reason: '패션체크 소식 수동 등록',
