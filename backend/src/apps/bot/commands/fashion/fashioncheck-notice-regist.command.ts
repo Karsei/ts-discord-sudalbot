@@ -2,10 +2,10 @@ import { Inject, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Command, DiscordTransformedCommand } from '@discord-nestjs/core';
 import {
-  ContextMenuCommandInteraction,
+  ContextMenuCommandInteraction, DiscordAPIError,
   EmbedBuilder,
-  PermissionsBitField,
-} from 'discord.js';
+  PermissionsBitField
+} from "discord.js";
 
 import { FashionCheckService } from './fashioncheck.service';
 import { FashionCheckError } from '../../../../exceptions/fashion-check.exception';
@@ -108,11 +108,25 @@ export class FashionCheckNoticeRegistCommand
         await interaction.editReply({ embeds: [embedMsg] });
       })
       .catch(async (err) => {
-        await interaction.editReply(
-          '오류가 발생해서 보여드릴 수 없네요.. 잠시 후에 다시 시도해보세요.',
-        );
-        this.loggerService.error(err);
-        console.error(err);
+        if (err instanceof DiscordAPIError) {
+          if (err.code === 50013) {
+            await interaction.editReply(
+              '권한이 없어요! 아마 새로 생긴 기능이라서 그럴 거에요. 봇을 추방하고 다시 초대해주세요!',
+            );
+          } else {
+            await interaction.editReply(
+              '오류가 발생해서 보여드릴 수 없네요.. 잠시 후에 다시 시도해보세요.',
+            );
+            this.loggerService.error(err);
+            console.error(err);
+          }
+        } else {
+          await interaction.editReply(
+            '오류가 발생해서 보여드릴 수 없네요.. 잠시 후에 다시 시도해보세요.',
+          );
+          this.loggerService.error(err);
+          console.error(err);
+        }
       });
   }
 
