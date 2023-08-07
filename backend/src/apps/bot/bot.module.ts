@@ -12,6 +12,8 @@ import { UptimeCommand } from './commands/uptime/uptime.command';
 import { ContactCommand } from './commands/contact/contact.command';
 import { FashionCheckService } from './commands/fashion/fashioncheck.service';
 import { FashionCheckCommand } from './commands/fashion/fashioncheck.command';
+import { FashionCheckNoticeJob } from '../scheduler/jobs/fashion/fashion-check-notice.job';
+import { FashionCheckNoticeRegistCommand } from './commands/fashion/fashioncheck-notice-regist.command';
 import { ItemSearchService } from './commands/item/item-search.service';
 import { ItemSearchCommand } from './commands/item/item-search.command';
 import { XivapiService } from './commands/item/xivapi.service';
@@ -20,6 +22,7 @@ import { XivVersion } from '../../entities/xiv-version.entity';
 import { XivItem } from '../../entities/xiv-item.entity';
 import { News } from '../../entities/news.entity';
 import { Chat } from '../../entities/chat.entity';
+import { FashionCheckNotice } from '../../entities/fashioncheck-notice.entity';
 import { XivItemCategories } from '../../entities/xiv-item-categories.entity';
 import { MarketService } from './commands/market/market.service';
 import { MarketCommand } from './commands/market/market.command';
@@ -43,6 +46,7 @@ import { ShopCommand } from './commands/shop/shop.command';
       XivItemCategories,
       News,
       Chat,
+      FashionCheckNotice,
     ]),
   ],
   providers: [
@@ -55,6 +59,8 @@ import { ShopCommand } from './commands/shop/shop.command';
     ContactCommand,
     FashionCheckService,
     FashionCheckCommand,
+    FashionCheckNoticeRegistCommand,
+    FashionCheckNoticeJob,
     ItemSearchService,
     ItemSearchCommand,
     ItemSearchInteractionService,

@@ -34,7 +34,7 @@ export class FashionCheckCommand implements DiscordTransformedCommand<any> {
     this.fashionCheckService
       .getFashion()
       .then(async (fashionInfo) => {
-        const embedMsg = this.getEmbedMessage(fashionInfo);
+        const embedMsg = this.fashionCheckService.makeTopicMessage(fashionInfo);
         await interaction.editReply({ embeds: [embedMsg] });
       })
       .catch(async (err) => {
@@ -43,33 +43,6 @@ export class FashionCheckCommand implements DiscordTransformedCommand<any> {
         );
         this.loggerService.error(err);
         console.error(err);
-      });
-  }
-
-  /**
-   * Embed 메시지 생성
-   * @param fashionInfo Reddit 데이터 정보
-   * @private
-   */
-  private getEmbedMessage(fashionInfo: Submission) {
-    return new EmbedBuilder()
-      .setColor('#fc03f4')
-      .setTitle(`패션 체크`)
-      .setDescription(
-        `${fashionInfo.title}\n(Powered By. Kaiyoko Star)\n\n글로벌과 한국 서버의 패션 체크는 동일합니다.`,
-      )
-      .setTimestamp(new Date())
-      .setFields({
-        name: '한국어',
-        value: `[Google 시트](https://docs.google.com/spreadsheets/d/1RvbOnwLVlAKq7GwXwc3tAjQFtxQyk9PqrHa1J3vVB-g/edit#gid=174904573)`,
-      })
-      .setURL(`https://www.reddit.com/${fashionInfo.permalink}`)
-      .setImage(fashionInfo.url)
-      .setThumbnail(
-        'https://styles.redditmedia.com/t5_c3dzb/styles/profileIcon_ugxkdcpuxbp51.png?width=256&height=256&crop=256:256,smart&s=a1f754e55d562256c326bbc97302bc7d895e3806',
-      )
-      .setFooter({
-        text: this.configService.get('APP_NAME'),
       });
   }
 }
