@@ -2,10 +2,11 @@ import { Inject, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Command, DiscordTransformedCommand } from '@discord-nestjs/core';
 import {
-  ContextMenuCommandInteraction, DiscordAPIError,
+  ContextMenuCommandInteraction,
+  DiscordAPIError,
   EmbedBuilder,
-  PermissionsBitField
-} from "discord.js";
+  PermissionsBitField,
+} from 'discord.js';
 
 import { FashionCheckService } from './fashioncheck.service';
 import { FashionCheckError } from '../../../../exceptions/fashion-check.exception';

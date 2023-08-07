@@ -15,7 +15,7 @@ const getRedirectUrl = () => {
     const authParams = new URLSearchParams();
     authParams.append("response_type", "code");
     authParams.append("client_id", clientId);
-    authParams.append("permissions", "0");
+    authParams.append("permissions", "536870912");
     authParams.append("redirect_uri", saveUrl);
     authParams.append("scope", scopes.join(" "));
 
