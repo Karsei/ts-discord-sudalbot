@@ -50,7 +50,6 @@ export class FashionCheckNoticeRegistCommand
       this.loggerService.error('패션체크 소식 등록 defer 실패: ', e);
       return;
     }
-    await this.fashionCheckService.publishAll();
 
     try {
       // 웹후크 기록 찾음
