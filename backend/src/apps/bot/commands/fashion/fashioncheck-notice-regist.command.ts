@@ -69,15 +69,27 @@ export class FashionCheckNoticeRegistCommand
       } else {
         this.createWebhook(interaction);
       }
-    } catch (e) {
-      if (e instanceof FashionCheckError) {
+    } catch (err) {
+      if (err instanceof FashionCheckError) {
         this.createWebhook(interaction);
+      } else if (err instanceof DiscordAPIError) {
+        if (err.code === 50013) {
+          await interaction.editReply(
+            '권한이 없어요! 아마 새로 생긴 기능이라서 그럴 거에요. 봇을 추방하고 다시 초대해주세요!',
+          );
+        } else {
+          await interaction.editReply(
+            '오류가 발생해서 보여드릴 수 없네요.. 잠시 후에 다시 시도해보세요.',
+          );
+          this.loggerService.error(err);
+          console.error(err);
+        }
       } else {
         await interaction.editReply(
           '오류가 발생해서 보여드릴 수 없네요.. 잠시 후에 다시 시도해보세요.',
         );
-        this.loggerService.error(e);
-        console.error(e);
+        this.loggerService.error(err);
+        console.error(err);
       }
     }
   }
