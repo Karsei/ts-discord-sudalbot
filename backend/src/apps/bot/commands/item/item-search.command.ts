@@ -1,8 +1,14 @@
-import { ClientEvents, CommandInteraction, Message } from "discord.js";
+import { ClientEvents, Message, PermissionsBitField } from 'discord.js';
 import { CollectorInterceptor, SlashCommandPipe } from '@discord-nestjs/common';
 import { Inject, Logger, LoggerService, UseInterceptors } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Command, EventParams, Handler, IA, UseCollectors } from "@discord-nestjs/core";
+import {
+  Command,
+  EventParams,
+  Handler,
+  IA,
+  UseCollectors,
+} from '@discord-nestjs/core';
 
 import { ItemSearchService } from './item-search.service';
 import { ItemSearchInteractionService } from './item-search-interaction.service';
@@ -13,6 +19,8 @@ import { ItemSearchError } from '../../../../exceptions/item-search.exception';
 @Command({
   name: '아이템검색',
   description: '아이템을 검색합니다.',
+  dmPermission: false,
+  defaultMemberPermissions: PermissionsBitField.Flags.ViewChannel,
 })
 @UseInterceptors(CollectorInterceptor)
 @UseCollectors(ItemSearchInteractionPostCollector)

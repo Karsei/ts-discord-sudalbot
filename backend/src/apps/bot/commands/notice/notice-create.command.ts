@@ -18,6 +18,8 @@ import { NoticeError } from '../../../../exceptions/notice.exception';
 @Command({
   name: '소식추가',
   description: '현재 서버에서 구독중인 소식 카테고리 중 하나를 추가합니다.',
+  dmPermission: false,
+  defaultMemberPermissions: PermissionsBitField.Flags.ViewChannel,
 })
 @UseInterceptors(CollectorInterceptor)
 @UseCollectors(NoticeCreatePostCollector)

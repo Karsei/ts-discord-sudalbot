@@ -1,12 +1,14 @@
 import { Inject, Logger, LoggerService } from '@nestjs/common';
 import { Command, Handler } from '@discord-nestjs/core';
-import { ContextMenuCommandInteraction } from 'discord.js';
+import { ContextMenuCommandInteraction, PermissionsBitField } from 'discord.js';
 
 import { UptimeService } from './uptime.service';
 
 @Command({
   name: '업타임',
   description: '서버 로드로부터 경과된 시간을 출력합니다.',
+  dmPermission: false,
+  defaultMemberPermissions: PermissionsBitField.Flags.ViewChannel,
 })
 export class UptimeCommand {
   constructor(

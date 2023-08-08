@@ -15,10 +15,10 @@ import {
   ClientEvents,
   CommandInteraction,
   ModalBuilder,
-  ModalSubmitInteraction,
+  ModalSubmitInteraction, PermissionsBitField,
   TextInputBuilder,
-  TextInputStyle,
-} from 'discord.js';
+  TextInputStyle
+} from "discord.js";
 
 import { IsModalInteractionGuard } from '../../guards/is-modal-interaction.guard';
 import { Contact } from '../../../../entities/contact.entity';
@@ -26,6 +26,8 @@ import { Contact } from '../../../../entities/contact.entity';
 @Command({
   name: '제보하기',
   description: '봇 개발자에게 의견 또는 건의사항을 전달합니다.',
+  dmPermission: false,
+  defaultMemberPermissions: PermissionsBitField.Flags.ViewChannel,
 })
 export class ContactCommand {
   private readonly requestParticipantModalId = 'RequestParticipant';
