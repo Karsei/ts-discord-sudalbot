@@ -1,10 +1,10 @@
-import { InjectDiscordClient, Once, On, UseGuards } from '@discord-nestjs/core';
-import { Injectable, Logger } from '@nestjs/common';
+import { InjectDiscordClient, Once, On } from '@discord-nestjs/core';
+import { Injectable, Logger, UseGuards } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Client, Guild, Message } from 'discord.js';
+import { Repository } from 'typeorm';
 
 import { MessageFromUserGuard } from './guards/message-from-user.guard';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { Chat } from '../../entities/chat.entity';
 
 @Injectable()

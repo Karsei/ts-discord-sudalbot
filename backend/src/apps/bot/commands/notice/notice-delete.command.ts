@@ -1,14 +1,13 @@
-import { Client, Message, Permissions, PermissionsBitField } from 'discord.js';
-import { Inject, Logger, LoggerService } from '@nestjs/common';
-import { TransformPipe } from '@discord-nestjs/common';
+import { Client, ClientEvents, Message, PermissionsBitField } from 'discord.js';
+import { Inject, Logger, LoggerService, UseInterceptors } from '@nestjs/common';
+import { CollectorInterceptor, SlashCommandPipe } from '@discord-nestjs/common';
 import {
   Command,
-  DiscordTransformedCommand,
+  EventParams,
+  Handler,
   InjectDiscordClient,
-  Payload,
-  TransformedCommandExecutionContext,
+  InteractionEvent,
   UseCollectors,
-  UsePipes,
 } from '@discord-nestjs/core';
 
 import { NoticeService } from './notice.service';
@@ -19,22 +18,26 @@ import { NoticeError } from '../../../../exceptions/notice.exception';
 @Command({
   name: '소식삭제',
   description: '현재 서버에서 구독중인 소식 카테고리 중 하나를 삭제합니다.',
+  dmPermission: false,
+  defaultMemberPermissions: PermissionsBitField.Flags.ViewChannel | PermissionsBitField.Flags.ManageMessages,
 })
-@UsePipes(TransformPipe)
+@UseInterceptors(CollectorInterceptor)
 @UseCollectors(NoticeDeletePostCollector)
-export class NoticeDeleteCommand
-  implements DiscordTransformedCommand<NoticeManageDto>
-{
+export class NoticeDeleteCommand {
   constructor(
     @InjectDiscordClient() private readonly client: Client,
     @Inject(Logger) private readonly loggerService: LoggerService,
     private readonly noticeService: NoticeService,
   ) {}
 
+  @Handler()
   async handler(
-    @Payload() dto: NoticeManageDto,
-    { interaction }: TransformedCommandExecutionContext,
+    @InteractionEvent(SlashCommandPipe) dto: NoticeManageDto,
+    @EventParams() args: ClientEvents['interactionCreate'],
   ) {
+    const [interaction] = args;
+    if (!interaction.isChatInputCommand()) return;
+
     const roles: any = interaction.member.permissions;
     if (
       !roles.has([

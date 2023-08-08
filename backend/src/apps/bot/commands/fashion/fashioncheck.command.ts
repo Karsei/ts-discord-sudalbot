@@ -1,7 +1,7 @@
+import { Client, CommandInteraction, PermissionsBitField } from 'discord.js';
 import { Inject, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Command, DiscordTransformedCommand } from '@discord-nestjs/core';
-import { ContextMenuCommandInteraction } from 'discord.js';
+import { Command, Handler, InjectDiscordClient } from '@discord-nestjs/core';
 
 import { FashionCheckService } from './fashioncheck.service';
 
@@ -9,9 +9,12 @@ import { FashionCheckService } from './fashioncheck.service';
   name: '패션체크',
   description:
     '이번 주의 패션체크를 확인합니다. 글로벌/한국 서비스 모두 동일합니다.',
+  dmPermission: false,
+  defaultMemberPermissions: PermissionsBitField.Flags.ViewChannel,
 })
-export class FashionCheckCommand implements DiscordTransformedCommand<any> {
+export class FashionCheckCommand {
   constructor(
+    @InjectDiscordClient() private readonly client: Client,
     @Inject(Logger) private readonly loggerService: LoggerService,
     private readonly configService: ConfigService,
     private readonly fashionCheckService: FashionCheckService,
@@ -21,7 +24,8 @@ export class FashionCheckCommand implements DiscordTransformedCommand<any> {
    * 명령어 핸들러
    * @param interaction 명령 상호작용
    */
-  async handler(interaction: ContextMenuCommandInteraction): Promise<void> {
+  @Handler()
+  async handler(interaction: CommandInteraction): Promise<void> {
     // 응답 대기 전송
     try {
       await interaction.deferReply();

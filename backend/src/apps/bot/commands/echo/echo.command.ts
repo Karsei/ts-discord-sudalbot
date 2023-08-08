@@ -1,11 +1,6 @@
-import { TransformPipe } from '@discord-nestjs/common';
-import {
-  Command,
-  DiscordTransformedCommand,
-  Payload,
-  TransformedCommandExecutionContext,
-  UsePipes,
-} from '@discord-nestjs/core';
+import { PermissionsBitField } from 'discord.js';
+import { SlashCommandPipe } from '@discord-nestjs/common';
+import { Command, Handler, InteractionEvent } from '@discord-nestjs/core';
 
 import { EchoService } from './echo.service';
 import { EchoDto } from '../../dtos/echo.dto';
@@ -13,20 +8,18 @@ import { EchoDto } from '../../dtos/echo.dto';
 @Command({
   name: '따라하기',
   description: '봇이 사용자의 말을 똑같이 따라합니다.',
+  dmPermission: false,
+  defaultMemberPermissions: PermissionsBitField.Flags.ViewChannel,
 })
-@UsePipes(TransformPipe)
-export class EchoCommand implements DiscordTransformedCommand<EchoDto> {
+export class EchoCommand {
   constructor(private readonly echoService: EchoService) {}
 
   /**
    * 명령어 핸들러
    * @param dto 따라하기 DTO
-   * @param interaction 명령 상호작용
    */
-  handler(
-    @Payload() dto: EchoDto,
-    { interaction }: TransformedCommandExecutionContext,
-  ): string {
+  @Handler()
+  handler(@InteractionEvent(SlashCommandPipe) dto: EchoDto): string {
     return this.echoService.getEcho(dto.message);
   }
 }

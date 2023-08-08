@@ -1,11 +1,11 @@
+import { ClientEvents, PermissionsBitField } from 'discord.js';
 import { Inject, Logger, LoggerService } from '@nestjs/common';
-import { TransformPipe } from '@discord-nestjs/common';
+import { SlashCommandPipe } from '@discord-nestjs/common';
 import {
   Command,
-  DiscordTransformedCommand,
-  Payload,
-  TransformedCommandExecutionContext,
-  UsePipes,
+  EventParams,
+  Handler,
+  InteractionEvent,
 } from '@discord-nestjs/core';
 
 import { ItemSearchError } from '../../../../exceptions/item-search.exception';
@@ -18,11 +18,10 @@ import { ItemSearchTooManyResultsError } from '../../../../exceptions/item-searc
   name: '시장',
   description:
     '서버 기준으로 현재 시장에 등록되어 있는 특정 아이템의 목록을 조회합니다. (글로벌 전용)',
+  dmPermission: false,
+  defaultMemberPermissions: PermissionsBitField.Flags.ViewChannel,
 })
-@UsePipes(TransformPipe)
-export class MarketCommand
-  implements DiscordTransformedCommand<MarketSearchDto>
-{
+export class MarketCommand {
   constructor(
     @Inject(Logger) private readonly loggerService: LoggerService,
     private readonly marketService: MarketService,
@@ -31,12 +30,16 @@ export class MarketCommand
   /**
    * 명령어 핸들러
    * @param dto 시장 검색 DTO
-   * @param interaction 명령 상호작용
+   * @param args
    */
+  @Handler()
   async handler(
-    @Payload() dto: MarketSearchDto,
-    { interaction }: TransformedCommandExecutionContext,
+    @InteractionEvent(SlashCommandPipe) dto: MarketSearchDto,
+    @EventParams() args: ClientEvents['interactionCreate'],
   ): Promise<void> {
+    const [interaction] = args;
+    if (!interaction.isChatInputCommand()) return;
+
     // 응답 대기 전송
     try {
       await interaction.deferReply();

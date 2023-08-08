@@ -1,23 +1,24 @@
 import { Repository } from 'typeorm';
-import { Inject, Logger, LoggerService } from '@nestjs/common';
+import { Inject, Logger, LoggerService, UseGuards } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Command,
-  DiscordCommand,
+  EventParams,
+  Handler,
   InjectDiscordClient,
   On,
-  UseGuards,
 } from '@discord-nestjs/core';
 import { ModalActionRowComponentBuilder } from '@discordjs/builders';
 import {
   ActionRowBuilder,
   Client,
+  ClientEvents,
   CommandInteraction,
   ModalBuilder,
-  ModalSubmitInteraction,
+  ModalSubmitInteraction, PermissionsBitField,
   TextInputBuilder,
-  TextInputStyle,
-} from 'discord.js';
+  TextInputStyle
+} from "discord.js";
 
 import { IsModalInteractionGuard } from '../../guards/is-modal-interaction.guard';
 import { Contact } from '../../../../entities/contact.entity';
@@ -25,8 +26,10 @@ import { Contact } from '../../../../entities/contact.entity';
 @Command({
   name: '제보하기',
   description: '봇 개발자에게 의견 또는 건의사항을 전달합니다.',
+  dmPermission: false,
+  defaultMemberPermissions: PermissionsBitField.Flags.ViewChannel,
 })
-export class ContactCommand implements DiscordCommand {
+export class ContactCommand {
   private readonly requestParticipantModalId = 'RequestParticipant';
   private readonly summaryComponentId = 'summary';
   private readonly commentComponentId = 'comment';
@@ -41,6 +44,7 @@ export class ContactCommand implements DiscordCommand {
    * 명령어 핸들러
    * @param interaction 명령 상호작용
    */
+  @Handler()
   async handler(interaction: CommandInteraction): Promise<void> {
     const modal = new ModalBuilder()
       .setTitle('제보하기')
@@ -70,11 +74,16 @@ export class ContactCommand implements DiscordCommand {
 
   /**
    * Modal 에서 '확인' 버튼을 통해 제보할 경우
-   * @param modal 제출 상호작용
+   * @param eventArgs
    */
   @On('interactionCreate')
   @UseGuards(IsModalInteractionGuard)
-  async onModuleSubmit(modal: ModalSubmitInteraction) {
+  async onModuleSubmit(
+    @EventParams() eventArgs: ClientEvents['interactionCreate'],
+  ) {
+    const [modal] = eventArgs;
+    if (!modal.isModalSubmit()) return;
+
     this.loggerService.log(
       `${modal.member.user.username} 님이 제보하였습니다.`,
     );
