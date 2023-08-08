@@ -1,5 +1,5 @@
 import { AxiosResponse } from 'axios';
-import * as moment from 'moment-timezone';
+import moment from 'moment';
 import { EmbedBuilder } from 'discord.js';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';

@@ -1,5 +1,5 @@
 import { Inject, Logger, LoggerService } from '@nestjs/common';
-import { Command, DiscordTransformedCommand } from '@discord-nestjs/core';
+import { Command, Handler } from '@discord-nestjs/core';
 import { ContextMenuCommandInteraction } from 'discord.js';
 
 import { UptimeService } from './uptime.service';
@@ -8,7 +8,7 @@ import { UptimeService } from './uptime.service';
   name: '업타임',
   description: '서버 로드로부터 경과된 시간을 출력합니다.',
 })
-export class UptimeCommand implements DiscordTransformedCommand<any> {
+export class UptimeCommand {
   constructor(
     private readonly uptimeService: UptimeService,
     @Inject(Logger) private readonly loggerService: LoggerService,
@@ -18,6 +18,7 @@ export class UptimeCommand implements DiscordTransformedCommand<any> {
    * 명령어 핸들러
    * @param interaction 명령 상호작용
    */
+  @Handler()
   async handler(interaction: ContextMenuCommandInteraction) {
     try {
       await interaction.reply(

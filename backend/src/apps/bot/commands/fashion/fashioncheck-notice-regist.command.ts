@@ -1,6 +1,6 @@
 import { Inject, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Command, DiscordTransformedCommand } from '@discord-nestjs/core';
+import { Command, Handler } from '@discord-nestjs/core';
 import {
   ContextMenuCommandInteraction,
   DiscordAPIError,
@@ -15,9 +15,7 @@ import { FashionCheckError } from '../../../../exceptions/fashion-check.exceptio
   name: '패션체크소식등록',
   description: '패션체크소식을 자동으로 전달받도록 합니다!',
 })
-export class FashionCheckNoticeRegistCommand
-  implements DiscordTransformedCommand<any>
-{
+export class FashionCheckNoticeRegistCommand {
   constructor(
     @Inject(Logger) private readonly loggerService: LoggerService,
     private readonly configService: ConfigService,
@@ -28,6 +26,7 @@ export class FashionCheckNoticeRegistCommand
    * 명령어 핸들러
    * @param interaction 명령 상호작용
    */
+  @Handler()
   async handler(interaction: ContextMenuCommandInteraction): Promise<void> {
     // 권한 확인
     const roles: any = interaction.member.permissions;

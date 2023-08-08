@@ -1,17 +1,20 @@
-import {
-  Message,
-  PermissionsBitField,
-  SelectMenuInteraction,
-} from 'discord.js';
+import { PermissionsBitField, SelectMenuInteraction } from 'discord.js';
 import { Repository } from 'typeorm';
 import Redis from 'ioredis';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Inject, Logger, LoggerService } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  LoggerService,
+  Scope,
+} from '@nestjs/common';
 import { InteractionEventCollector, On, Once } from '@discord-nestjs/core';
 
 import { News } from '../../../../entities/news.entity';
 
+@Injectable({ scope: Scope.REQUEST })
 @InteractionEventCollector({ time: 15000 })
 export class NoticeDeletePostCollector {
   private readonly redis: Redis;
