@@ -1,7 +1,12 @@
-import { ClientEvents, CommandInteraction } from "discord.js";
+import { ClientEvents, PermissionsBitField } from 'discord.js';
 import { Inject, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Command, EventParams, Handler, InteractionEvent } from "@discord-nestjs/core";
+import {
+  Command,
+  EventParams,
+  Handler,
+  InteractionEvent,
+} from '@discord-nestjs/core';
 import { SlashCommandPipe } from '@discord-nestjs/common';
 
 import { ShopInfoSearchDto } from '../../dtos/shop-info-search.dto';
@@ -9,6 +14,8 @@ import { ShopInfoSearchDto } from '../../dtos/shop-info-search.dto';
 @Command({
   name: '상점',
   description: '특정 아이템이 판매하는 곳의 정보를 보여줍니다.',
+  dmPermission: false,
+  defaultMemberPermissions: PermissionsBitField.Flags.ViewChannel,
 })
 export class ShopCommand {
   constructor(

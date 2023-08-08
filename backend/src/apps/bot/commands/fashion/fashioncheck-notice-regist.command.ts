@@ -14,6 +14,10 @@ import { FashionCheckError } from '../../../../exceptions/fashion-check.exceptio
 @Command({
   name: '패션체크소식등록',
   description: '패션체크소식을 자동으로 전달받도록 합니다!',
+  dmPermission: false,
+  defaultMemberPermissions:
+    PermissionsBitField.Flags.ViewChannel |
+    PermissionsBitField.Flags.ManageWebhooks,
 })
 export class FashionCheckNoticeRegistCommand {
   constructor(
