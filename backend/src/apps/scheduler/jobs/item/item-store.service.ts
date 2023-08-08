@@ -100,9 +100,11 @@ export class ItemStoreService {
         bItemUiCategory.stop();
 
         // 이전 데이터는 삭제 처리
-        await transactionalEntityManager.softDelete(XivVersion, {
-          idx: latestVersionDb.idx,
-        });
+        if (latestVersionDb) {
+          await transactionalEntityManager.softDelete(XivVersion, {
+            idx: latestVersionDb.idx,
+          });
+        }
       },
     );
   }

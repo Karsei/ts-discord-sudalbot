@@ -1,31 +1,22 @@
-import { Inject, Logger, LoggerService } from '@nestjs/common';
+import { ClientEvents, CommandInteraction, Message } from "discord.js";
+import { CollectorInterceptor, SlashCommandPipe } from '@discord-nestjs/common';
+import { Inject, Logger, LoggerService, UseInterceptors } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { TransformPipe } from '@discord-nestjs/common';
-import {
-  Command,
-  DiscordTransformedCommand,
-  Payload,
-  TransformedCommandExecutionContext,
-  UseCollectors,
-  UsePipes,
-} from '@discord-nestjs/core';
+import { Command, EventParams, Handler, IA, UseCollectors } from "@discord-nestjs/core";
 
 import { ItemSearchService } from './item-search.service';
 import { ItemSearchInteractionService } from './item-search-interaction.service';
 import { ItemSearchInteractionPostCollector } from './item-search-interaction-post-collector';
 import { ItemSearchDto } from '../../dtos/itemsearch.dto';
 import { ItemSearchError } from '../../../../exceptions/item-search.exception';
-import { Message } from 'discord.js';
 
 @Command({
   name: '아이템검색',
   description: '아이템을 검색합니다.',
 })
-@UsePipes(TransformPipe)
+@UseInterceptors(CollectorInterceptor)
 @UseCollectors(ItemSearchInteractionPostCollector)
-export class ItemSearchCommand
-  implements DiscordTransformedCommand<ItemSearchDto>
-{
+export class ItemSearchCommand {
   constructor(
     private readonly configService: ConfigService,
     @Inject(Logger) private readonly loggerService: LoggerService,
@@ -36,12 +27,16 @@ export class ItemSearchCommand
   /**
    * 명령어 핸들러
    * @param dto 아이템 검색 파라미터
-   * @param interaction 명령 상호작용
+   * @param args
    */
+  @Handler()
   async handler(
-    @Payload() dto: ItemSearchDto,
-    { interaction }: TransformedCommandExecutionContext,
+    @IA(SlashCommandPipe) dto: ItemSearchDto,
+    @EventParams() args: ClientEvents['interactionCreate'],
   ): Promise<void> {
+    const [interaction] = args;
+    if (!interaction.isChatInputCommand()) return;
+
     // 응답 대기 전송
     try {
       await interaction.deferReply();

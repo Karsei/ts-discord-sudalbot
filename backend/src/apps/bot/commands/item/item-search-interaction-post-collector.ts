@@ -1,10 +1,17 @@
 import { DiscordAPIError, Message, SelectMenuInteraction } from 'discord.js';
-import { Inject, Logger, LoggerService } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  LoggerService,
+  Scope,
+} from '@nestjs/common';
 import { InteractionEventCollector, On, Once } from '@discord-nestjs/core';
 
 import { ItemSearchService } from './item-search.service';
 import { ItemSearchInteractionService } from './item-search-interaction.service';
 
+@Injectable({ scope: Scope.REQUEST })
 @InteractionEventCollector({
   time: ItemSearchInteractionService.MAX_COMPONENT_TIMEOUT,
   maxComponents: 30,

@@ -1,7 +1,6 @@
 import { Module, Logger } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DiscordModule } from '@discord-nestjs/core';
-import { GatewayIntentBits } from 'discord.js';
 
 import { DiscordConfig } from '../../configs/discord.config';
 import { BotGateway } from './bot.gateway';
@@ -30,8 +29,6 @@ import { UniversalisService } from './commands/market/universalis.service';
 import { NoticeService } from './commands/notice/notice.service';
 import { NoticeCreateCommand } from './commands/notice/notice-create.command';
 import { NoticeDeleteCommand } from './commands/notice/notice-delete.command';
-import { ChatGptCommand } from './commands/openai/chatgpt.command';
-import { ChatGptService } from './commands/openai/chatgpt.service';
 import { ItemSearchInteractionService } from './commands/item/item-search-interaction.service';
 import { ShopCommand } from './commands/shop/shop.command';
 
@@ -72,8 +69,6 @@ import { ShopCommand } from './commands/shop/shop.command';
     NoticeService,
     NoticeCreateCommand,
     NoticeDeleteCommand,
-    ChatGptService,
-    ChatGptCommand,
     ShopCommand,
   ],
 })
