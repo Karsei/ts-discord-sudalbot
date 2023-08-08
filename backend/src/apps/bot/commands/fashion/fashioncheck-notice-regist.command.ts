@@ -17,7 +17,7 @@ import { FashionCheckError } from '../../../../exceptions/fashion-check.exceptio
   dmPermission: false,
   defaultMemberPermissions:
     PermissionsBitField.Flags.ViewChannel |
-    PermissionsBitField.Flags.ManageWebhooks,
+    PermissionsBitField.Flags.ManageMessages,
 })
 export class FashionCheckNoticeRegistCommand {
   constructor(
