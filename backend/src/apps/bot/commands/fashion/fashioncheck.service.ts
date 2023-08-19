@@ -5,7 +5,7 @@ import Redis from 'ioredis';
 import { Submission } from 'snoowrap';
 import { RedditError } from '../../../../exceptions/reddit.exception';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { FashionCheckNotice } from '../../../../entities/fashioncheck-notice.entity';
 import { FashionCheckError } from '../../../../exceptions/fashion-check.exception';
 import { EmbedBuilder } from 'discord.js';
@@ -107,11 +107,25 @@ export class FashionCheckService {
   async delWebhook(webhook: ManagedWebhook) {
     // DB
     await this.fashionCheckRepository.delete(webhook.guildId);
-    await this.redis.del('fashion-check-notice', webhook.guildId);
+    await this.redis.hdel('fashion-check-notice', webhook.guildId);
   }
 
   async getWebhookGuildIdList() {
-    return this.redis.hkeys('fashion-check-notice');
+    let guildIds = await this.redis.hkeys('fashion-check-notice');
+    if (guildIds == null || guildIds.length <= 0) {
+      const guilds = await this.fashionCheckRepository.find({
+        where: {
+          deletedAt: IsNull(),
+        },
+      });
+      if (guilds != null) {
+        guildIds = [];
+        for (const guildObj of guilds) {
+          guildIds.push(guildObj.guild.id);
+        }
+      }
+    }
+    return guildIds;
   }
 
   async isExistTopic(topicId: string) {
