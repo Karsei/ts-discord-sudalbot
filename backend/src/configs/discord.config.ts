@@ -16,7 +16,7 @@ export const DiscordConfig = {
     },
     registerCommandOptions: [
       {
-        forGuild: configService.get('DISCORD_BOT_TEST_SERVER_ID'),
+        //forGuild: configService.get('DISCORD_BOT_TEST_SERVER_ID'),
         removeCommandsBefore: true,
       },
     ],
