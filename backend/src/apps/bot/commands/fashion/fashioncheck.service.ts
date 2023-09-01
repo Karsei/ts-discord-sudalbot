@@ -3,12 +3,15 @@ import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { Submission } from 'snoowrap';
-import { RedditError } from '../../../../exceptions/reddit.exception';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { FashionCheckNotice } from '../../../../entities/fashioncheck-notice.entity';
 import { FashionCheckError } from '../../../../exceptions/fashion-check.exception';
 import { EmbedBuilder } from 'discord.js';
+import {
+  FashionCheckRedditLoadPort,
+  FashionCheckRedditLoadPortToken,
+} from '../../../port/out/fashioncheck-reddit-load-port.interface';
 
 const axios = require('axios').default;
 const PromiseAdv = require('bluebird');
@@ -22,22 +25,17 @@ interface ManagedWebhook {
 
 @Injectable()
 export class FashionCheckService {
-  private readonly reddit;
   private readonly redis: Redis;
 
   constructor(
     @Inject(Logger) private readonly loggerService: LoggerService,
     private readonly configService: ConfigService,
+    @Inject(FashionCheckRedditLoadPortToken)
+    private readonly redditLoadPort: FashionCheckRedditLoadPort,
     @InjectRepository(FashionCheckNotice)
     private fashionCheckRepository: Repository<FashionCheckNotice>,
     private readonly redisService: RedisService,
   ) {
-    this.reddit = new (require('snoowrap'))({
-      userAgent: 'DalDalee Bot',
-      clientId: this.configService.get('REDDIT_CLIENT_ID'),
-      clientSecret: this.configService.get('REDDIT_CLIENT_SECRET'),
-      refreshToken: this.configService.get('REDDIT_CLIENT_REFRESH_TOKEN'),
-    });
     this.redis = this.redisService.getClient();
   }
 
@@ -45,22 +43,7 @@ export class FashionCheckService {
    * 패션체크 정보 조회
    */
   getFashion(): Promise<Submission> {
-    return new Promise((resolve, reject) => {
-      this.reddit
-        .getSubreddit('ffxiv')
-        .search({
-          query: 'author:kaiyoko Fashion Report',
-          sort: 'new',
-        })
-        .then((value) => {
-          if (!value || value.length <= 0)
-            throw new RedditError('패션체크 최신 정보를 발견할 수 없습니다.');
-          resolve(value.at(0));
-        })
-        .catch((err) => {
-          reject(err);
-        });
-    });
+    return this.redditLoadPort.loadFashion();
   }
 
   async getWebhook(guildId: string): Promise<ManagedWebhook> {

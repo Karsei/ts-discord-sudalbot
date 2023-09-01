@@ -25,12 +25,17 @@ import { FashionCheckNotice } from '../../entities/fashioncheck-notice.entity';
 import { XivItemCategories } from '../../entities/xiv-item-categories.entity';
 import { MarketService } from './commands/market/market.service';
 import { MarketCommand } from './commands/market/market.command';
-import { UniversalisService } from './commands/market/universalis.service';
 import { NoticeService } from './commands/notice/notice.service';
 import { NoticeCreateCommand } from './commands/notice/notice-create.command';
 import { NoticeDeleteCommand } from './commands/notice/notice-delete.command';
 import { ItemSearchInteractionService } from './commands/item/item-search-interaction.service';
 import { ShopCommand } from './commands/shop/shop.command';
+import {
+  FashionCheckRedditLoadPortToken,
+} from '../port/out/fashioncheck-reddit-load-port.interface';
+import { RedditAdapter } from '../adapter/out/reddit.adapter';
+import { UniversalisAdapter } from '../adapter/out/universalis.adapter';
+import { UniversalisLoadPortToken } from '../port/out/universalis-load-port.interface';
 
 @Module({
   imports: [
@@ -58,6 +63,7 @@ import { ShopCommand } from './commands/shop/shop.command';
     FashionCheckCommand,
     FashionCheckNoticeRegistCommand,
     FashionCheckNoticeJob,
+    { provide: FashionCheckRedditLoadPortToken, useClass: RedditAdapter },
     ItemSearchService,
     ItemSearchCommand,
     ItemSearchInteractionService,
@@ -65,7 +71,7 @@ import { ShopCommand } from './commands/shop/shop.command';
     MarketService,
     MarketCommand,
     MarketService,
-    UniversalisService,
+    { provide: UniversalisLoadPortToken, useClass: UniversalisAdapter },
     NoticeService,
     NoticeCreateCommand,
     NoticeDeleteCommand,

@@ -1,19 +1,23 @@
 import { AxiosResponse } from 'axios';
-import moment from 'moment';
+import * as moment from 'moment-timezone';
 import { EmbedBuilder } from 'discord.js';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { UniversalisService } from './universalis.service';
 import { ItemSearchService } from '../item/item-search.service';
 import { MarketError } from '../../../../exceptions/market.exception';
 import { AggregatedItemInfo } from '../../../../definitions/interface/xivitem';
+import {
+  UniversalisLoadPort,
+  UniversalisLoadPortToken,
+} from '../../../port/out/universalis-load-port.interface';
 
 @Injectable()
 export class MarketService {
   constructor(
     private readonly configService: ConfigService,
-    private readonly universalisService: UniversalisService,
+    @Inject(UniversalisLoadPortToken)
+    private readonly universalisLoadPort: UniversalisLoadPort,
     private readonly itemSearchService: ItemSearchService,
   ) {}
 
@@ -26,7 +30,7 @@ export class MarketService {
     const results = await this.itemSearchService.fetchSearchItem(keyword);
 
     const itemId = results.id;
-    const marketRes = await this.universalisService.fetchCurrentList(
+    const marketRes = await this.universalisLoadPort.fetchCurrentList(
       server,
       itemId,
     );
@@ -76,7 +80,7 @@ export class MarketService {
       const item = list.data.recentHistory[idx];
 
       historyStr +=
-        `[${moment(new Date(item.timestamp * 1000)).format(
+        `${idx + 1}. [${moment(new Date(item.timestamp * 1000)).format(
           'YYYY/MM/DD HH:mm:ss',
         )}] ${item.quantity}개` +
         (item.hq ? ' [HQ]' : '') +
