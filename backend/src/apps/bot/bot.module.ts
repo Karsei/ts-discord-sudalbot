@@ -4,8 +4,8 @@ import { DiscordModule } from '@discord-nestjs/core';
 
 import { DiscordConfig } from '../../configs/discord.config';
 import { BotGateway } from './bot.gateway';
-import { EchoService } from './commands/echo/echo.service';
-import { EchoCommand } from './commands/echo/echo.command';
+import { EchoService } from '../service/echo/echo.service';
+import { EchoCommand } from '../adapter/in/command/echo.command';
 import { UptimeService } from './commands/uptime/uptime.service';
 import { UptimeCommand } from './commands/uptime/uptime.command';
 import { ContactCommand } from './commands/contact/contact.command';
@@ -30,12 +30,11 @@ import { NoticeCreateCommand } from './commands/notice/notice-create.command';
 import { NoticeDeleteCommand } from './commands/notice/notice-delete.command';
 import { ItemSearchInteractionService } from './commands/item/item-search-interaction.service';
 import { ShopCommand } from './commands/shop/shop.command';
-import {
-  FashionCheckRedditLoadPortToken,
-} from '../port/out/fashioncheck-reddit-load-port.interface';
+import { FashionCheckRedditLoadPortToken } from '../port/out/fashioncheck-reddit-load-port.interface';
 import { RedditAdapter } from '../adapter/out/reddit.adapter';
 import { UniversalisAdapter } from '../adapter/out/universalis.adapter';
 import { UniversalisLoadPortToken } from '../port/out/universalis-load-port.interface';
+import { EchoUseCaseToken } from '../port/in/echo-usecase.interface';
 
 @Module({
   imports: [
@@ -54,8 +53,8 @@ import { UniversalisLoadPortToken } from '../port/out/universalis-load-port.inte
   providers: [
     Logger,
     BotGateway,
-    EchoService,
     EchoCommand,
+    { provide: EchoUseCaseToken, useClass: EchoService },
     UptimeService,
     UptimeCommand,
     ContactCommand,

@@ -1,9 +1,13 @@
+import { Inject } from '@nestjs/common';
 import { PermissionsBitField } from 'discord.js';
 import { SlashCommandPipe } from '@discord-nestjs/common';
 import { Command, Handler, InteractionEvent } from '@discord-nestjs/core';
 
-import { EchoService } from './echo.service';
-import { EchoDto } from '../../dtos/echo.dto';
+import { EchoDto } from '../../../bot/dtos/echo.dto';
+import {
+  EchoUseCase,
+  EchoUseCaseToken,
+} from '../../../port/in/echo-usecase.interface';
 
 @Command({
   name: '따라하기',
@@ -12,7 +16,10 @@ import { EchoDto } from '../../dtos/echo.dto';
   defaultMemberPermissions: PermissionsBitField.Flags.ViewChannel,
 })
 export class EchoCommand {
-  constructor(private readonly echoService: EchoService) {}
+  constructor(
+    @Inject(EchoUseCaseToken)
+    private readonly echoUseCase: EchoUseCase,
+  ) {}
 
   /**
    * 명령어 핸들러
@@ -20,6 +27,6 @@ export class EchoCommand {
    */
   @Handler()
   handler(@InteractionEvent(SlashCommandPipe) dto: EchoDto): string {
-    return this.echoService.getEcho(dto.message);
+    return this.echoUseCase.echo(dto.message);
   }
 }
