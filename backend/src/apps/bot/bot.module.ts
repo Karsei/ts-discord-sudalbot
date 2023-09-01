@@ -8,7 +8,7 @@ import { EchoService } from '../service/echo/echo.service';
 import { EchoCommand } from '../adapter/in/command/echo.command';
 import { UptimeService } from './commands/uptime/uptime.service';
 import { UptimeCommand } from './commands/uptime/uptime.command';
-import { ContactCommand } from './commands/contact/contact.command';
+import { ContactCommand } from '../adapter/in/command/contact.command';
 import { FashionCheckService } from './commands/fashion/fashioncheck.service';
 import { FashionCheckCommand } from './commands/fashion/fashioncheck.command';
 import { FashionCheckNoticeJob } from '../scheduler/jobs/fashion/fashion-check-notice.job';
@@ -35,6 +35,8 @@ import { RedditAdapter } from '../adapter/out/reddit.adapter';
 import { UniversalisAdapter } from '../adapter/out/universalis.adapter';
 import { UniversalisLoadPortToken } from '../port/out/universalis-load-port.interface';
 import { EchoUseCaseToken } from '../port/in/echo-usecase.interface';
+import { ContactSavePortToken } from "../port/out/contact-save-port.interface";
+import { MariadbAdapter } from "../adapter/out/mariadb.adapter";
 
 @Module({
   imports: [
@@ -75,6 +77,7 @@ import { EchoUseCaseToken } from '../port/in/echo-usecase.interface';
     NoticeCreateCommand,
     NoticeDeleteCommand,
     ShopCommand,
+    { provide: ContactSavePortToken, useClass: MariadbAdapter },
   ],
 })
 export class BotModule {}

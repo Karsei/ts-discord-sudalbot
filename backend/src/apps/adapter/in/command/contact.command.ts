@@ -1,6 +1,4 @@
-import { Repository } from 'typeorm';
 import { Inject, Logger, LoggerService, UseGuards } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import {
   Command,
   EventParams,
@@ -15,13 +13,16 @@ import {
   ClientEvents,
   CommandInteraction,
   ModalBuilder,
-  ModalSubmitInteraction, PermissionsBitField,
+  PermissionsBitField,
   TextInputBuilder,
-  TextInputStyle
-} from "discord.js";
+  TextInputStyle,
+} from 'discord.js';
 
-import { IsModalInteractionGuard } from '../../guards/is-modal-interaction.guard';
-import { Contact } from '../../../../entities/contact.entity';
+import { IsModalInteractionGuard } from '../../../bot/guards/is-modal-interaction.guard';
+import {
+  ContactSavePort,
+  ContactSavePortToken,
+} from '../../../port/out/contact-save-port.interface';
 
 @Command({
   name: '제보하기',
@@ -30,14 +31,17 @@ import { Contact } from '../../../../entities/contact.entity';
   defaultMemberPermissions: PermissionsBitField.Flags.ViewChannel,
 })
 export class ContactCommand {
-  private readonly requestParticipantModalId = 'RequestParticipant';
-  private readonly summaryComponentId = 'summary';
-  private readonly commentComponentId = 'comment';
+  public static readonly REQUEST_PARTICIPANT_MODAL_ID = 'RequestParticipant';
+  public static readonly SUMMARY_COMPONENT_ID = 'summary';
+  public static readonly COMMENT_COMPONENT_ID = 'comment';
 
   constructor(
-    @InjectDiscordClient() private readonly client: Client,
-    @Inject(Logger) private readonly loggerService: LoggerService,
-    @InjectRepository(Contact) private contactRepository: Repository<Contact>,
+    @InjectDiscordClient()
+    private readonly client: Client,
+    @Inject(Logger)
+    private readonly loggerService: LoggerService,
+    @Inject(ContactSavePortToken)
+    private readonly savePort: ContactSavePort,
   ) {}
 
   /**
@@ -48,15 +52,15 @@ export class ContactCommand {
   async handler(interaction: CommandInteraction): Promise<void> {
     const modal = new ModalBuilder()
       .setTitle('제보하기')
-      .setCustomId(this.requestParticipantModalId);
+      .setCustomId(ContactCommand.REQUEST_PARTICIPANT_MODAL_ID);
 
     const userNameInputComponent = new TextInputBuilder()
-      .setCustomId(this.summaryComponentId)
+      .setCustomId(ContactCommand.SUMMARY_COMPONENT_ID)
       .setLabel('제목')
       .setStyle(TextInputStyle.Short);
 
     const commentInputComponent = new TextInputBuilder()
-      .setCustomId(this.commentComponentId)
+      .setCustomId(ContactCommand.COMMENT_COMPONENT_ID)
       .setLabel('내용')
       .setStyle(TextInputStyle.Paragraph);
 
@@ -88,27 +92,13 @@ export class ContactCommand {
       `${modal.member.user.username} 님이 제보하였습니다.`,
     );
 
-    if (modal.customId !== this.requestParticipantModalId) return;
+    if (modal.customId !== ContactCommand.REQUEST_PARTICIPANT_MODAL_ID) return;
 
-    await this.saveContact(modal);
+    await this.savePort.saveContact(modal);
 
     await modal.reply(
       `**${modal.user.username}** 님, 정상적으로 제보가 접수되었어요!`,
       //+ codeBlock('markdown', comment),
     );
-  }
-
-  /**
-   * 제보 저장
-   * @param modal modal 제출 상호작용
-   */
-  private async saveContact(modal: ModalSubmitInteraction) {
-    return await this.contactRepository.insert({
-      guild: { id: modal.guildId },
-      userId: modal.user.id,
-      userName: modal.user.username,
-      summary: modal.fields.fields.get(this.summaryComponentId).value,
-      comment: modal.fields.fields.get(this.commentComponentId).value,
-    });
   }
 }
