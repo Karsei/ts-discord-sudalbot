@@ -6,8 +6,8 @@ import { DiscordConfig } from '../../configs/discord.config';
 import { BotGateway } from './bot.gateway';
 import { EchoService } from '../service/echo/echo.service';
 import { EchoCommand } from '../adapter/in/command/echo.command';
-import { UptimeService } from './commands/uptime/uptime.service';
-import { UptimeCommand } from './commands/uptime/uptime.command';
+import { UptimeService } from '../service/uptime/uptime.service';
+import { UptimeCommand } from '../adapter/in/command/uptime.command';
 import { ContactCommand } from '../adapter/in/command/contact.command';
 import { FashionCheckService } from './commands/fashion/fashioncheck.service';
 import { FashionCheckCommand } from './commands/fashion/fashioncheck.command';
@@ -35,8 +35,9 @@ import { RedditAdapter } from '../adapter/out/reddit.adapter';
 import { UniversalisAdapter } from '../adapter/out/universalis.adapter';
 import { UniversalisLoadPortToken } from '../port/out/universalis-load-port.interface';
 import { EchoUseCaseToken } from '../port/in/echo-usecase.interface';
-import { ContactSavePortToken } from "../port/out/contact-save-port.interface";
-import { MariadbAdapter } from "../adapter/out/mariadb.adapter";
+import { ContactSavePortToken } from '../port/out/contact-save-port.interface';
+import { MariadbAdapter } from '../adapter/out/mariadb.adapter';
+import { UptimeUseCaseToken } from '../port/in/uptime-usecase.interface';
 
 @Module({
   imports: [
@@ -57,8 +58,8 @@ import { MariadbAdapter } from "../adapter/out/mariadb.adapter";
     BotGateway,
     EchoCommand,
     { provide: EchoUseCaseToken, useClass: EchoService },
-    UptimeService,
     UptimeCommand,
+    { provide: UptimeUseCaseToken, useClass: UptimeService },
     ContactCommand,
     FashionCheckService,
     FashionCheckCommand,

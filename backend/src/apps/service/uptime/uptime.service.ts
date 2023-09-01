@@ -1,17 +1,20 @@
 import { Injectable } from '@nestjs/common';
 
-const oStartDate: Date = new Date();
+import { UptimeUseCase } from '../../port/in/uptime-usecase.interface';
 
 @Injectable()
-export class UptimeService {
-  public getUpTime() {
+export class UptimeService implements UptimeUseCase {
+  private readonly oStartDate: Date = new Date();
+  constructor() {}
+
+  fetchTime() {
     const _sec = 1000;
     const _min = _sec * 60;
     const _hour = _min * 60;
     const _day = _hour * 24;
 
     const curDate: Date = new Date();
-    const diffDate = curDate.valueOf() - oStartDate.valueOf();
+    const diffDate = curDate.valueOf() - this.oStartDate.valueOf();
     const d_day = Math.floor(diffDate / _day);
     const d_hour = Math.floor((diffDate % _day) / _hour);
     const d_min = Math.floor((diffDate % _hour) / _min);
