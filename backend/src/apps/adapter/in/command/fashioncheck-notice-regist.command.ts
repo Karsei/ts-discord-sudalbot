@@ -8,8 +8,11 @@ import {
   PermissionsBitField,
 } from 'discord.js';
 
-import { FashionCheckService } from '../../../service/fashioncheck/fashioncheck.service';
 import { FashionCheckError } from '../../../../exceptions/fashion-check.exception';
+import {
+  FashionCheckNoticeUseCase,
+  FashionCheckNoticeUseCaseToken,
+} from '../../../port/in/fashioncheck-notice-usecase.interface';
 
 @Command({
   name: '패션체크소식등록',
@@ -23,7 +26,8 @@ export class FashionCheckNoticeRegistCommand {
   constructor(
     @Inject(Logger) private readonly loggerService: LoggerService,
     private readonly configService: ConfigService,
-    private readonly fashionCheckService: FashionCheckService,
+    @Inject(FashionCheckNoticeUseCaseToken)
+    private readonly service: FashionCheckNoticeUseCase,
   ) {}
 
   /**
@@ -57,9 +61,7 @@ export class FashionCheckNoticeRegistCommand {
 
     try {
       // 웹후크 기록 찾음
-      const managedWebhook = await this.fashionCheckService.getWebhook(
-        interaction.guildId,
-      );
+      const managedWebhook = await this.service.getWebhook(interaction.guildId);
       // 기록은 있으나 그래도 현재 서버에 남아있는지 확인함
       const webhooks = await interaction.guild.fetchWebhooks();
       const filtered = webhooks.filter(
@@ -108,7 +110,7 @@ export class FashionCheckNoticeRegistCommand {
       })
       .then(async (webhook) => {
         // 캐시 및 DB 저장
-        await this.fashionCheckService.setWebhook({
+        await this.service.setWebhook({
           guildId: webhook.guildId,
           webhookId: webhook.id,
           webhookToken: webhook.token,

@@ -46,6 +46,8 @@ import { FashionCheckCacheSavePortToken } from '../port/out/fashioncheck-cache-s
 import { FashionCheckLoadPortToken } from '../port/out/fashioncheck-load-port.interface';
 import { DbCacheAdapter } from '../adapter/out/dbcache.adapter';
 import { FashionCheckSavePortToken } from '../port/out/fashioncheck-save-port.interface';
+import { FashionCheckUseCaseToken } from "../port/in/fashioncheck-usecase.interface";
+import { FashionCheckNoticeUseCaseToken } from "../port/in/fashioncheck-notice-usecase.interface";
 
 @Module({
   imports: [
@@ -69,10 +71,11 @@ import { FashionCheckSavePortToken } from '../port/out/fashioncheck-save-port.in
     UptimeCommand,
     { provide: UptimeUseCaseToken, useClass: UptimeService },
     ContactCommand,
-    FashionCheckService,
     FashionCheckCommand,
     FashionCheckNoticeRegistCommand,
     FashionCheckNoticeJob,
+    { provide: FashionCheckUseCaseToken, useClass: FashionCheckService },
+    { provide: FashionCheckNoticeUseCaseToken, useClass: FashionCheckService },
     { provide: FashionCheckRedditLoadPortToken, useClass: RedditAdapter },
     ItemSearchService,
     ItemSearchCommand,

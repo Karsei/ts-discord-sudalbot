@@ -3,7 +3,10 @@ import { Inject, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Command, Handler, InjectDiscordClient } from '@discord-nestjs/core';
 
-import { FashionCheckService } from '../../../service/fashioncheck/fashioncheck.service';
+import {
+  FashionCheckUseCase,
+  FashionCheckUseCaseToken,
+} from '../../../port/in/fashioncheck-usecase.interface';
 
 @Command({
   name: '패션체크',
@@ -17,7 +20,8 @@ export class FashionCheckCommand {
     @InjectDiscordClient() private readonly client: Client,
     @Inject(Logger) private readonly loggerService: LoggerService,
     private readonly configService: ConfigService,
-    private readonly fashionCheckService: FashionCheckService,
+    @Inject(FashionCheckUseCaseToken)
+    private readonly service: FashionCheckUseCase,
   ) {}
 
   /**
@@ -35,10 +39,10 @@ export class FashionCheckCommand {
     }
 
     // 패션체크 메시지 전송
-    this.fashionCheckService
+    this.service
       .getFashion()
       .then(async (fashionInfo) => {
-        const embedMsg = this.fashionCheckService.makeTopicMessage(fashionInfo);
+        const embedMsg = this.service.makeTopicMessage(fashionInfo);
         await interaction.editReply({ embeds: [embedMsg] });
       })
       .catch(async (err) => {
