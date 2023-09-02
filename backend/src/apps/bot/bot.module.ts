@@ -29,7 +29,7 @@ import { NoticeService } from './commands/notice/notice.service';
 import { NoticeCreateCommand } from './commands/notice/notice-create.command';
 import { NoticeDeleteCommand } from './commands/notice/notice-delete.command';
 import { ItemSearchInteractionService } from './commands/item/item-search-interaction.service';
-import { ShopCommand } from './commands/shop/shop.command';
+import { ShopCommand } from '../adapter/in/command/shop.command';
 import { FashionCheckRedditLoadPortToken } from '../port/out/fashioncheck-reddit-load-port.interface';
 import { RedditAdapter } from '../adapter/out/reddit.adapter';
 import { UniversalisAdapter } from '../adapter/out/universalis.adapter';

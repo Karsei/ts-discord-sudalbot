@@ -9,7 +9,7 @@ import {
 } from '@discord-nestjs/core';
 import { SlashCommandPipe } from '@discord-nestjs/common';
 
-import { ShopInfoSearchDto } from '../../dtos/shop-info-search.dto';
+import { ShopInfoSearchDto } from '../../../bot/dtos/shop-info-search.dto';
 
 @Command({
   name: '상점',
