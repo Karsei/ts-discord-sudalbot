@@ -8,7 +8,7 @@ import {
   PermissionsBitField,
 } from 'discord.js';
 
-import { FashionCheckService } from './fashioncheck.service';
+import { FashionCheckService } from '../../../service/fashioncheck/fashioncheck.service';
 import { FashionCheckError } from '../../../../exceptions/fashion-check.exception';
 
 @Command({

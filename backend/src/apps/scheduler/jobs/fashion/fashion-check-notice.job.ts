@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 
-import { FashionCheckService } from '../../../bot/commands/fashion/fashioncheck.service';
+import { FashionCheckService } from '../../../service/fashioncheck/fashioncheck.service';
 
 @Injectable()
 export class FashionCheckNoticeJob {

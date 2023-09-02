@@ -3,7 +3,7 @@ import { Inject, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Command, Handler, InjectDiscordClient } from '@discord-nestjs/core';
 
-import { FashionCheckService } from './fashioncheck.service';
+import { FashionCheckService } from '../../../service/fashioncheck/fashioncheck.service';
 
 @Command({
   name: '패션체크',

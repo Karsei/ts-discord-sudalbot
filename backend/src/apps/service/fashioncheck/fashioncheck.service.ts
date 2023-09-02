@@ -1,22 +1,26 @@
-import { RedisService } from '@liaoliaots/nestjs-redis';
+import { EmbedBuilder } from 'discord.js';
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import Redis from 'ioredis';
 import { Submission } from 'snoowrap';
-import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
-import { FashionCheckNotice } from '../../../../entities/fashioncheck-notice.entity';
-import { FashionCheckError } from '../../../../exceptions/fashion-check.exception';
-import { EmbedBuilder } from 'discord.js';
+
 import {
   FashionCheckRedditLoadPort,
   FashionCheckRedditLoadPortToken,
-} from '../../../port/out/fashioncheck-reddit-load-port.interface';
+} from '../../port/out/fashioncheck-reddit-load-port.interface';
+import {
+  FashionCheckLoadPort,
+  FashionCheckLoadPortToken,
+} from '../../port/out/fashioncheck-load-port.interface';
+import {
+  FashionCheckSavePort,
+  FashionCheckSavePortToken,
+} from '../../port/out/fashioncheck-save-port.interface';
+import { FashionCheckError } from '../../../exceptions/fashion-check.exception';
 
 const axios = require('axios').default;
 const PromiseAdv = require('bluebird');
 
-interface ManagedWebhook {
+export interface ManagedWebhook {
   guildId: string;
   webhookId: string;
   webhookToken: string;
@@ -25,19 +29,16 @@ interface ManagedWebhook {
 
 @Injectable()
 export class FashionCheckService {
-  private readonly redis: Redis;
-
   constructor(
     @Inject(Logger) private readonly loggerService: LoggerService,
     private readonly configService: ConfigService,
+    @Inject(FashionCheckLoadPortToken)
+    private readonly fashionCheckLoadPort: FashionCheckLoadPort,
+    @Inject(FashionCheckSavePortToken)
+    private readonly fashionCheckSavePort: FashionCheckSavePort,
     @Inject(FashionCheckRedditLoadPortToken)
     private readonly redditLoadPort: FashionCheckRedditLoadPort,
-    @InjectRepository(FashionCheckNotice)
-    private fashionCheckRepository: Repository<FashionCheckNotice>,
-    private readonly redisService: RedisService,
-  ) {
-    this.redis = this.redisService.getClient();
-  }
+  ) {}
 
   /**
    * 패션체크 정보 조회
@@ -47,76 +48,35 @@ export class FashionCheckService {
   }
 
   async getWebhook(guildId: string): Promise<ManagedWebhook> {
-    const cache = await this.redis.hget('fashion-check-notice', guildId);
-    if (cache != null) return JSON.parse(cache);
+    const webhook =
+      await this.fashionCheckLoadPort.getFashionCheckGuildNoticeWebhook(
+        guildId,
+      );
+    if (webhook != null) return webhook;
 
-    const db = await this.fashionCheckRepository.findOneBy({
-      guild: { id: guildId },
-    });
-    if (db != null)
-      return {
-        guildId: guildId,
-        channelId: db.webhookChannelId,
-        webhookId: db.webhookId,
-        webhookToken: db.webhookToken,
-      };
     throw new FashionCheckError(
       '패션체크 소식 전달 대상 데이터를 찾을 수 없습니다.',
     );
   }
 
   async setWebhook(webhook: ManagedWebhook) {
-    // DB
-    await this.fashionCheckRepository.delete(webhook.guildId);
-    await this.fashionCheckRepository.insert({
-      guild: { id: webhook.guildId },
-      webhookId: webhook.webhookId,
-      webhookToken: webhook.webhookToken,
-      webhookChannelId: webhook.channelId,
-    });
-    // Cache
-    return this.redis.hset(
-      'fashion-check-notice',
-      webhook.guildId,
-      JSON.stringify({
-        guildId: webhook.guildId,
-        webhookId: webhook.webhookId,
-        webhookToken: webhook.webhookToken,
-        channelId: webhook.channelId,
-      }),
-    );
+    return this.fashionCheckSavePort.setFashionCheckNoticeGuildWebhook(webhook);
   }
 
   async delWebhook(webhook: ManagedWebhook) {
-    // DB
-    await this.fashionCheckRepository.delete(webhook.guildId);
-    await this.redis.hdel('fashion-check-notice', webhook.guildId);
+    await this.fashionCheckSavePort.delFashionCheckNoticeWebhook(webhook);
   }
 
   async getWebhookGuildIdList() {
-    let guildIds = await this.redis.hkeys('fashion-check-notice');
-    if (guildIds == null || guildIds.length <= 0) {
-      const guilds = await this.fashionCheckRepository.find({
-        where: {
-          deletedAt: IsNull(),
-        },
-      });
-      if (guilds != null) {
-        guildIds = [];
-        for (const guildObj of guilds) {
-          guildIds.push(guildObj.guild.id);
-        }
-      }
-    }
-    return guildIds;
+    return await this.fashionCheckLoadPort.getFashionCheckNoticeWebhookGuildIds();
   }
 
   async isExistTopic(topicId: string) {
-    return this.redis.sismember('fashion-check-topic', topicId);
+    return this.fashionCheckLoadPort.isExistFashionCheckTopic(topicId);
   }
 
   async saveTopic(topicId: string) {
-    return this.redis.sadd('fashion-check-topic', topicId);
+    return this.fashionCheckSavePort.setFashionCheckTopic(topicId);
   }
 
   async publishAll() {

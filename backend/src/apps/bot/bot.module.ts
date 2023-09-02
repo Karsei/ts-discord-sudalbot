@@ -9,10 +9,10 @@ import { EchoCommand } from '../adapter/in/command/echo.command';
 import { UptimeService } from '../service/uptime/uptime.service';
 import { UptimeCommand } from '../adapter/in/command/uptime.command';
 import { ContactCommand } from '../adapter/in/command/contact.command';
-import { FashionCheckService } from './commands/fashion/fashioncheck.service';
-import { FashionCheckCommand } from './commands/fashion/fashioncheck.command';
+import { FashionCheckService } from '../service/fashioncheck/fashioncheck.service';
+import { FashionCheckCommand } from '../adapter/in/command/fashioncheck.command';
 import { FashionCheckNoticeJob } from '../scheduler/jobs/fashion/fashion-check-notice.job';
-import { FashionCheckNoticeRegistCommand } from './commands/fashion/fashioncheck-notice-regist.command';
+import { FashionCheckNoticeRegistCommand } from '../adapter/in/command/fashioncheck-notice-regist.command';
 import { ItemSearchService } from './commands/item/item-search.service';
 import { ItemSearchCommand } from './commands/item/item-search.command';
 import { XivapiService } from './commands/item/xivapi.service';
@@ -38,6 +38,14 @@ import { EchoUseCaseToken } from '../port/in/echo-usecase.interface';
 import { ContactSavePortToken } from '../port/out/contact-save-port.interface';
 import { MariadbAdapter } from '../adapter/out/mariadb.adapter';
 import { UptimeUseCaseToken } from '../port/in/uptime-usecase.interface';
+import { FashionCheckDbLoadPortToken } from '../port/out/fashioncheck-db-load-port.interface';
+import { FashionCheckDbSavePortToken } from '../port/out/fashioncheck-db-save-port.interface';
+import { FashionCheckCacheLoadPortToken } from '../port/out/fashioncheck-cache-load-port.interface';
+import { RedisAdapter } from '../adapter/out/redis.adapter';
+import { FashionCheckCacheSavePortToken } from '../port/out/fashioncheck-cache-save-port.interface';
+import { FashionCheckLoadPortToken } from '../port/out/fashioncheck-load-port.interface';
+import { DbCacheAdapter } from '../adapter/out/dbcache.adapter';
+import { FashionCheckSavePortToken } from '../port/out/fashioncheck-save-port.interface';
 
 @Module({
   imports: [
@@ -78,6 +86,12 @@ import { UptimeUseCaseToken } from '../port/in/uptime-usecase.interface';
     NoticeCreateCommand,
     NoticeDeleteCommand,
     ShopCommand,
+    { provide: FashionCheckLoadPortToken, useClass: DbCacheAdapter },
+    { provide: FashionCheckSavePortToken, useClass: DbCacheAdapter },
+    { provide: FashionCheckCacheLoadPortToken, useClass: RedisAdapter },
+    { provide: FashionCheckCacheSavePortToken, useClass: RedisAdapter },
+    { provide: FashionCheckDbLoadPortToken, useClass: MariadbAdapter },
+    { provide: FashionCheckDbSavePortToken, useClass: MariadbAdapter },
     { provide: ContactSavePortToken, useClass: MariadbAdapter },
   ],
 })
