@@ -16,6 +16,8 @@ import {
   FashionCheckSavePortToken,
 } from '../../port/out/fashioncheck-save-port.interface';
 import { FashionCheckError } from '../../../exceptions/fashion-check.exception';
+import { FashionCheckUseCase } from '../../port/in/fashioncheck-usecase.interface';
+import { FashionCheckNoticeUseCase } from '../../port/in/fashioncheck-notice-usecase.interface';
 
 const axios = require('axios').default;
 const PromiseAdv = require('bluebird');
@@ -28,7 +30,9 @@ export interface ManagedWebhook {
 }
 
 @Injectable()
-export class FashionCheckService {
+export class FashionCheckService
+  implements FashionCheckUseCase, FashionCheckNoticeUseCase
+{
   constructor(
     @Inject(Logger) private readonly loggerService: LoggerService,
     private readonly configService: ConfigService,
