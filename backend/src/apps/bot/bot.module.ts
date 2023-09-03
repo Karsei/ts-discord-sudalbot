@@ -11,7 +11,7 @@ import { UptimeCommand } from '../adapter/in/command/uptime.command';
 import { ContactCommand } from '../adapter/in/command/contact.command';
 import { FashionCheckService } from '../service/fashioncheck/fashioncheck.service';
 import { FashionCheckCommand } from '../adapter/in/command/fashioncheck.command';
-import { FashionCheckNoticeJob } from '../scheduler/jobs/fashion/fashion-check-notice.job';
+import { FashionCheckNoticeJob } from '../adapter/in/scheduler/fashion-check-notice.job';
 import { FashionCheckNoticeRegistCommand } from '../adapter/in/command/fashioncheck-notice-regist.command';
 import { ItemSearchService } from './commands/item/item-search.service';
 import { ItemSearchCommand } from './commands/item/item-search.command';
@@ -46,8 +46,8 @@ import { FashionCheckCacheSavePortToken } from '../port/out/fashioncheck-cache-s
 import { FashionCheckLoadPortToken } from '../port/out/fashioncheck-load-port.interface';
 import { DbCacheAdapter } from '../adapter/out/dbcache.adapter';
 import { FashionCheckSavePortToken } from '../port/out/fashioncheck-save-port.interface';
-import { FashionCheckUseCaseToken } from "../port/in/fashioncheck-usecase.interface";
-import { FashionCheckNoticeUseCaseToken } from "../port/in/fashioncheck-notice-usecase.interface";
+import { FashionCheckUseCaseToken } from '../port/in/fashioncheck-usecase.interface';
+import { FashionCheckNoticeUseCaseToken } from '../port/in/fashioncheck-notice-usecase.interface';
 
 @Module({
   imports: [

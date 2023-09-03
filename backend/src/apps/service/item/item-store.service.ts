@@ -5,9 +5,9 @@ import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 
-import { XivVersion } from '../../../../entities/xiv-version.entity';
-import { XivItem } from '../../../../entities/xiv-item.entity';
-import { XivItemCategories } from '../../../../entities/xiv-item-categories.entity';
+import { XivVersion } from '../../../entities/xiv-version.entity';
+import { XivItem } from '../../../entities/xiv-item.entity';
+import { XivItemCategories } from '../../../entities/xiv-item-categories.entity';
 
 import { promisify } from 'node:util';
 import * as childProcess from 'child_process';

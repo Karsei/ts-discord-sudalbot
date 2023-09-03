@@ -1,13 +1,18 @@
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 
-import { FashionCheckService } from '../../../service/fashioncheck/fashioncheck.service';
+import {
+  FashionCheckNoticeUseCase,
+  FashionCheckNoticeUseCaseToken,
+} from '../../../port/in/fashioncheck-notice-usecase.interface';
 
 @Injectable()
 export class FashionCheckNoticeJob {
   constructor(
-    @Inject(Logger) private readonly loggerService: LoggerService,
-    private readonly fashionCheckService: FashionCheckService,
+    @Inject(Logger)
+    private readonly loggerService: LoggerService,
+    @Inject(FashionCheckNoticeUseCaseToken)
+    private readonly useCase: FashionCheckNoticeUseCase,
   ) {}
 
   @Cron('*/30 15-20 * * 4-6', {
@@ -16,6 +21,6 @@ export class FashionCheckNoticeJob {
   })
   async handleCron() {
     this.loggerService.log('execute fashion check publish');
-    await this.fashionCheckService.publishAll();
+    await this.useCase.publishAll();
   }
 }

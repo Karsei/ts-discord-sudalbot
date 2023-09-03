@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 
-import { ItemStoreService } from './item-store.service';
+import { ItemStoreService } from '../../../service/item/item-store.service';
 
 @Injectable()
 export class ItemJob {

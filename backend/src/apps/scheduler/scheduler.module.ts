@@ -9,8 +9,8 @@ import { PublishDiscordService } from './jobs/news/publish-discord.service';
 import { XivVersion } from '../../entities/xiv-version.entity';
 import { XivItem } from '../../entities/xiv-item.entity';
 import { XivItemCategories } from '../../entities/xiv-item-categories.entity';
-import { ItemJob } from './jobs/item/item.job';
-import { ItemStoreService } from './jobs/item/item-store.service';
+import { ItemJob } from '../adapter/in/scheduler/item.job';
+import { ItemStoreService } from '../service/item/item-store.service';
 
 @Module({
   imports: [
