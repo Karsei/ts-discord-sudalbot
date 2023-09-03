@@ -8,8 +8,8 @@ import {
   Inject,
 } from '@nestjs/common';
 
-import { WebhookService } from './webhook.service';
-import { SaveWebhookDto } from './dto/save-webhook.dto';
+import { WebhookService } from '../../../service/webhook/webhook.service';
+import { SaveWebhookDto } from '../../../service/webhook/dto/save-webhook.dto';
 
 @Controller('/webhook')
 export class WebhookController {

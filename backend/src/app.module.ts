@@ -6,9 +6,9 @@ import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { BaseConfig } from './configs/base.config';
 import { CacheConfig } from './configs/cache.config';
 import { TypeORMConfig } from './configs/typeorm.config';
-import { HttpModule } from './apps/http/http.module';
-import { BotModule } from './apps/bot/bot.module';
-import { SchedulerModule } from './apps/scheduler/scheduler.module';
+import { HttpModule } from './apps/http.module';
+import { BotModule } from './apps/bot.module';
+import { SchedulerModule } from './apps/scheduler.module';
 
 @Module({
   imports: [
