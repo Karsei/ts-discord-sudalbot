@@ -2,10 +2,10 @@ import { Module, Logger } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { NewsJob } from './scheduler/jobs/news/news.job';
-import { ArchiveService } from './scheduler/jobs/news/archive.service';
-import { PublishService } from './scheduler/jobs/news/publish.service';
-import { PublishDiscordService } from './scheduler/jobs/news/publish-discord.service';
+import { NewsJob } from './adapter/in/scheduler/news.job';
+import { ArchiveService } from './service/news/archive.service';
+import { PublishService } from './service/news/publish.service';
+import { PublishDiscordService } from './service/news/publish-discord.service';
 import { XivVersion } from '../entities/xiv-version.entity';
 import { XivItem } from '../entities/xiv-item.entity';
 import { XivItemCategories } from '../entities/xiv-item-categories.entity';

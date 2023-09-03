@@ -7,7 +7,7 @@ import NewsCategories, {
   NewsCategoryGlobal,
   NewsCategoryKorea,
   NewsContent,
-} from '../../../../definitions/interface/archive';
+} from '../../../definitions/interface/archive';
 
 @Injectable()
 export class ArchiveService {
