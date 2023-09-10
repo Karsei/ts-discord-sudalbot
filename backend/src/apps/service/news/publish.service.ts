@@ -9,7 +9,6 @@ import NewsCategories, {
   NewsCategoryKorea,
   NewsContent,
 } from '../../../definitions/interface/archive';
-import { PublishDiscordService } from './publish-discord.service';
 import { NewsPublishUseCase } from '../../port/in/news-publish-usecase.interface';
 import {
   NewsArchiveUseCase,
@@ -23,6 +22,10 @@ import {
   NewsPublishCacheSavePort,
   NewsPublishCacheSavePortToken,
 } from '../../port/out/news-publish-cache-save-port.interface';
+import {
+  NewsPublishDiscordUseCase,
+  NewsPublishDiscordUseCaseToken,
+} from '../../port/in/news-publish-discord-usecase.interface';
 
 const PromiseAdv = require('bluebird');
 
@@ -38,7 +41,8 @@ export class PublishService implements NewsPublishUseCase {
     private readonly cacheSavePort: NewsPublishCacheSavePort,
     @Inject(NewsArchiveUseCaseToken)
     private readonly archiveService: NewsArchiveUseCase,
-    private readonly publishDiscordService: PublishDiscordService,
+    @Inject(NewsPublishDiscordUseCaseToken)
+    private readonly publishDiscordService: NewsPublishDiscordUseCase,
   ) {}
 
   async publishAll() {

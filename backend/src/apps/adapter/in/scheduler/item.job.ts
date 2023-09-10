@@ -1,13 +1,18 @@
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 
-import { ItemStoreService } from '../../../service/item/item-store.service';
+import {
+  ItemStoreUseCase,
+  ItemStoreUseCaseToken,
+} from '../../../port/in/itemstore-usecase-interface';
 
 @Injectable()
 export class ItemJob {
   constructor(
-    @Inject(Logger) private readonly loggerService: LoggerService,
-    private readonly itemStoreService: ItemStoreService,
+    @Inject(Logger)
+    private readonly loggerService: LoggerService,
+    @Inject(ItemStoreUseCaseToken)
+    private readonly itemStoreService: ItemStoreUseCase,
   ) {}
 
   @Cron('30 23 * * *', {

@@ -25,11 +25,23 @@ import { NewsPublishUseCaseToken } from './port/in/news-publish-usecase.interfac
 import { NewsPublishCacheLoadPortToken } from './port/out/news-publish-cache-load-port.interface';
 import { NewsPublishCacheSavePortToken } from './port/out/news-publish-cache-save-port.interface';
 import { NewsPublishDiscordUseCaseToken } from './port/in/news-publish-discord-usecase.interface';
+import { Contact } from '../entities/contact.entity';
+import { FashionCheckNotice } from '../entities/fashioncheck-notice.entity';
+import { News } from "../entities/news.entity";
+import { Chat } from "../entities/chat.entity";
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    TypeOrmModule.forFeature([XivVersion, XivItem, XivItemCategories]),
+    TypeOrmModule.forFeature([
+      Contact,
+      XivVersion,
+      XivItem,
+      XivItemCategories,
+      News,
+      Chat,
+      FashionCheckNotice,
+    ]),
   ],
   providers: [
     Logger,

@@ -1,13 +1,18 @@
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 
-import { PublishService } from '../../../service/news/publish.service';
+import {
+  NewsPublishUseCase,
+  NewsPublishUseCaseToken,
+} from '../../../port/in/news-publish-usecase.interface';
 
 @Injectable()
 export class NewsJob {
   constructor(
-    @Inject(Logger) private readonly loggerService: LoggerService,
-    private readonly publishService: PublishService,
+    @Inject(Logger)
+    private readonly loggerService: LoggerService,
+    @Inject(NewsPublishUseCaseToken)
+    private readonly publishService: NewsPublishUseCase,
   ) {}
 
   @Cron('5,15,25,35,45,55 * * * *', {

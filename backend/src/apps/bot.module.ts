@@ -57,6 +57,10 @@ import { NewsPublishSavePortToken } from './port/out/news-publish-save-port.inte
 import { NewsPublishDbSavePortToken } from './port/out/news-publish-db-save-port.interface';
 import { NewsPublishCacheSavePortToken } from './port/out/news-publish-cache-save-port.interface';
 import { NewsPublishCacheLoadPortToken } from './port/out/news-publish-cache-load-port.interface';
+import { ItemStoreLoadPortToken } from './port/out/itemstore-load-port.interface';
+import { ItemStoreSavePortToken } from './port/out/itemstore-save-port.interface';
+import { ClientFileLoadPortToken } from "./port/out/client-file-load-port.interface";
+import { GithubAdapter } from "./adapter/out/github.adapter";
 
 @Module({
   imports: [
@@ -100,6 +104,8 @@ import { NewsPublishCacheLoadPortToken } from './port/out/news-publish-cache-loa
     NoticeDeleteCommand,
     { provide: NewsUseCaseToken, useClass: NoticeService },
     ShopCommand,
+    { provide: ItemStoreLoadPortToken, useClass: MariadbAdapter },
+    { provide: ItemStoreSavePortToken, useClass: MariadbAdapter },
     { provide: NewsPublishSavePortToken, useClass: DbCacheAdapter },
     { provide: NewsPublishDbSavePortToken, useClass: MariadbAdapter },
     { provide: NewsPublishCacheLoadPortToken, useClass: RedisAdapter },
@@ -111,6 +117,7 @@ import { NewsPublishCacheLoadPortToken } from './port/out/news-publish-cache-loa
     { provide: FashionCheckDbLoadPortToken, useClass: MariadbAdapter },
     { provide: FashionCheckDbSavePortToken, useClass: MariadbAdapter },
     { provide: ContactSavePortToken, useClass: MariadbAdapter },
+    { provide: ClientFileLoadPortToken, useClass: GithubAdapter },
   ],
 })
 export class BotModule {}
