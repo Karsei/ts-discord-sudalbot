@@ -1,6 +1,6 @@
 import { InsertResult, IsNull, Repository } from 'typeorm';
 import { ModalSubmitInteraction } from 'discord.js';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { Contact } from '../../../entities/contact.entity';
@@ -10,16 +10,50 @@ import { FashionCheckDbSavePort } from '../../port/out/fashioncheck-db-save-port
 import { ManagedWebhook } from '../../service/fashioncheck/fashioncheck.service';
 import { FashionCheckNotice } from '../../../entities/fashioncheck-notice.entity';
 import { FashionCheckDbLoadPort } from '../../port/out/fashioncheck-db-load-port.interface';
+import { XivVersion } from '../../../entities/xiv-version.entity';
+import { XivItem } from '../../../entities/xiv-item.entity';
+import { XivItemCategories } from '../../../entities/xiv-item-categories.entity';
+import {
+  ClientFileLoadPort,
+  ClientFileLoadPortToken,
+} from '../../port/out/client-file-load-port.interface';
+import { ItemStoreSavePort } from '../../port/out/itemstore-save-port.interface';
+import { ItemStoreLoadPort } from '../../port/out/itemstore-load-port.interface';
+
+const cliProgress = require('cli-progress');
 
 @Injectable()
 export class MariadbAdapter
-  implements ContactSavePort, FashionCheckDbLoadPort, FashionCheckDbSavePort
+  implements
+    ContactSavePort,
+    FashionCheckDbLoadPort,
+    FashionCheckDbSavePort,
+    ItemStoreLoadPort,
+    ItemStoreSavePort
 {
   constructor(
+    @Inject(Logger)
+    private readonly loggerService: LoggerService,
+
+    // # CONTACT
     @InjectRepository(Contact)
-    private contactRepository: Repository<Contact>,
+    private readonly contactRepository: Repository<Contact>,
+
+    // # FASHION
     @InjectRepository(FashionCheckNotice)
-    private fashionCheckRepository: Repository<FashionCheckNotice>,
+    private readonly fashionCheckRepository: Repository<FashionCheckNotice>,
+
+    // # ITEMSTORE
+    @InjectRepository(XivVersion)
+    private readonly xivVersionRepository: Repository<XivVersion>,
+    @InjectRepository(XivItem)
+    private readonly xivItemRepository: Repository<XivItem>,
+    @InjectRepository(XivItemCategories)
+    private readonly xivItemCategoriesRepository: Repository<XivItemCategories>,
+
+    // # GITHUB
+    @Inject(ClientFileLoadPortToken)
+    private readonly clientFileLoadPort: ClientFileLoadPort,
   ) {}
 
   /**
@@ -79,5 +113,80 @@ export class MariadbAdapter
 
   async delFashionCheckNoticeWebhook(webhook: ManagedWebhook) {
     return this.fashionCheckRepository.delete(webhook.guildId);
+  }
+
+  async getLatestKoreanVersionFromDB() {
+    return this.xivVersionRepository.findOne({
+      where: [{ locale: 'kr' }],
+      order: { version: 'DESC' },
+    });
+  }
+
+  async extracted(latestVersionRemote: number, latestVersionDb: XivVersion) {
+    await this.xivVersionRepository.manager.transaction(
+      async (transactionalEntityManager) => {
+        // 새로운 버전 데이터 저장
+        const xivVersion = new XivVersion();
+        xivVersion.version = latestVersionRemote;
+        xivVersion.locale = 'kr';
+        await transactionalEntityManager.save(xivVersion);
+
+        // 아이템 데이터 저장
+        this.loggerService.log('Fetching Item...');
+        const itemRes = await this.clientFileLoadPort.fetch('Item');
+        const bItem = new cliProgress.Bar();
+        bItem.start(itemRes.length, 0);
+        for (
+          let dataIdx = 0, dataTotal = itemRes.length;
+          dataIdx < dataTotal;
+          dataIdx++
+        ) {
+          const csvItem = itemRes[dataIdx];
+          if (csvItem.hasOwnProperty('_')) delete csvItem['_'];
+
+          await transactionalEntityManager.insert(XivItem, {
+            version: { idx: xivVersion.idx },
+            itemIdx: csvItem['#'],
+            name: csvItem['Name'],
+            content: JSON.stringify(csvItem),
+          });
+          bItem.increment();
+        }
+        bItem.stop();
+
+        // 아이템 카테고리 데이터 저장
+        // ItemUiCategory
+        this.loggerService.log('Fetching ItemUICategory...');
+        const itemUiCategoryRes = await this.clientFileLoadPort.fetch(
+          'ItemUICategory',
+        );
+        const bItemUiCategory = new cliProgress.Bar();
+        bItemUiCategory.start(itemUiCategoryRes.length, 0);
+        for (
+          let dataIdx = 0, dataTotal = itemUiCategoryRes.length;
+          dataIdx < dataTotal;
+          dataIdx++
+        ) {
+          const csvItem = itemUiCategoryRes[dataIdx];
+          if (csvItem.hasOwnProperty('_')) delete csvItem['_'];
+
+          await transactionalEntityManager.insert(XivItemCategories, {
+            version: { idx: xivVersion.idx },
+            itemCategoryIdx: csvItem['#'],
+            name: csvItem['Name'],
+            content: JSON.stringify(csvItem),
+          });
+          bItemUiCategory.increment();
+        }
+        bItemUiCategory.stop();
+
+        // 이전 데이터는 삭제 처리
+        if (latestVersionDb) {
+          await transactionalEntityManager.softDelete(XivVersion, {
+            idx: latestVersionDb.idx,
+          });
+        }
+      },
+    );
   }
 }

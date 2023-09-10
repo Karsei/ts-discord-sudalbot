@@ -10,6 +10,11 @@ import { ManagedWebhook } from '../../service/fashioncheck/fashioncheck.service'
 export class RedisAdapter
   implements FashionCheckCacheLoadPort, FashionCheckCacheSavePort
 {
+  /**
+   * 수정 확인을 위한 Cache 유지 시간
+   */
+  static readonly CACHE_EXPIRE_IN = 600;
+
   private readonly redis: Redis;
 
   constructor(private readonly redisService: RedisService) {
