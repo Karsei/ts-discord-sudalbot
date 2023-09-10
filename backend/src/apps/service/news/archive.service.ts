@@ -7,24 +7,24 @@ import NewsCategories, {
   NewsContent,
 } from '../../../definitions/interface/archive';
 import {
-  NoticeCacheLoadPort,
-  NoticeCacheLoadPortToken,
-} from '../../port/out/notice-cache-load-port.interface';
+  NewsArchiveCacheLoadPort,
+  NewsArchiveCacheLoadPortToken,
+} from '../../port/out/news-archive-cache-load-port.interface';
 import {
-  NoticeCacheSavePort,
-  NoticeCacheSavePortToken,
-} from '../../port/out/notice-cache-save-port.interface';
-import { NoticeArchiveUseCase } from '../../port/in/notice-usecase.interface';
+  NewsArchiveCacheSavePort,
+  NewsArchiveCacheSavePortToken,
+} from '../../port/out/news-archive-cache-save-port.interface';
+import { NoticeArchiveUseCase } from '../../port/in/news-archive-usecase.interface';
 
 @Injectable()
 export class ArchiveService implements NoticeArchiveUseCase {
   constructor(
     @Inject(Logger)
     private readonly loggerService: LoggerService,
-    @Inject(NoticeCacheLoadPortToken)
-    private readonly cacheLoadPort: NoticeCacheLoadPort,
-    @Inject(NoticeCacheSavePortToken)
-    private readonly cacheSavePort: NoticeCacheSavePort,
+    @Inject(NewsArchiveCacheLoadPortToken)
+    private readonly cacheLoadPort: NewsArchiveCacheLoadPort,
+    @Inject(NewsArchiveCacheSavePortToken)
+    private readonly cacheSavePort: NewsArchiveCacheSavePort,
   ) {}
 
   async getGlobal(

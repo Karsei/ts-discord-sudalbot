@@ -5,16 +5,16 @@ import { Injectable } from '@nestjs/common';
 import { FashionCheckCacheLoadPort } from '../../port/out/fashioncheck-cache-load-port.interface';
 import { FashionCheckCacheSavePort } from '../../port/out/fashioncheck-cache-save-port.interface';
 import { ManagedWebhook } from '../../service/fashioncheck/fashioncheck.service';
-import { NoticeCacheLoadPort } from '../../port/out/notice-cache-load-port.interface';
-import { NoticeCacheSavePort } from '../../port/out/notice-cache-save-port.interface';
+import { NewsArchiveCacheLoadPort } from '../../port/out/news-archive-cache-load-port.interface';
+import { NewsArchiveCacheSavePort } from '../../port/out/news-archive-cache-save-port.interface';
 
 @Injectable()
 export class RedisAdapter
   implements
     FashionCheckCacheLoadPort,
     FashionCheckCacheSavePort,
-    NoticeCacheLoadPort,
-    NoticeCacheSavePort
+    NewsArchiveCacheLoadPort,
+    NewsArchiveCacheSavePort
 {
   /**
    * 수정 확인을 위한 Cache 유지 시간
