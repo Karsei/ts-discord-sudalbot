@@ -12,7 +12,7 @@ import {
 
 import { ItemSearchInteractionService } from '../../../service/item/item-search-interaction.service';
 import { ItemSearchInteractionPostCollector } from './item-search-interaction-post-collector';
-import { ItemSearchDto } from '../../../bot/dtos/itemsearch.dto';
+import { ItemSearchDto } from '../../../dto/itemsearch.dto';
 import { ItemSearchError } from '../../../../exceptions/item-search.exception';
 import {
   ItemSearchUseCase,

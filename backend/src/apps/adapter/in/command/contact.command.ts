@@ -18,7 +18,7 @@ import {
   TextInputStyle,
 } from 'discord.js';
 
-import { IsModalInteractionGuard } from '../../../bot/guards/is-modal-interaction.guard';
+import { IsModalInteractionGuard } from '../../../guard/is-modal-interaction.guard';
 import {
   ContactSavePort,
   ContactSavePortToken,

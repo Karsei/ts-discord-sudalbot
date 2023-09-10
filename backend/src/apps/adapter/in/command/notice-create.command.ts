@@ -11,7 +11,7 @@ import {
 } from '@discord-nestjs/core';
 
 import { NoticeCreatePostCollector } from './notice-create-post-collector';
-import { NoticeManageDto } from '../../../bot/dtos/notice-manage.dto';
+import { NoticeManageDto } from '../../../dto/notice-manage.dto';
 import { NoticeError } from '../../../../exceptions/notice.exception';
 import {
   NewsUseCase,

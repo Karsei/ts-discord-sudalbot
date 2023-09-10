@@ -10,7 +10,7 @@ import {
 
 import { ItemSearchError } from '../../../../exceptions/item-search.exception';
 import { MarketError } from '../../../../exceptions/market.exception';
-import { MarketSearchDto } from '../../../bot/dtos/market-search.dto';
+import { MarketSearchDto } from '../../../dto/market-search.dto';
 import { ItemSearchTooManyResultsError } from '../../../../exceptions/item-search-too-many-results.exception';
 import {
   MarketUseCase,

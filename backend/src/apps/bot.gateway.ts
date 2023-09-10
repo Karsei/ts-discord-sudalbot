@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Client, Guild, Message } from 'discord.js';
 import { Repository } from 'typeorm';
 
-import { MessageFromUserGuard } from './bot/guards/message-from-user.guard';
+import { MessageFromUserGuard } from './guard/message-from-user.guard';
 import { Chat } from '../entities/chat.entity';
 
 @Injectable()

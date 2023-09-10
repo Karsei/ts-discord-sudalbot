@@ -3,7 +3,7 @@ import { PermissionsBitField } from 'discord.js';
 import { SlashCommandPipe } from '@discord-nestjs/common';
 import { Command, Handler, InteractionEvent } from '@discord-nestjs/core';
 
-import { EchoDto } from '../../../bot/dtos/echo.dto';
+import { EchoDto } from '../../../dto/echo.dto';
 import {
   EchoUseCase,
   EchoUseCaseToken,
