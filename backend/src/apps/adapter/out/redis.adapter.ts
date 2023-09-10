@@ -161,4 +161,48 @@ export class RedisAdapter
   async popResendItem() {
     return this.redis.lpop('webhooks-news-resend');
   }
+
+  /**
+   * 서버 고유번호로 Webhook URL 조회
+   *
+   * @param pGuildId 서버 고유 번호
+   * @return Webhook URL
+   */
+  async getHookUrlByGuildId(pGuildId: string) {
+    return this.redis.hget('all-guilds', pGuildId);
+  }
+
+  /**
+   * 게시글별 Webhook URL Cache 등록
+   *
+   * @param guildId 서버 ID
+   * @param locale 언어
+   * @param type 카테고리
+   * @param url Webhook URL
+   */
+  async addNewsWebhookUrl(
+    guildId: string,
+    locale: string,
+    type: string,
+    url: string,
+  ) {
+    return this.redis.sadd(`${locale}-${type}-webhooks`, url);
+  }
+
+  /**
+   * 게시글별 Webhook URL Cache 삭제
+   *
+   * @param guildId 서버 ID
+   * @param locale 언어
+   * @param type 카테고리
+   * @param url Webhook URL
+   */
+  async delNewsWebhookUrl(
+    guildId: string,
+    locale: string,
+    type: string,
+    url: string,
+  ) {
+    return this.redis.srem(`${locale}-${type}-webhooks`, url);
+  }
 }

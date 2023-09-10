@@ -20,6 +20,8 @@ import {
 import { ItemStoreSavePort } from '../../port/out/itemstore-save-port.interface';
 import { ItemStoreLoadPort } from '../../port/out/itemstore-load-port.interface';
 import { PaginationParams } from '../../../definitions/interface/archive';
+import { NewsPublishDbSavePort } from '../../port/out/news-publish-db-save-port.interface';
+import { News } from '../../../entities/news.entity';
 
 const cliProgress = require('cli-progress');
 
@@ -30,7 +32,8 @@ export class MariadbAdapter
     FashionCheckDbLoadPort,
     FashionCheckDbSavePort,
     ItemStoreLoadPort,
-    ItemStoreSavePort
+    ItemStoreSavePort,
+    NewsPublishDbSavePort
 {
   constructor(
     @Inject(Logger)
@@ -51,6 +54,10 @@ export class MariadbAdapter
     private readonly xivItemRepository: Repository<XivItem>,
     @InjectRepository(XivItemCategories)
     private readonly xivItemCategoriesRepository: Repository<XivItemCategories>,
+
+    // # NEWS
+    @InjectRepository(News)
+    private newsRepository: Repository<News>,
 
     // # GITHUB
     @Inject(ClientFileLoadPortToken)
@@ -223,6 +230,43 @@ export class MariadbAdapter
       },
       take: paginationParams.perPage,
       skip: (paginationParams.page - 1) * paginationParams.perPage,
+    });
+  }
+
+  /**
+   * 게시글별 Webhook URL Cache 등록
+   *
+   * @param guildId 서버 ID
+   * @param locale 언어
+   * @param type 카테고리
+   * @param url Webhook URL
+   */
+  async addNewsWebhookUrl(
+    guildId: string,
+    locale: string,
+    type: string,
+    url: string,
+  ) {
+    return this.newsRepository.insert({
+      guild: { id: guildId },
+      locale: locale,
+      type: type,
+      url: url,
+    });
+  }
+
+  /**
+   * 게시글별 Webhook URL Cache 삭제
+   *
+   * @param guildId 서버 ID
+   * @param locale 언어
+   * @param type 카테고리
+   */
+  async delNewsWebhookUrl(guildId: string, locale: string, type: string) {
+    return this.newsRepository.delete({
+      guild: { id: guildId },
+      locale: locale,
+      type: type,
     });
   }
 }

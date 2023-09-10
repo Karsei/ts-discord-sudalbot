@@ -19,10 +19,19 @@ import {
   FashionCheckDbSavePort,
   FashionCheckDbSavePortToken,
 } from '../../port/out/fashioncheck-db-save-port.interface';
+import { NewsPublishSavePort } from '../../port/out/news-publish-save-port.interface';
+import {
+  NewsPublishDbSavePort,
+  NewsPublishDbSavePortToken,
+} from '../../port/out/news-publish-db-save-port.interface';
+import {
+  NewsPublishCacheSavePort,
+  NewsPublishCacheSavePortToken,
+} from '../../port/out/news-publish-cache-save-port.interface';
 
 @Injectable()
 export class DbCacheAdapter
-  implements FashionCheckLoadPort, FashionCheckSavePort
+  implements FashionCheckLoadPort, FashionCheckSavePort, NewsPublishSavePort
 {
   constructor(
     @Inject(FashionCheckCacheLoadPortToken)
@@ -33,6 +42,10 @@ export class DbCacheAdapter
     private readonly dbLoadPort: FashionCheckDbLoadPort,
     @Inject(FashionCheckDbSavePortToken)
     private readonly dbSavePort: FashionCheckDbSavePort,
+    @Inject(NewsPublishCacheSavePortToken)
+    private readonly newsPublishCacheSavePort: NewsPublishCacheSavePort,
+    @Inject(NewsPublishDbSavePortToken)
+    private readonly newsPublishDbSavePort: NewsPublishDbSavePort,
   ) {}
 
   async getFashionCheckNoticeWebhookGuildIds(): Promise<string[]> {
@@ -72,5 +85,61 @@ export class DbCacheAdapter
 
   async setFashionCheckTopic(topicId: string): Promise<number> {
     return this.cacheSavePort.setFashionCheckTopic(topicId);
+  }
+
+  /**
+   * 게시글별 Webhook URL Cache 등록
+   *
+   * @param guildId 서버 ID
+   * @param locale 언어
+   * @param type 카테고리
+   * @param url Webhook URL
+   */
+  async addNewsWebhookUrl(
+    guildId: string,
+    locale: string,
+    type: string,
+    url: string,
+  ) {
+    await this.newsPublishDbSavePort.addNewsWebhookUrl(
+      guildId,
+      locale,
+      type,
+      url,
+    );
+    return this.newsPublishCacheSavePort.addNewsWebhookUrl(
+      guildId,
+      locale,
+      type,
+      url,
+    );
+  }
+
+  /**
+   * 게시글별 Webhook URL Cache 삭제
+   *
+   * @param guildId 서버 ID
+   * @param locale 언어
+   * @param type 카테고리
+   * @param url Webhook URL
+   */
+  async delNewsWebhookUrl(
+    guildId: string,
+    locale: string,
+    type: string,
+    url: string,
+  ) {
+    await this.newsPublishDbSavePort.delNewsWebhookUrl(
+      guildId,
+      locale,
+      type,
+      url,
+    );
+    return this.newsPublishCacheSavePort.delNewsWebhookUrl(
+      guildId,
+      locale,
+      type,
+      url,
+    );
   }
 }

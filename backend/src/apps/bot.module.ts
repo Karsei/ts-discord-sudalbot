@@ -53,6 +53,10 @@ import { NewsUseCaseToken } from './port/in/news-usecase.interface';
 import { XivApiLoadPortToken } from './port/out/xivapi-load-port.interface';
 import { ItemSearchUseCaseToken } from './port/in/item-search-usecase.interface';
 import { ItemSearchInteractionUseCaseToken } from './port/in/item-search-interaction-usecase.interface';
+import { NewsPublishSavePortToken } from './port/out/news-publish-save-port.interface';
+import { NewsPublishDbSavePortToken } from './port/out/news-publish-db-save-port.interface';
+import { NewsPublishCacheSavePortToken } from './port/out/news-publish-cache-save-port.interface';
+import { NewsPublishCacheLoadPortToken } from './port/out/news-publish-cache-load-port.interface';
 
 @Module({
   imports: [
@@ -96,6 +100,10 @@ import { ItemSearchInteractionUseCaseToken } from './port/in/item-search-interac
     NoticeDeleteCommand,
     { provide: NewsUseCaseToken, useClass: NoticeService },
     ShopCommand,
+    { provide: NewsPublishSavePortToken, useClass: DbCacheAdapter },
+    { provide: NewsPublishDbSavePortToken, useClass: MariadbAdapter },
+    { provide: NewsPublishCacheLoadPortToken, useClass: RedisAdapter },
+    { provide: NewsPublishCacheSavePortToken, useClass: RedisAdapter },
     { provide: FashionCheckLoadPortToken, useClass: DbCacheAdapter },
     { provide: FashionCheckSavePortToken, useClass: DbCacheAdapter },
     { provide: FashionCheckCacheLoadPortToken, useClass: RedisAdapter },
