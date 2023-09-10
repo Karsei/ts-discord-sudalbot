@@ -14,10 +14,10 @@ import {
   NewsArchiveCacheSavePort,
   NewsArchiveCacheSavePortToken,
 } from '../../port/out/news-archive-cache-save-port.interface';
-import { NoticeArchiveUseCase } from '../../port/in/news-archive-usecase.interface';
+import { NewsArchiveUseCase } from '../../port/in/news-archive-usecase.interface';
 
 @Injectable()
-export class ArchiveService implements NoticeArchiveUseCase {
+export class ArchiveService implements NewsArchiveUseCase {
   constructor(
     @Inject(Logger)
     private readonly loggerService: LoggerService,

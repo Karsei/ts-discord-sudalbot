@@ -1,21 +1,28 @@
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
-import { RedisService } from '@liaoliaots/nestjs-redis';
-import Redis from 'ioredis';
 import { EmbedBuilder } from 'discord.js';
+
+import {
+  NewsPublishCacheLoadPort,
+  NewsPublishCacheLoadPortToken,
+} from '../../port/out/news-publish-cache-load-port.interface';
+import {
+  NewsPublishCacheSavePort,
+  NewsPublishCacheSavePortToken,
+} from '../../port/out/news-publish-cache-save-port.interface';
 
 const axios = require('axios').default;
 const PromiseAdv = require('bluebird');
 
 @Injectable()
 export class PublishDiscordService {
-  private readonly redis: Redis;
-
   constructor(
-    @Inject(Logger) private readonly loggerService: LoggerService,
-    private readonly redisService: RedisService,
-  ) {
-    this.redis = this.redisService.getClient();
-  }
+    @Inject(Logger)
+    private readonly loggerService: LoggerService,
+    @Inject(NewsPublishCacheLoadPortToken)
+    private readonly cacheLoadPort: NewsPublishCacheLoadPort,
+    @Inject(NewsPublishCacheSavePortToken)
+    private readonly cacheSavePort: NewsPublishCacheSavePort,
+  ) {}
 
   async sendNews(
     whiteList: Array<string>,
@@ -116,7 +123,7 @@ export class PublishDiscordService {
         this.loggerService.error(
           '오류가 존재하지 않습니다. 다시 재시도합니다.',
         );
-        await this.addResendItem(url, post, locale, typeStr);
+        await this.cacheSavePort.addResendItem(url, post, locale, typeStr);
         return 'fail';
       }
 
@@ -143,7 +150,7 @@ export class PublishDiscordService {
           return await this.onHandleNotFound(err, locale, typeStr, url, post);
         // 그 외
         default:
-          await this.addResendItem(url, post, locale, typeStr);
+          await this.cacheSavePort.addResendItem(url, post, locale, typeStr);
           return 'fail';
       }
     }
@@ -173,20 +180,20 @@ export class PublishDiscordService {
         this.loggerService.log(
           `존재하지 않는 Webhook 입니다. 삭제를 시도합니다...`,
         );
-        await this.delUrl(locale, typeStr, url);
+        await this.cacheSavePort.delUrl(locale, typeStr, url);
         this.loggerService.log(
           `웹 후크가 삭제되었습니다. > ${locale}, ${typeStr} - ${url}`,
         );
         return 'removed';
       } else {
-        await this.addResendItem(url, post, locale, typeStr);
+        await this.cacheSavePort.addResendItem(url, post, locale, typeStr);
         return 'fail';
       }
     } else {
       this.loggerService.log(
         '소식을 보내는 과정에서 알 수 없는 오류가 발생했습니다.',
       );
-      await this.addResendItem(url, post, locale, typeStr);
+      await this.cacheSavePort.addResendItem(url, post, locale, typeStr);
       return 'fail';
     }
   }
@@ -200,7 +207,7 @@ export class PublishDiscordService {
   ) {
     this.loggerService.log(`과도한 요청으로 인해 다시 재전송을 시도합니다...`);
     await PromiseAdv.delay(err.response.data.retry_after);
-    await this.addResendItem(url, post, locale, typeStr);
+    await this.cacheSavePort.addResendItem(url, post, locale, typeStr);
     return 'limited';
   }
 
@@ -217,58 +224,27 @@ export class PublishDiscordService {
         this.loggerService.log(
           `존재하지 않는 Webhook 입니다. 삭제를 시도합니다...`,
         );
-        await this.delUrl(locale, typeStr, url);
+        await this.cacheSavePort.delUrl(locale, typeStr, url);
         this.loggerService.log(
           `웹 후크가 삭제되었습니다. > ${locale}, ${typeStr} - ${url}`,
         );
         return 'removed';
       } else {
-        await this.addResendItem(url, post, locale, typeStr);
+        await this.cacheSavePort.addResendItem(url, post, locale, typeStr);
         return 'fail';
       }
     } else {
       this.loggerService.error('something error occured');
-      await this.addResendItem(url, post, locale, typeStr);
+      await this.cacheSavePort.addResendItem(url, post, locale, typeStr);
       return 'fail';
     }
-  }
-
-  /**
-   * 소식 다시 보낼 객체 삽입
-   *
-   * @param url Webhook URL
-   * @param post 데이터
-   * @param locale 언어
-   * @param type 카테고리
-   */
-  async addResendItem(
-    url: string,
-    post: { embeds: EmbedBuilder[] },
-    locale: string,
-    type: string,
-  ) {
-    return this.redis.lpush(
-      'webhooks-news-resend',
-      JSON.stringify({ url: url, body: post, locale: locale, type: type }),
-    );
-  }
-
-  /**
-   * 게시글별 Webhook URL Cache 삭제
-   *
-   * @param locale 언어
-   * @param type 카테고리
-   * @param url Webhook URL
-   */
-  async delUrl(locale: string, type: string, url: string) {
-    return this.redis.srem(`${locale}-${type}-webhooks`, url);
   }
 
   /**
    * 실패한 게시글을 다시 각 디스코드 서버에 배포합니다.
    */
   async resendNews() {
-    let count = await this.getResendItemLength();
+    let count = await this.cacheLoadPort.getResendItemLength();
     if (count == 0) return;
 
     this.loggerService.log(`총 ${count}개의 게시글을 다시 전송합니다...`);
@@ -276,7 +252,7 @@ export class PublishDiscordService {
     let success = 0;
 
     while (count > 0) {
-      let cachedData: any = await this.popResendItem();
+      let cachedData: any = await this.cacheSavePort.popResendItem();
       if (cachedData) {
         cachedData = JSON.parse(cachedData);
 
@@ -308,27 +284,11 @@ export class PublishDiscordService {
       }
 
       // 다시 남아있는 개수 계산
-      count = await this.getResendItemLength();
+      count = await this.cacheLoadPort.getResendItemLength();
     }
 
     this.loggerService.log(
       `총 ${allCount}개의 게시글 중에서 ${success}개가 재전송을 하는데 성공하였습니다.`,
     );
-  }
-
-  /**
-   * 소식 다시 보낼 Webhook URL과 데이터가 있는 객체의 개수 조회
-   */
-  private async getResendItemLength() {
-    return this.redis.llen('webhooks-news-resend');
-  }
-
-  /**
-   * 소식 다시 보낼 Webhook URL과 데이터가 있는 객체 꺼냄
-   *
-   * @return url, body가 있는 객체
-   */
-  private async popResendItem() {
-    return this.redis.lpop('webhooks-news-resend');
   }
 }

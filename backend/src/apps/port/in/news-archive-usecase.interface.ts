@@ -4,7 +4,7 @@ import {
   NewsContent,
 } from '../../../definitions/interface/archive';
 
-export interface NoticeArchiveUseCase {
+export interface NewsArchiveUseCase {
   /**
    * 글로벌 서비스의 특정 카테고리의 소식을 조회합니다.
    * @param type 카테고리
@@ -39,4 +39,4 @@ export interface NoticeArchiveUseCase {
   getKoreaAll(): Promise<any[]>;
 }
 
-export const NoticeUseCaseToken = Symbol('NoticeUseCase');
+export const NewsArchiveUseCaseToken = Symbol('NewsArchiveUseCase');

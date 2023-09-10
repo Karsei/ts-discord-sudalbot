@@ -1,7 +1,5 @@
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { RedisService } from '@liaoliaots/nestjs-redis';
-import Redis from 'ioredis';
 import { EmbedBuilder } from 'discord.js';
 
 import NewsCategories, {
@@ -11,33 +9,46 @@ import NewsCategories, {
   NewsCategoryKorea,
   NewsContent,
 } from '../../../definitions/interface/archive';
-import { ArchiveService } from './archive.service';
 import { PublishDiscordService } from './publish-discord.service';
+import { NoticePublishUseCase } from '../../port/in/news-publish-usecase.interface';
+import {
+  NewsArchiveUseCase,
+  NewsArchiveUseCaseToken,
+} from '../../port/in/news-archive-usecase.interface';
+import {
+  NewsPublishCacheLoadPort,
+  NewsPublishCacheLoadPortToken,
+} from '../../port/out/news-publish-cache-load-port.interface';
+import {
+  NewsPublishCacheSavePort,
+  NewsPublishCacheSavePortToken,
+} from '../../port/out/news-publish-cache-save-port.interface';
 
 const PromiseAdv = require('bluebird');
 
 @Injectable()
-export class PublishService {
-  private readonly redis: Redis;
-
+export class PublishService implements NoticePublishUseCase {
   constructor(
-    @Inject(Logger) private readonly loggerService: LoggerService,
+    @Inject(Logger)
+    private readonly loggerService: LoggerService,
     private readonly configService: ConfigService,
-    private readonly redisService: RedisService,
-    private readonly archiveService: ArchiveService,
+    @Inject(NewsPublishCacheLoadPortToken)
+    private readonly cacheLoadPort: NewsPublishCacheLoadPort,
+    @Inject(NewsPublishCacheSavePortToken)
+    private readonly cacheSavePort: NewsPublishCacheSavePort,
+    @Inject(NewsArchiveUseCaseToken)
+    private readonly archiveService: NewsArchiveUseCase,
     private readonly publishDiscordService: PublishDiscordService,
-  ) {
-    this.redis = this.redisService.getClient();
-  }
+  ) {}
 
   async publishAll() {
-    let jobs = [];
+    const jobs = [];
 
     // 글로벌
-    let globalTypes = Object.keys(NewsCategories.Global);
+    const globalTypes = Object.keys(NewsCategories.Global);
     for (const locale of LodestoneLocales) {
-      for (let idx in globalTypes) {
-        let type = globalTypes[idx];
+      for (const idx in globalTypes) {
+        const type = globalTypes[idx];
         jobs.push(
           await PromiseAdv.delay(1000).return(
             this.publishGlobal(type as NewsCategoryGlobal, locale),
@@ -46,9 +57,9 @@ export class PublishService {
       }
     }
     // 한국
-    let koreaTypes = Object.keys(NewsCategories.Korea);
-    for (let idx in koreaTypes) {
-      let type = koreaTypes[idx];
+    const koreaTypes = Object.keys(NewsCategories.Korea);
+    for (const idx in koreaTypes) {
+      const type = koreaTypes[idx];
       jobs.push(
         await PromiseAdv.delay(1000).return(
           this.publishKorea(type as NewsCategoryKorea),
@@ -119,8 +130,9 @@ export class PublishService {
 
     // Redis 에서 모든 등록된 웹훅 주소를 불러온 후, Embed 는 10개씩 한 묶음으로, Webhook 은 20개씩 한 묶음으로 구성해서 전송한다.
     // 이때 Discord 웹훅 제한이 걸릴 수 있으므로 주의할 것
-    const res: Array<string> = await this.redis.smembers(
-      `${locale}-${typeStr}-webhooks`,
+    const res: Array<string> = await this.cacheLoadPort.getNewsGuildWebhooks(
+      typeStr,
+      locale,
     );
     if (res) {
       await this.publishDiscordService.sendNews(
@@ -179,12 +191,12 @@ export class PublishService {
       return [];
     }
 
-    let propSet: any = {};
-    posts.forEach((d) => {
-      propSet[d.idx] = this.redis.sadd(`${locale}-${typeStr}-ids`, d.idx);
-    });
+    const propSet: any = {};
+    for (const d of posts) {
+      propSet[d.idx] = await this.cacheSavePort.addNewsId(d, typeStr, locale);
+    }
 
-    let adds: Array<NewsContent> = [];
+    const adds: Array<NewsContent> = [];
     await PromiseAdv.props(propSet).then((values: any) => {
       posts.forEach((d: NewsContent) => {
         if (values[d.idx]) adds.push(d);

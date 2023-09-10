@@ -1,3 +1,4 @@
+import { EmbedBuilder } from 'discord.js';
 import Redis from 'ioredis';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Injectable } from '@nestjs/common';
@@ -7,6 +8,9 @@ import { FashionCheckCacheSavePort } from '../../port/out/fashioncheck-cache-sav
 import { ManagedWebhook } from '../../service/fashioncheck/fashioncheck.service';
 import { NewsArchiveCacheLoadPort } from '../../port/out/news-archive-cache-load-port.interface';
 import { NewsArchiveCacheSavePort } from '../../port/out/news-archive-cache-save-port.interface';
+import { NewsPublishCacheLoadPort } from '../../port/out/news-publish-cache-load-port.interface';
+import { NewsPublishCacheSavePort } from '../../port/out/news-publish-cache-save-port.interface';
+import { NewsContent } from '../../../definitions/interface/archive';
 
 @Injectable()
 export class RedisAdapter
@@ -14,7 +18,9 @@ export class RedisAdapter
     FashionCheckCacheLoadPort,
     FashionCheckCacheSavePort,
     NewsArchiveCacheLoadPort,
-    NewsArchiveCacheSavePort
+    NewsArchiveCacheSavePort,
+    NewsPublishCacheLoadPort,
+    NewsPublishCacheSavePort
 {
   /**
    * 수정 확인을 위한 Cache 유지 시간
@@ -99,5 +105,60 @@ export class RedisAdapter
     const timestamp = await this.redis.hget(`${locale}-news-timestamp`, type);
     const cacheTime = timestamp ? parseInt(timestamp) : new Date(0).getTime();
     return new Date().getTime() > cacheTime + RedisAdapter.CACHE_EXPIRE_IN;
+  }
+
+  async getNewsGuildWebhooks(typeStr: string, locale: string) {
+    return this.redis.smembers(`${locale}-${typeStr}-webhooks`);
+  }
+
+  async addNewsId(post: NewsContent, typeStr: string, locale: string) {
+    return this.redis.sadd(`${locale}-${typeStr}-ids`, post.idx);
+  }
+
+  /**
+   * 소식 다시 보낼 객체 삽입
+   *
+   * @param url Webhook URL
+   * @param post 데이터
+   * @param locale 언어
+   * @param type 카테고리
+   */
+  async addResendItem(
+    url: string,
+    post: { embeds: EmbedBuilder[] },
+    locale: string,
+    type: string,
+  ) {
+    return this.redis.lpush(
+      'webhooks-news-resend',
+      JSON.stringify({ url: url, body: post, locale: locale, type: type }),
+    );
+  }
+
+  /**
+   * 게시글별 Webhook URL Cache 삭제
+   *
+   * @param locale 언어
+   * @param type 카테고리
+   * @param url Webhook URL
+   */
+  async delUrl(locale: string, type: string, url: string) {
+    return this.redis.srem(`${locale}-${type}-webhooks`, url);
+  }
+
+  /**
+   * 소식 다시 보낼 Webhook URL과 데이터가 있는 객체의 개수 조회
+   */
+  async getResendItemLength() {
+    return this.redis.llen('webhooks-news-resend');
+  }
+
+  /**
+   * 소식 다시 보낼 Webhook URL과 데이터가 있는 객체 꺼냄
+   *
+   * @return url, body가 있는 객체
+   */
+  async popResendItem() {
+    return this.redis.lpop('webhooks-news-resend');
   }
 }

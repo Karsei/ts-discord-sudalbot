@@ -17,11 +17,14 @@ import { ItemStoreSavePortToken } from './port/out/itemstore-save-port.interface
 import { ClientFileLoadPortToken } from './port/out/client-file-load-port.interface';
 import { MariadbAdapter } from './adapter/out/mariadb.adapter';
 import { GithubAdapter } from './adapter/out/github.adapter';
-import { NoticeUseCaseToken } from "./port/in/news-archive-usecase.interface";
-import { NoticeService } from "./bot/commands/notice/notice.service";
-import { NewsArchiveCacheLoadPortToken } from "./port/out/news-archive-cache-load-port.interface";
-import { RedisAdapter } from "./adapter/out/redis.adapter";
-import { NewsArchiveCacheSavePortToken } from "./port/out/news-archive-cache-save-port.interface";
+import { NewsArchiveUseCaseToken } from './port/in/news-archive-usecase.interface';
+import { NewsArchiveCacheLoadPortToken } from './port/out/news-archive-cache-load-port.interface';
+import { RedisAdapter } from './adapter/out/redis.adapter';
+import { NewsArchiveCacheSavePortToken } from './port/out/news-archive-cache-save-port.interface';
+import { NewsPublishUseCaseToken } from './port/in/news-publish-usecase.interface';
+import { NewsPublishCacheLoadPortToken } from './port/out/news-publish-cache-load-port.interface';
+import { NewsPublishCacheSavePortToken } from './port/out/news-publish-cache-save-port.interface';
+import { NewsPublishDiscordUseCaseToken } from './port/in/news-publish-discord-usecase.interface';
 
 @Module({
   imports: [
@@ -31,9 +34,14 @@ import { NewsArchiveCacheSavePortToken } from "./port/out/news-archive-cache-sav
   providers: [
     Logger,
     NewsJob,
-    PublishService,
-    PublishDiscordService,
-    { provide: NoticeUseCaseToken, useClass: ArchiveService },
+    {
+      provide: NewsPublishDiscordUseCaseToken,
+      useClass: PublishDiscordService,
+    },
+    { provide: NewsPublishUseCaseToken, useClass: PublishService },
+    { provide: NewsPublishCacheLoadPortToken, useClass: RedisAdapter },
+    { provide: NewsPublishCacheSavePortToken, useClass: RedisAdapter },
+    { provide: NewsArchiveUseCaseToken, useClass: ArchiveService },
     { provide: NewsArchiveCacheLoadPortToken, useClass: RedisAdapter },
     { provide: NewsArchiveCacheSavePortToken, useClass: RedisAdapter },
     ItemJob,
