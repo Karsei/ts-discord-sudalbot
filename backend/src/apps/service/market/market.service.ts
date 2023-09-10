@@ -4,16 +4,17 @@ import { EmbedBuilder } from 'discord.js';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { ItemSearchService } from '../item/item-search.service';
-import { MarketError } from '../../../../exceptions/market.exception';
-import { AggregatedItemInfo } from '../../../../definitions/interface/xivitem';
+import { ItemSearchService } from '../../bot/commands/item/item-search.service';
+import { MarketError } from '../../../exceptions/market.exception';
+import { AggregatedItemInfo } from '../../../definitions/interface/xivitem';
 import {
   UniversalisLoadPort,
   UniversalisLoadPortToken,
-} from '../../../port/out/universalis-load-port.interface';
+} from '../../port/out/universalis-load-port.interface';
+import { MarketUseCase } from '../../port/in/market-usecase.interface';
 
 @Injectable()
-export class MarketService {
+export class MarketService implements MarketUseCase {
   constructor(
     private readonly configService: ConfigService,
     @Inject(UniversalisLoadPortToken)

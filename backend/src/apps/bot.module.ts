@@ -23,7 +23,7 @@ import { News } from '../entities/news.entity';
 import { Chat } from '../entities/chat.entity';
 import { FashionCheckNotice } from '../entities/fashioncheck-notice.entity';
 import { XivItemCategories } from '../entities/xiv-item-categories.entity';
-import { MarketService } from './bot/commands/market/market.service';
+import { MarketService } from './service/market/market.service';
 import { MarketCommand } from './bot/commands/market/market.command';
 import { NoticeService } from './bot/commands/notice/notice.service';
 import { NoticeCreateCommand } from './bot/commands/notice/notice-create.command';
@@ -48,6 +48,7 @@ import { DbCacheAdapter } from './adapter/out/dbcache.adapter';
 import { FashionCheckSavePortToken } from './port/out/fashioncheck-save-port.interface';
 import { FashionCheckUseCaseToken } from './port/in/fashioncheck-usecase.interface';
 import { FashionCheckNoticeUseCaseToken } from './port/in/fashioncheck-notice-usecase.interface';
+import { MarketUseCaseToken } from "./port/in/market-usecase.interface";
 
 @Module({
   imports: [
@@ -81,9 +82,8 @@ import { FashionCheckNoticeUseCaseToken } from './port/in/fashioncheck-notice-us
     ItemSearchCommand,
     ItemSearchInteractionService,
     XivapiService,
-    MarketService,
     MarketCommand,
-    MarketService,
+    { provide: MarketUseCaseToken, useClass: MarketService },
     { provide: UniversalisLoadPortToken, useClass: UniversalisAdapter },
     NoticeService,
     NoticeCreateCommand,

@@ -10,9 +10,12 @@ import {
 
 import { ItemSearchError } from '../../../../exceptions/item-search.exception';
 import { MarketError } from '../../../../exceptions/market.exception';
-import { MarketService } from './market.service';
 import { MarketSearchDto } from '../../dtos/market-search.dto';
 import { ItemSearchTooManyResultsError } from '../../../../exceptions/item-search-too-many-results.exception';
+import {
+  MarketUseCase,
+  MarketUseCaseToken,
+} from '../../../port/in/market-usecase.interface';
 
 @Command({
   name: '시장',
@@ -23,8 +26,10 @@ import { ItemSearchTooManyResultsError } from '../../../../exceptions/item-searc
 })
 export class MarketCommand {
   constructor(
-    @Inject(Logger) private readonly loggerService: LoggerService,
-    private readonly marketService: MarketService,
+    @Inject(Logger)
+    private readonly loggerService: LoggerService,
+    @Inject(MarketUseCaseToken)
+    private readonly marketService: MarketUseCase,
   ) {}
 
   /**
