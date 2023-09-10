@@ -18,7 +18,6 @@ import { ClientFileLoadPortToken } from './port/out/client-file-load-port.interf
 import { MariadbAdapter } from './adapter/out/mariadb.adapter';
 import { GithubAdapter } from './adapter/out/github.adapter';
 
-
 @Module({
   imports: [
     ScheduleModule.forRoot(),

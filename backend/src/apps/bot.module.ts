@@ -24,7 +24,7 @@ import { Chat } from '../entities/chat.entity';
 import { FashionCheckNotice } from '../entities/fashioncheck-notice.entity';
 import { XivItemCategories } from '../entities/xiv-item-categories.entity';
 import { MarketService } from './service/market/market.service';
-import { MarketCommand } from './bot/commands/market/market.command';
+import { MarketCommand } from './adapter/in/command/market.command';
 import { NoticeService } from './bot/commands/notice/notice.service';
 import { NoticeCreateCommand } from './bot/commands/notice/notice-create.command';
 import { NoticeDeleteCommand } from './bot/commands/notice/notice-delete.command';
