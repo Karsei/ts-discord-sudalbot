@@ -17,6 +17,11 @@ import { ItemStoreSavePortToken } from './port/out/itemstore-save-port.interface
 import { ClientFileLoadPortToken } from './port/out/client-file-load-port.interface';
 import { MariadbAdapter } from './adapter/out/mariadb.adapter';
 import { GithubAdapter } from './adapter/out/github.adapter';
+import { NoticeUseCaseToken } from "./port/in/notice-usecase.interface";
+import { NoticeService } from "./bot/commands/notice/notice.service";
+import { NoticeCacheLoadPortToken } from "./port/out/notice-cache-load-port.interface";
+import { RedisAdapter } from "./adapter/out/redis.adapter";
+import { NoticeCacheSavePortToken } from "./port/out/notice-cache-save-port.interface";
 
 @Module({
   imports: [
@@ -28,7 +33,9 @@ import { GithubAdapter } from './adapter/out/github.adapter';
     NewsJob,
     PublishService,
     PublishDiscordService,
-    ArchiveService,
+    { provide: NoticeUseCaseToken, useClass: ArchiveService },
+    { provide: NoticeCacheLoadPortToken, useClass: RedisAdapter },
+    { provide: NoticeCacheSavePortToken, useClass: RedisAdapter },
     ItemJob,
     { provide: ItemStoreUseCaseToken, useClass: ItemStoreService },
     { provide: ClientFileLoadPortToken, useClass: GithubAdapter },

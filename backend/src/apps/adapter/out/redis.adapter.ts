@@ -5,10 +5,16 @@ import { Injectable } from '@nestjs/common';
 import { FashionCheckCacheLoadPort } from '../../port/out/fashioncheck-cache-load-port.interface';
 import { FashionCheckCacheSavePort } from '../../port/out/fashioncheck-cache-save-port.interface';
 import { ManagedWebhook } from '../../service/fashioncheck/fashioncheck.service';
+import { NoticeCacheLoadPort } from '../../port/out/notice-cache-load-port.interface';
+import { NoticeCacheSavePort } from '../../port/out/notice-cache-save-port.interface';
 
 @Injectable()
 export class RedisAdapter
-  implements FashionCheckCacheLoadPort, FashionCheckCacheSavePort
+  implements
+    FashionCheckCacheLoadPort,
+    FashionCheckCacheSavePort,
+    NoticeCacheLoadPort,
+    NoticeCacheSavePort
 {
   /**
    * 수정 확인을 위한 Cache 유지 시간
@@ -62,5 +68,36 @@ export class RedisAdapter
 
   async setFashionCheckTopic(topicId: string): Promise<number> {
     return this.redis.sadd('fashion-check-topic', topicId);
+  }
+
+  /**
+   * 소식 Cache 조회
+   * @param type 타입
+   * @param locale 언어
+   */
+  async getCache(type: string, locale: string): Promise<string> {
+    return await this.redis.hget(`${locale}-news-data`, type);
+  }
+
+  /**
+   * 소식 Cache 설정
+   * @param news 데이터
+   * @param type 타입
+   * @param locale 언어
+   */
+  async setCache(news: string, type: string, locale: string): Promise<void> {
+    this.redis.hset(`${locale}-news-data`, type, news);
+    this.redis.hset(`${locale}-news-timestamp`, type, new Date().getTime());
+  }
+
+  /**
+   * 소식 갱신 시간이 지났는지 확인
+   * @param type 타입
+   * @param locale 언어
+   */
+  async isOutDate(type: string, locale: string): Promise<boolean> {
+    const timestamp = await this.redis.hget(`${locale}-news-timestamp`, type);
+    const cacheTime = timestamp ? parseInt(timestamp) : new Date(0).getTime();
+    return new Date().getTime() > cacheTime + RedisAdapter.CACHE_EXPIRE_IN;
   }
 }

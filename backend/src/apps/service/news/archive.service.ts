@@ -1,6 +1,4 @@
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
-import { RedisService } from '@liaoliaots/nestjs-redis';
-import Redis from 'ioredis';
 
 import { ArchiveFetchHelper } from './archive-fetch.helper';
 import NewsCategories, {
@@ -8,66 +6,60 @@ import NewsCategories, {
   NewsCategoryKorea,
   NewsContent,
 } from '../../../definitions/interface/archive';
+import {
+  NoticeCacheLoadPort,
+  NoticeCacheLoadPortToken,
+} from '../../port/out/notice-cache-load-port.interface';
+import {
+  NoticeCacheSavePort,
+  NoticeCacheSavePortToken,
+} from '../../port/out/notice-cache-save-port.interface';
+import { NoticeArchiveUseCase } from '../../port/in/notice-usecase.interface';
 
 @Injectable()
-export class ArchiveService {
-  /**
-   * 수정 확인을 위한 Cache 유지 시간
-   */
-  static readonly CACHE_EXPIRE_IN = 600;
-
-  private readonly redis: Redis;
-
+export class ArchiveService implements NoticeArchiveUseCase {
   constructor(
-    @Inject(Logger) private readonly loggerService: LoggerService,
-    private readonly redisService: RedisService,
-  ) {
-    this.redis = this.redisService.getClient();
-  }
+    @Inject(Logger)
+    private readonly loggerService: LoggerService,
+    @Inject(NoticeCacheLoadPortToken)
+    private readonly cacheLoadPort: NoticeCacheLoadPort,
+    @Inject(NoticeCacheSavePortToken)
+    private readonly cacheSavePort: NoticeCacheSavePort,
+  ) {}
 
-  /**
-   * 글로벌 서비스의 특정 카테고리의 소식을 조회합니다.
-   * @param type 카테고리
-   * @param locale 언어
-   * @param isSkipCache Cache 사용 여부
-   */
   async getGlobal(
     type: NewsCategoryGlobal,
     locale: string,
     isSkipCache: boolean = false,
   ): Promise<NewsContent[]> {
-    let outdate = await this.isOutDate(type, locale);
+    const outdate = await this.cacheLoadPort.isOutDate(type, locale);
     if (isSkipCache || outdate) {
       try {
-        let data = await ArchiveFetchHelper.withGlobal(
+        const data = await ArchiveFetchHelper.withGlobal(
           NewsCategories.Global[type].url,
           type,
           locale,
         );
-        await this.setCache(JSON.stringify(data), type, locale);
+        await this.cacheSavePort.setCache(JSON.stringify(data), type, locale);
         return data;
       } catch (e) {
         this.loggerService.error(
           '글로벌 소식을 가져오는 과정에서 오류가 발생했습니다.',
           e,
         );
-        let data = await this.getCache(type, locale);
+        const data = await this.cacheLoadPort.getCache(type, locale);
         return JSON.parse(data);
       }
     } else {
-      let data = await this.getCache(type, locale);
+      const data = await this.cacheLoadPort.getCache(type, locale);
       return JSON.parse(data);
     }
   }
 
-  /**
-   * 글로벌 서비스의 모든 카테고리 소식을 조회합니다.
-   * @param locale
-   */
   async getGlobalAll(locale: string): Promise<any[]> {
     // Promise.all 로 하면 429 오류가 뜨면서 요청이 많다고 뜨므로 하나씩 해주자
-    let results = [];
-    for (let idx in NewsCategoryGlobal) {
+    const results = [];
+    for (const idx in NewsCategoryGlobal) {
       results.push(
         await this.getGlobal(
           NewsCategoryGlobal[idx as keyof typeof NewsCategoryGlobal],
@@ -78,45 +70,37 @@ export class ArchiveService {
     return results;
   }
 
-  /**
-   * 한국 서비스의 특정 카테고리 소식을 조회합니다.
-   * @param type 카테고리
-   * @param isSkipCache Cache 사용 여부
-   */
   async getKorea(
     type: NewsCategoryKorea,
     isSkipCache: boolean = false,
   ): Promise<NewsContent[]> {
-    let outdate = await this.isOutDate(type, 'kr');
+    const outdate = await this.cacheLoadPort.isOutDate(type, 'kr');
     if (isSkipCache || outdate) {
       try {
-        let data = await ArchiveFetchHelper.withKorea(
+        const data = await ArchiveFetchHelper.withKorea(
           NewsCategories.Korea[type].url,
           type,
         );
-        await this.setCache(JSON.stringify(data), type, 'kr');
+        await this.cacheSavePort.setCache(JSON.stringify(data), type, 'kr');
         return data;
       } catch (e) {
         this.loggerService.error(
           '한국 소식을 가져오는 과정에서 오류가 발생했습니다.',
           e,
         );
-        let data = await this.getCache(type, 'kr');
+        const data = await this.cacheLoadPort.getCache(type, 'kr');
         return JSON.parse(data);
       }
     } else {
-      let data = await this.getCache(type, 'kr');
+      const data = await this.cacheLoadPort.getCache(type, 'kr');
       return JSON.parse(data);
     }
   }
 
-  /**
-   * 한국 서비스의 모든 카테고리 소식을 조회합니다.
-   */
   async getKoreaAll(): Promise<any[]> {
     // Promise.all 로 하면 429 오류가 뜨면서 요청이 많다고 뜨므로 하나씩 해주자
-    let results = [];
-    for (let idx in NewsCategoryKorea) {
+    const results = [];
+    for (const idx in NewsCategoryKorea) {
       results.push(
         await this.getKorea(
           NewsCategoryKorea[idx as keyof typeof NewsCategoryKorea],
@@ -124,36 +108,5 @@ export class ArchiveService {
       );
     }
     return results;
-  }
-
-  /**
-   * 소식 Cache 설정
-   * @param news 데이터
-   * @param type 타입
-   * @param locale 언어
-   */
-  async setCache(news: string, type: string, locale: string): Promise<void> {
-    this.redis.hset(`${locale}-news-data`, type, news);
-    this.redis.hset(`${locale}-news-timestamp`, type, new Date().getTime());
-  }
-
-  /**
-   * 소식 Cache 조회
-   * @param type 타입
-   * @param locale 언어
-   */
-  async getCache(type: string, locale: string): Promise<string> {
-    return await this.redis.hget(`${locale}-news-data`, type);
-  }
-
-  /**
-   * 소식 갱신 시간이 지났는지 확인
-   * @param type 타입
-   * @param locale 언어
-   */
-  async isOutDate(type: string, locale: string): Promise<boolean> {
-    let timestamp = await this.redis.hget(`${locale}-news-timestamp`, type);
-    let cacheTime = timestamp ? parseInt(timestamp) : new Date(0).getTime();
-    return new Date().getTime() > cacheTime + ArchiveService.CACHE_EXPIRE_IN;
   }
 }
