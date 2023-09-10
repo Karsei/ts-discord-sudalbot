@@ -10,11 +10,18 @@ import {
   UseCollectors,
 } from '@discord-nestjs/core';
 
-import { ItemSearchService } from './item-search.service';
-import { ItemSearchInteractionService } from './item-search-interaction.service';
+import { ItemSearchInteractionService } from '../../../service/item/item-search-interaction.service';
 import { ItemSearchInteractionPostCollector } from './item-search-interaction-post-collector';
-import { ItemSearchDto } from '../../dtos/itemsearch.dto';
+import { ItemSearchDto } from '../../../bot/dtos/itemsearch.dto';
 import { ItemSearchError } from '../../../../exceptions/item-search.exception';
+import {
+  ItemSearchUseCase,
+  ItemSearchUseCaseToken,
+} from '../../../port/in/item-search-usecase.interface';
+import {
+  ItemSearchInteractionUseCase,
+  ItemSearchInteractionUseCaseToken,
+} from '../../../port/in/item-search-interaction-usecase.interface';
 
 @Command({
   name: '아이템검색',
@@ -27,9 +34,12 @@ import { ItemSearchError } from '../../../../exceptions/item-search.exception';
 export class ItemSearchCommand {
   constructor(
     private readonly configService: ConfigService,
-    @Inject(Logger) private readonly loggerService: LoggerService,
-    private readonly itemSearchService: ItemSearchService,
-    private readonly itemSearchInteractionService: ItemSearchInteractionService,
+    @Inject(Logger)
+    private readonly loggerService: LoggerService,
+    @Inject(ItemSearchUseCaseToken)
+    private readonly itemSearchService: ItemSearchUseCase,
+    @Inject(ItemSearchInteractionUseCaseToken)
+    private readonly itemSearchInteractionService: ItemSearchInteractionUseCase,
   ) {}
 
   /**

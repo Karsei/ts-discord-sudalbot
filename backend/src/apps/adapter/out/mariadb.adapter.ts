@@ -1,4 +1,4 @@
-import { InsertResult, IsNull, Repository } from 'typeorm';
+import { InsertResult, IsNull, Like, Repository } from 'typeorm';
 import { ModalSubmitInteraction } from 'discord.js';
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -19,6 +19,7 @@ import {
 } from '../../port/out/client-file-load-port.interface';
 import { ItemStoreSavePort } from '../../port/out/itemstore-save-port.interface';
 import { ItemStoreLoadPort } from '../../port/out/itemstore-load-port.interface';
+import { PaginationParams } from '../../../definitions/interface/archive';
 
 const cliProgress = require('cli-progress');
 
@@ -188,5 +189,40 @@ export class MariadbAdapter
         }
       },
     );
+  }
+
+  async getItemCategoriesByIdx(locale: string, idx: number) {
+    return await this.xivItemCategoriesRepository.find({
+      where: {
+        version: { locale: locale },
+        itemCategoryIdx: idx,
+      },
+      order: { version: { version: 'DESC' } },
+    });
+  }
+
+  async getItemsByIdx(locale: string, idx: number) {
+    return await this.xivItemRepository.find({
+      where: {
+        version: { locale: locale },
+        itemIdx: idx,
+      },
+      order: { version: { version: 'DESC' } },
+    });
+  }
+
+  async getItemsByName(
+    locale: string,
+    name: string,
+    paginationParams: PaginationParams,
+  ) {
+    return await this.xivItemRepository.findAndCount({
+      where: {
+        version: { locale: locale },
+        name: Like(`%${name}%`),
+      },
+      take: paginationParams.perPage,
+      skip: (paginationParams.page - 1) * paginationParams.perPage,
+    });
   }
 }

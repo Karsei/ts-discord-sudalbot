@@ -13,9 +13,9 @@ import { FashionCheckService } from './service/fashioncheck/fashioncheck.service
 import { FashionCheckCommand } from './adapter/in/command/fashioncheck.command';
 import { FashionCheckNoticeJob } from './adapter/in/scheduler/fashion-check-notice.job';
 import { FashionCheckNoticeRegistCommand } from './adapter/in/command/fashioncheck-notice-regist.command';
-import { ItemSearchService } from './bot/commands/item/item-search.service';
-import { ItemSearchCommand } from './bot/commands/item/item-search.command';
-import { XivapiService } from './bot/commands/item/xivapi.service';
+import { ItemSearchService } from './service/item/item-search.service';
+import { ItemSearchCommand } from './adapter/in/command/item-search.command';
+import { XivApiAdapter } from './adapter/out/xivapi.adapter';
 import { Contact } from '../entities/contact.entity';
 import { XivVersion } from '../entities/xiv-version.entity';
 import { XivItem } from '../entities/xiv-item.entity';
@@ -28,7 +28,7 @@ import { MarketCommand } from './adapter/in/command/market.command';
 import { NoticeService } from './service/news/notice.service';
 import { NoticeCreateCommand } from './adapter/in/command/notice-create.command';
 import { NoticeDeleteCommand } from './adapter/in/command/notice-delete.command';
-import { ItemSearchInteractionService } from './bot/commands/item/item-search-interaction.service';
+import { ItemSearchInteractionService } from './service/item/item-search-interaction.service';
 import { ShopCommand } from './adapter/in/command/shop.command';
 import { FashionCheckRedditLoadPortToken } from './port/out/fashioncheck-reddit-load-port.interface';
 import { RedditAdapter } from './adapter/out/reddit.adapter';
@@ -48,8 +48,11 @@ import { DbCacheAdapter } from './adapter/out/dbcache.adapter';
 import { FashionCheckSavePortToken } from './port/out/fashioncheck-save-port.interface';
 import { FashionCheckUseCaseToken } from './port/in/fashioncheck-usecase.interface';
 import { FashionCheckNoticeUseCaseToken } from './port/in/fashioncheck-notice-usecase.interface';
-import { MarketUseCaseToken } from "./port/in/market-usecase.interface";
-import { NewsUseCaseToken } from "./port/in/news-usecase.interface";
+import { MarketUseCaseToken } from './port/in/market-usecase.interface';
+import { NewsUseCaseToken } from './port/in/news-usecase.interface';
+import { XivApiLoadPortToken } from './port/out/xivapi-load-port.interface';
+import { ItemSearchUseCaseToken } from './port/in/item-search-usecase.interface';
+import { ItemSearchInteractionUseCaseToken } from './port/in/item-search-interaction-usecase.interface';
 
 @Module({
   imports: [
@@ -79,10 +82,13 @@ import { NewsUseCaseToken } from "./port/in/news-usecase.interface";
     { provide: FashionCheckUseCaseToken, useClass: FashionCheckService },
     { provide: FashionCheckNoticeUseCaseToken, useClass: FashionCheckService },
     { provide: FashionCheckRedditLoadPortToken, useClass: RedditAdapter },
-    ItemSearchService,
     ItemSearchCommand,
-    ItemSearchInteractionService,
-    XivapiService,
+    { provide: ItemSearchUseCaseToken, useClass: ItemSearchService },
+    {
+      provide: ItemSearchInteractionUseCaseToken,
+      useClass: ItemSearchInteractionService,
+    },
+    { provide: XivApiLoadPortToken, useClass: XivApiAdapter },
     MarketCommand,
     { provide: MarketUseCaseToken, useClass: MarketService },
     { provide: UniversalisLoadPortToken, useClass: UniversalisAdapter },

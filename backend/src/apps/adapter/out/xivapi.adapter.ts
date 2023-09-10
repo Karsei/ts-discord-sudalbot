@@ -2,6 +2,8 @@ import axios from 'axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { XivApiLoadPort } from '../../port/out/xivapi-load-port.interface';
+
 export interface FetchXivApiSearchProps {
   indexes: string;
   string?: string;
@@ -13,7 +15,7 @@ export interface FetchXivApiSearchProps {
 }
 
 @Injectable()
-export class XivapiService {
+export class XivApiAdapter implements XivApiLoadPort {
   constructor(private readonly configService: ConfigService) {}
 
   async fetchSearch(

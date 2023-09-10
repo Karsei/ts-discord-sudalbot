@@ -1,18 +1,21 @@
 import { EmbedBuilder } from 'discord.js';
-import { Like, Repository } from 'typeorm';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
 
-import { XivapiService } from './xivapi.service';
 import { GuideFetchHelper } from './guide-fetch.helper';
-import { ItemSearchError } from '../../../../exceptions/item-search.exception';
-import { ItemSearchTooManyResultsError } from '../../../../exceptions/item-search-too-many-results.exception';
-import { XivVersion } from '../../../../entities/xiv-version.entity';
-import { XivItem } from '../../../../entities/xiv-item.entity';
-import { XivItemCategories } from '../../../../entities/xiv-item-categories.entity';
-import { AggregatedItemInfo } from '../../../../definitions/interface/xivitem';
-import { PaginationParams } from '../../../../definitions/interface/archive';
+import { ItemSearchError } from '../../../exceptions/item-search.exception';
+import { ItemSearchTooManyResultsError } from '../../../exceptions/item-search-too-many-results.exception';
+import { AggregatedItemInfo } from '../../../definitions/interface/xivitem';
+import { PaginationParams } from '../../../definitions/interface/archive';
+import {
+  XivApiLoadPort,
+  XivApiLoadPortToken,
+} from '../../port/out/xivapi-load-port.interface';
+import {
+  ItemStoreLoadPort,
+  ItemStoreLoadPortToken,
+} from '../../port/out/itemstore-load-port.interface';
+import { ItemSearchUseCase } from '../../port/in/item-search-usecase.interface';
 
 export interface ItemSearchList {
   pagination: { ResultsTotal: number };
@@ -25,15 +28,13 @@ export interface ItemSearchListItem {
 }
 
 @Injectable()
-export class ItemSearchService {
+export class ItemSearchService implements ItemSearchUseCase {
   constructor(
     private readonly configService: ConfigService,
-    private readonly xivapiService: XivapiService,
-    @InjectRepository(XivVersion)
-    private xivVersionRepository: Repository<XivVersion>,
-    @InjectRepository(XivItem) private xivItemRepository: Repository<XivItem>,
-    @InjectRepository(XivItemCategories)
-    private xivItemCategoriesRepository: Repository<XivItemCategories>,
+    @Inject(XivApiLoadPortToken)
+    private readonly xivApiLoadPort: XivApiLoadPort,
+    @Inject(ItemStoreLoadPortToken)
+    private readonly itemStoreLoadPort: ItemStoreLoadPort,
   ) {}
 
   async search(keyword: string) {
@@ -110,7 +111,7 @@ export class ItemSearchService {
 
   private async aggregateKoreanItemInfo(itemId: number) {
     // 한 번 더 검색을 한다.
-    const itemRes = await this.xivapiService.fetchItem(itemId);
+    const itemRes = await this.xivApiLoadPort.fetchItem(itemId);
     if (
       !itemRes.hasOwnProperty('data') ||
       !itemRes.data.hasOwnProperty('Name')
@@ -143,7 +144,10 @@ export class ItemSearchService {
 
     // 한국어 관련
     // 아이템
-    const koreanItemFetch = await this.getItemsByIdx('kr', itemId);
+    const koreanItemFetch = await this.itemStoreLoadPort.getItemsByIdx(
+      'kr',
+      itemId,
+    );
     if (koreanItemFetch && koreanItemFetch.length > 0) {
       const itemParsed = JSON.parse(koreanItemFetch[0].content);
       if (itemParsed.Name && itemParsed.Name.length > 0) {
@@ -153,10 +157,11 @@ export class ItemSearchService {
         filtered.descKr = itemParsed.Description;
       }
 
-      const koreanItemUiCategory = await this.getItemCategoriesByIdx(
-        'kr',
-        itemDetail.ItemUICategory.ID,
-      );
+      const koreanItemUiCategory =
+        await this.itemStoreLoadPort.getItemCategoriesByIdx(
+          'kr',
+          itemDetail.ItemUICategory.ID,
+        );
       if (koreanItemUiCategory && koreanItemUiCategory.length > 0) {
         const itemUiParsed = JSON.parse(koreanItemUiCategory[0].content);
         filtered.itemUiCategoryNameKr = itemUiParsed.Name;
@@ -164,41 +169,6 @@ export class ItemSearchService {
     }
 
     return filtered;
-  }
-
-  private async getItemsByIdx(locale: string, idx: number) {
-    return await this.xivItemRepository.find({
-      where: {
-        version: { locale: locale },
-        itemIdx: idx,
-      },
-      order: { version: { version: 'DESC' } },
-    });
-  }
-
-  private async getItemsByName(
-    locale: string,
-    name: string,
-    paginationParams: PaginationParams,
-  ) {
-    return await this.xivItemRepository.findAndCount({
-      where: {
-        version: { locale: locale },
-        name: Like(`%${name}%`),
-      },
-      take: paginationParams.perPage,
-      skip: (paginationParams.page - 1) * paginationParams.perPage,
-    });
-  }
-
-  private async getItemCategoriesByIdx(locale: string, idx: number) {
-    return await this.xivItemCategoriesRepository.find({
-      where: {
-        version: { locale: locale },
-        itemCategoryIdx: idx,
-      },
-      order: { version: { version: 'DESC' } },
-    });
   }
 
   private async searchFromGlobal(
@@ -237,7 +207,7 @@ export class ItemSearchService {
       from: (paginationParams.page - 1) * paginationParams.perPage,
       size: paginationParams.perPage,
     };
-    const searchRes = await this.xivapiService.fetchElasticSearch(
+    const searchRes = await this.xivApiLoadPort.fetchElasticSearch(
       'item',
       constSearchBody,
     );
@@ -269,7 +239,11 @@ export class ItemSearchService {
     };
 
     // 이름을 찾는다.
-    const [data, total] = await this.getItemsByName('kr', keyword, pagination);
+    const [data, total] = await this.itemStoreLoadPort.getItemsByName(
+      'kr',
+      keyword,
+      pagination,
+    );
     for (const itemIdx of Object.keys(data)) {
       if (itemIdx == 'meta') continue;
       const item = data[itemIdx];

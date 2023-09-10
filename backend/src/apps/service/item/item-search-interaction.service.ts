@@ -4,11 +4,14 @@ import { ConfigService } from '@nestjs/config';
 
 import { ItemSearchList } from './item-search.service';
 import { GuideFetchHelper } from './guide-fetch.helper';
-import { AggregatedItemInfo } from '../../../../definitions/interface/xivitem';
-import { PaginationParams } from '../../../../definitions/interface/archive';
+import { AggregatedItemInfo } from '../../../definitions/interface/xivitem';
+import { PaginationParams } from '../../../definitions/interface/archive';
+import { ItemSearchInteractionUseCase } from '../../port/in/item-search-interaction-usecase.interface';
 
 @Injectable()
-export class ItemSearchInteractionService {
+export class ItemSearchInteractionService
+  implements ItemSearchInteractionUseCase
+{
   public static readonly MENU_PAGE_VALUE = 'item-search-page-';
   public static readonly MAX_COMPONENT_TIMEOUT = 30000; // ms
   public static readonly MAX_NUMBER_VIEW_ON_SELECT = 10;

@@ -8,8 +8,15 @@ import {
 } from '@nestjs/common';
 import { InteractionEventCollector, On, Once } from '@discord-nestjs/core';
 
-import { ItemSearchService } from './item-search.service';
-import { ItemSearchInteractionService } from './item-search-interaction.service';
+import { ItemSearchInteractionService } from '../../../service/item/item-search-interaction.service';
+import {
+  ItemSearchUseCase,
+  ItemSearchUseCaseToken,
+} from '../../../port/in/item-search-usecase.interface';
+import {
+  ItemSearchInteractionUseCase,
+  ItemSearchInteractionUseCaseToken,
+} from '../../../port/in/item-search-interaction-usecase.interface';
 
 @Injectable({ scope: Scope.REQUEST })
 @InteractionEventCollector({
@@ -18,9 +25,12 @@ import { ItemSearchInteractionService } from './item-search-interaction.service'
 })
 export class ItemSearchInteractionPostCollector {
   constructor(
-    @Inject(Logger) private readonly loggerService: LoggerService,
-    private readonly itemSearchService: ItemSearchService,
-    private readonly itemSearchInteractionService: ItemSearchInteractionService,
+    @Inject(Logger)
+    private readonly loggerService: LoggerService,
+    @Inject(ItemSearchUseCaseToken)
+    private readonly itemSearchService: ItemSearchUseCase,
+    @Inject(ItemSearchInteractionUseCaseToken)
+    private readonly itemSearchInteractionService: ItemSearchInteractionUseCase,
   ) {}
 
   @On('collect')

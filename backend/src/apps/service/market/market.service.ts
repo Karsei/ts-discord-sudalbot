@@ -4,7 +4,7 @@ import { EmbedBuilder } from 'discord.js';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { ItemSearchService } from '../../bot/commands/item/item-search.service';
+import { ItemSearchService } from '../item/item-search.service';
 import { MarketError } from '../../../exceptions/market.exception';
 import { AggregatedItemInfo } from '../../../definitions/interface/xivitem';
 import {
