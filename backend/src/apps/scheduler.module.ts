@@ -27,8 +27,8 @@ import { NewsPublishCacheSavePortToken } from './port/out/news-publish-cache-sav
 import { NewsPublishDiscordUseCaseToken } from './port/in/news-publish-discord-usecase.interface';
 import { Contact } from '../entities/contact.entity';
 import { FashionCheckNotice } from '../entities/fashioncheck-notice.entity';
-import { News } from "../entities/news.entity";
-import { Chat } from "../entities/chat.entity";
+import { News } from '../entities/news.entity';
+import { Chat } from '../entities/chat.entity';
 
 @Module({
   imports: [

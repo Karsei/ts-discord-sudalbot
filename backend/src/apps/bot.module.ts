@@ -59,8 +59,8 @@ import { NewsPublishCacheSavePortToken } from './port/out/news-publish-cache-sav
 import { NewsPublishCacheLoadPortToken } from './port/out/news-publish-cache-load-port.interface';
 import { ItemStoreLoadPortToken } from './port/out/itemstore-load-port.interface';
 import { ItemStoreSavePortToken } from './port/out/itemstore-save-port.interface';
-import { ClientFileLoadPortToken } from "./port/out/client-file-load-port.interface";
-import { GithubAdapter } from "./adapter/out/github.adapter";
+import { ClientFileLoadPortToken } from './port/out/client-file-load-port.interface';
+import { GithubAdapter } from './adapter/out/github.adapter';
 
 @Module({
   imports: [
