@@ -25,9 +25,9 @@ import { FashionCheckNotice } from '../entities/fashioncheck-notice.entity';
 import { XivItemCategories } from '../entities/xiv-item-categories.entity';
 import { MarketService } from './service/market/market.service';
 import { MarketCommand } from './adapter/in/command/market.command';
-import { NoticeService } from './bot/commands/notice/notice.service';
-import { NoticeCreateCommand } from './bot/commands/notice/notice-create.command';
-import { NoticeDeleteCommand } from './bot/commands/notice/notice-delete.command';
+import { NoticeService } from './service/news/notice.service';
+import { NoticeCreateCommand } from './adapter/in/command/notice-create.command';
+import { NoticeDeleteCommand } from './adapter/in/command/notice-delete.command';
 import { ItemSearchInteractionService } from './bot/commands/item/item-search-interaction.service';
 import { ShopCommand } from './adapter/in/command/shop.command';
 import { FashionCheckRedditLoadPortToken } from './port/out/fashioncheck-reddit-load-port.interface';
@@ -49,6 +49,7 @@ import { FashionCheckSavePortToken } from './port/out/fashioncheck-save-port.int
 import { FashionCheckUseCaseToken } from './port/in/fashioncheck-usecase.interface';
 import { FashionCheckNoticeUseCaseToken } from './port/in/fashioncheck-notice-usecase.interface';
 import { MarketUseCaseToken } from "./port/in/market-usecase.interface";
+import { NewsUseCaseToken } from "./port/in/news-usecase.interface";
 
 @Module({
   imports: [
@@ -85,9 +86,9 @@ import { MarketUseCaseToken } from "./port/in/market-usecase.interface";
     MarketCommand,
     { provide: MarketUseCaseToken, useClass: MarketService },
     { provide: UniversalisLoadPortToken, useClass: UniversalisAdapter },
-    NoticeService,
     NoticeCreateCommand,
     NoticeDeleteCommand,
+    { provide: NewsUseCaseToken, useClass: NoticeService },
     ShopCommand,
     { provide: FashionCheckLoadPortToken, useClass: DbCacheAdapter },
     { provide: FashionCheckSavePortToken, useClass: DbCacheAdapter },

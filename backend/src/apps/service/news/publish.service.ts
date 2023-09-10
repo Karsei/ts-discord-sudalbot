@@ -10,7 +10,7 @@ import NewsCategories, {
   NewsContent,
 } from '../../../definitions/interface/archive';
 import { PublishDiscordService } from './publish-discord.service';
-import { NoticePublishUseCase } from '../../port/in/news-publish-usecase.interface';
+import { NewsPublishUseCase } from '../../port/in/news-publish-usecase.interface';
 import {
   NewsArchiveUseCase,
   NewsArchiveUseCaseToken,
@@ -27,7 +27,7 @@ import {
 const PromiseAdv = require('bluebird');
 
 @Injectable()
-export class PublishService implements NoticePublishUseCase {
+export class PublishService implements NewsPublishUseCase {
   constructor(
     @Inject(Logger)
     private readonly loggerService: LoggerService,

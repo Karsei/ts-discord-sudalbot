@@ -10,24 +10,32 @@ import {
   UseCollectors,
 } from '@discord-nestjs/core';
 
-import { NoticeService } from './notice.service';
-import { NoticeCreatePostCollector } from './notice-create-post-collector';
-import { NoticeManageDto } from '../../dtos/notice-manage.dto';
+import { NoticeDeletePostCollector } from './notice-delete-post-collector';
+import { NoticeManageDto } from '../../../bot/dtos/notice-manage.dto';
 import { NoticeError } from '../../../../exceptions/notice.exception';
+import {
+  NewsUseCase,
+  NewsUseCaseToken,
+} from '../../../port/in/news-usecase.interface';
 
 @Command({
-  name: '소식추가',
-  description: '현재 서버에서 구독중인 소식 카테고리 중 하나를 추가합니다.',
+  name: '소식삭제',
+  description: '현재 서버에서 구독중인 소식 카테고리 중 하나를 삭제합니다.',
   dmPermission: false,
-  defaultMemberPermissions: PermissionsBitField.Flags.ViewChannel | PermissionsBitField.Flags.ManageMessages,
+  defaultMemberPermissions:
+    PermissionsBitField.Flags.ViewChannel |
+    PermissionsBitField.Flags.ManageMessages,
 })
 @UseInterceptors(CollectorInterceptor)
-@UseCollectors(NoticeCreatePostCollector)
-export class NoticeCreateCommand {
+@UseCollectors(NoticeDeletePostCollector)
+export class NoticeDeleteCommand {
   constructor(
-    @InjectDiscordClient() private readonly client: Client,
-    @Inject(Logger) private readonly loggerService: LoggerService,
-    private readonly noticeService: NoticeService,
+    @InjectDiscordClient()
+    private readonly client: Client,
+    @Inject(Logger)
+    private readonly loggerService: LoggerService,
+    @Inject(NewsUseCaseToken)
+    private readonly noticeService: NewsUseCase,
   ) {}
 
   @Handler()
@@ -57,11 +65,11 @@ export class NoticeCreateCommand {
       const selectComponent = await this.noticeService.makeComponent(
         dto.locale,
         interaction.guild.id,
-        false,
+        true,
       );
 
       const editedMsg = await interaction.editReply({
-        content: '추가할 소식을 선택해주세요.',
+        content: '삭제할 소식을 선택해주세요.',
         components: [selectComponent],
       });
       if (!(editedMsg instanceof Message)) return;

@@ -1,20 +1,19 @@
 import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
-import { Like, Repository } from 'typeorm';
 import Redis from 'ioredis';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 
-import NewsCategories from '../../../../definitions/interface/archive';
-import { NoticeError } from '../../../../exceptions/notice.exception';
+import NewsCategories from '../../../definitions/interface/archive';
+import { NoticeError } from '../../../exceptions/notice.exception';
 import {
   Locales,
   SubscribeArticleCategory,
-} from '../../../../definitions/common.type';
+} from '../../../definitions/common.type';
+import { NewsUseCase } from '../../port/in/news-usecase.interface';
 
 @Injectable()
-export class NoticeService {
+export class NoticeService implements NewsUseCase {
   private readonly menuComponentId = 'notify-pickup';
 
   private readonly redis: Redis;
