@@ -3,12 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { XivApiAdapter } from './xivapi.adapter';
 
-describe('XivapiService', () => {
+describe('XivapiServiceTest', () => {
   let xivapiService: XivApiAdapter;
-
-  const mockXivapiService = {
-    subscribe: jest.fn().mockResolvedValue({}),
-  };
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
@@ -17,7 +13,7 @@ describe('XivapiService', () => {
     xivapiService = app.get<XivApiAdapter>(XivApiAdapter);
   });
 
-  it('fetchItemCanBeRetrieved', async () => {
+  it('fetchItem', async () => {
     // given
     const itemId = 12345;
 
