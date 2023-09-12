@@ -16,6 +16,7 @@
   "scripts": {
     "init": "npm ci --prefix backend && npm ci --prefix frontend",
     "start": "npm run --prefix backend start:prod",
+    "start:env": "npm run --prefix backend start:env",
     "start:backend": "npm run --prefix backend start",
     "start:frontend": "npm run --prefix frontend start",
     "build:win": "npm run --prefix frontend build && move frontend/build backend/views && npm run --prefix backend build",
