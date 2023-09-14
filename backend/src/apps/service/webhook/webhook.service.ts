@@ -9,7 +9,7 @@ import NewsCategories, {
   LodestoneLocales,
 } from '../../../definitions/interface/archive';
 import { YesNoFlag } from '../../../definitions/common.type';
-import { SaveWebhookDto } from './dto/save-webhook.dto';
+import { SaveWebhookDto } from '../../dto/save-webhook.dto';
 import { Guild } from '../../../entities/guild.entity';
 import { News } from '../../../entities/news.entity';
 

@@ -7,7 +7,7 @@ import { Guild } from '../../../../entities/guild.entity';
 import { News } from '../../../../entities/news.entity';
 import { Repository } from 'typeorm';
 
-import { SaveWebhookDto } from '../../../service/webhook/dto/save-webhook.dto';
+import { SaveWebhookDto } from '../../../dto/save-webhook.dto';
 import { WebhookController } from './webhook.controller';
 import { WebhookService } from '../../../service/webhook/webhook.service';
 

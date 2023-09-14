@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 
 import { WebhookService } from '../../../service/webhook/webhook.service';
-import { SaveWebhookDto } from '../../../service/webhook/dto/save-webhook.dto';
+import { SaveWebhookDto } from '../../../dto/save-webhook.dto';
 
 @Controller('/webhook')
 export class WebhookController {
