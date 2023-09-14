@@ -61,6 +61,8 @@ import { ItemStoreLoadPortToken } from './port/out/itemstore-load-port.interface
 import { ItemStoreSavePortToken } from './port/out/itemstore-save-port.interface';
 import { ClientFileLoadPortToken } from './port/out/client-file-load-port.interface';
 import { GithubAdapter } from './adapter/out/github.adapter';
+import { LodestoneLoadPortToken } from './port/out/lodestone-load-port.interface';
+import { OfficialSiteAdapter } from './adapter/out/official-site.adapter';
 
 @Module({
   imports: [
@@ -95,6 +97,10 @@ import { GithubAdapter } from './adapter/out/github.adapter';
     {
       provide: ItemSearchInteractionUseCaseToken,
       useClass: ItemSearchInteractionService,
+    },
+    {
+      provide: LodestoneLoadPortToken,
+      useClass: OfficialSiteAdapter,
     },
     { provide: XivApiLoadPortToken, useClass: XivApiAdapter },
     MarketCommand,

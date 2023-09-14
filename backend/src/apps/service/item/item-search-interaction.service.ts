@@ -1,12 +1,15 @@
 import { ActionRowBuilder, EmbedBuilder, SelectMenuBuilder } from 'discord.js';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { ItemSearchList } from './item-search.service';
-import { GuideFetchHelper } from './guide-fetch.helper';
 import { AggregatedItemInfo } from '../../../definitions/interface/xivitem';
 import { PaginationParams } from '../../../definitions/interface/archive';
 import { ItemSearchInteractionUseCase } from '../../port/in/item-search-interaction-usecase.interface';
+import {
+  LodestoneLoadPort,
+  LodestoneLoadPortToken,
+} from '../../port/out/lodestone-load-port.interface';
 
 @Injectable()
 export class ItemSearchInteractionService
@@ -17,7 +20,11 @@ export class ItemSearchInteractionService
   public static readonly MAX_NUMBER_VIEW_ON_SELECT = 10;
   private static readonly MENU_COMPONENT_ID = 'item-search';
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    @Inject(LodestoneLoadPortToken)
+    private readonly lodestoneLoadPort: LodestoneLoadPort,
+  ) {}
 
   list(
     keyword: string,
@@ -120,7 +127,7 @@ export class ItemSearchInteractionService
   private async getDbSiteLinks(filtered: AggregatedItemInfo) {
     let koreaDbLink = '';
     try {
-      koreaDbLink = await GuideFetchHelper.searchItemUrl(filtered.nameKr);
+      koreaDbLink = await this.lodestoneLoadPort.searchItemUrl(filtered.nameKr);
     } catch (ee) {
       console.error(ee);
     }

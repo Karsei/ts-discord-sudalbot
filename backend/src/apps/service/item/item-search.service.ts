@@ -2,7 +2,6 @@ import { EmbedBuilder } from 'discord.js';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { GuideFetchHelper } from './guide-fetch.helper';
 import { ItemSearchError } from '../../../exceptions/item-search.exception';
 import { ItemSearchTooManyResultsError } from '../../../exceptions/item-search-too-many-results.exception';
 import { AggregatedItemInfo } from '../../../definitions/interface/xivitem';
@@ -16,6 +15,10 @@ import {
   ItemStoreLoadPortToken,
 } from '../../port/out/itemstore-load-port.interface';
 import { ItemSearchUseCase } from '../../port/in/item-search-usecase.interface';
+import {
+  LodestoneLoadPort,
+  LodestoneLoadPortToken,
+} from '../../port/out/lodestone-load-port.interface';
 
 export interface ItemSearchList {
   pagination: { ResultsTotal: number };
@@ -35,6 +38,8 @@ export class ItemSearchService implements ItemSearchUseCase {
     private readonly xivApiLoadPort: XivApiLoadPort,
     @Inject(ItemStoreLoadPortToken)
     private readonly itemStoreLoadPort: ItemStoreLoadPort,
+    @Inject(LodestoneLoadPortToken)
+    private readonly lodestoneLoadPort: LodestoneLoadPort,
   ) {}
 
   async search(keyword: string) {
@@ -290,7 +295,7 @@ export class ItemSearchService implements ItemSearchUseCase {
   private async getDbSiteLinks(filtered: AggregatedItemInfo) {
     let koreaDbLink = '';
     try {
-      koreaDbLink = await GuideFetchHelper.searchItemUrl(filtered.nameKr);
+      koreaDbLink = await this.lodestoneLoadPort.searchItemUrl(filtered.nameKr);
     } catch (ee) {
       console.error(ee);
     }
