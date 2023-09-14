@@ -1,4 +1,5 @@
 import { CheerioAPI, load as CheerioAPILoad } from 'cheerio';
+
 import { NewsContent } from '../../../definitions/interface/archive';
 import { ArchiveFetchHelper } from './archive-fetch.helper';
 
@@ -93,8 +94,8 @@ export class ArchiveParseHelper {
         } else {
           $findContent = '';
         }
-        let $content = CheerioAPILoad($findContent);
-        let descs: any[] = [];
+        const $content = CheerioAPILoad($findContent);
+        const descs: any[] = [];
         $content('p')
           .slice(0, 3)
           .each(function (idx, ele) {
@@ -160,7 +161,7 @@ export class ArchiveParseHelper {
         list.push(parseDetail);
       });
 
-      for (let idx in list) {
+      for (const idx in list) {
         if (list[idx].url) {
           list[idx].description = await ArchiveFetchHelper.withGlobalSubs(
             list[idx].url,
@@ -180,7 +181,7 @@ export class ArchiveParseHelper {
    */
   static parseGlobalMaintenanceSub($: CheerioAPI, pLocale: string): string {
     let content = '';
-    let textBox = $('.news__detail__wrapper');
+    const textBox = $('.news__detail__wrapper');
     if (textBox.length > 0) {
       const TIMESTAMP_REGEX = {
         jp: /日　時：(.*)より(?:[\r\n|\r|\n]?)(.*:[\d]{2})/gim,
@@ -195,15 +196,15 @@ export class ArchiveParseHelper {
       //     'de': { 'So': 'Sun', 'Mo': 'Mon', 'Di': 'Tue', 'Mi': 'Wed', 'Do': 'Thu', 'Fr': 'Fri', 'Sa': 'Sat' },
       // };
 
-      let text = textBox.text();
-      let parseText = {
+      const text = textBox.text();
+      const parseText = {
         start: '',
         end: '',
       };
       if (Object.keys(TIMESTAMP_REGEX).indexOf(pLocale) == -1) return '';
 
       let m = null;
-      let regex = TIMESTAMP_REGEX[pLocale as keyof typeof TIMESTAMP_REGEX];
+      const regex = TIMESTAMP_REGEX[pLocale as keyof typeof TIMESTAMP_REGEX];
 
       if (pLocale == 'jp') {
         let breakOver = false;
@@ -241,14 +242,14 @@ export class ArchiveParseHelper {
   }
 
   static parseKoreaNews($: CheerioAPI, pLocaleBaseUrl: string): NewsContent[] {
-    let list: NewsContent[] = [];
-    let $targetTable = $('.ff14_board_list');
-    let $list = $targetTable.find('tr');
+    const list: NewsContent[] = [];
+    const $targetTable = $('.ff14_board_list');
+    const $list = $targetTable.find('tr');
     if ($list && $list.length > 0) {
       $list.each(function (idx, data) {
         if ($(this).find('th').length > 0) return true;
 
-        let $title = $(this).find('td span.title');
+        const $title = $(this).find('td span.title');
 
         const parseDetail: NewsContent = {
           idx: $(this).find('td.num').html() || '',
@@ -268,14 +269,14 @@ export class ArchiveParseHelper {
     $: CheerioAPI,
     pLocaleBaseUrl: string,
   ): NewsContent[] {
-    let list: NewsContent[] = [];
-    let $targetTable = $('.ff14_board_list');
-    let $list = $targetTable.find('tr');
+    const list: NewsContent[] = [];
+    const $targetTable = $('.ff14_board_list');
+    const $list = $targetTable.find('tr');
     if ($list && $list.length > 0) {
       $list.each(function (idx, data) {
         if ($(this).find('th').length > 0) return true;
 
-        let $title = $(this).find('td span.title');
+        const $title = $(this).find('td span.title');
 
         const parseDetail: NewsContent = {
           idx: $(this).find('td.num').html() || '',
@@ -297,14 +298,14 @@ export class ArchiveParseHelper {
     $: CheerioAPI,
     pLocaleBaseUrl: string,
   ): Promise<NewsContent[]> {
-    let list: NewsContent[] = [];
-    let $targetTable = $('.ff14_board_list');
-    let $list = $targetTable.find('tr');
+    const list: NewsContent[] = [];
+    const $targetTable = $('.ff14_board_list');
+    const $list = $targetTable.find('tr');
     if ($list && $list.length > 0) {
       $list.each(function (idx, data) {
         if ($(this).find('th').length > 0) return true;
 
-        let $title = $(this).find('td span.title');
+        const $title = $(this).find('td span.title');
 
         const parseDetail: NewsContent = {
           idx: $(this).find('td.num').html() || '',
@@ -319,7 +320,7 @@ export class ArchiveParseHelper {
         list.push(parseDetail);
       });
 
-      for (let idx in list) {
+      for (const idx in list) {
         if (list[idx].url) {
           list[idx].description = await ArchiveFetchHelper.withKoreaSubs(
             list[idx].url,
@@ -335,14 +336,14 @@ export class ArchiveParseHelper {
     $: CheerioAPI,
     pLocaleBaseUrl: string,
   ): NewsContent[] {
-    let list: NewsContent[] = [];
-    let $targetTable = $('.ff14_board_list');
-    let $list = $targetTable.find('tr');
+    const list: NewsContent[] = [];
+    const $targetTable = $('.ff14_board_list');
+    const $list = $targetTable.find('tr');
     if ($list && $list.length > 0) {
       $list.each(function (idx, data) {
         if ($(this).find('th').length > 0) return true;
 
-        let $title = $(this).find('td span.title');
+        const $title = $(this).find('td span.title');
 
         const parseDetail: NewsContent = {
           idx: $(this).find('td.num').html() || '',
@@ -361,15 +362,15 @@ export class ArchiveParseHelper {
   }
 
   static parseKoreaEvent($: CheerioAPI, pLocaleBaseUrl: string): NewsContent[] {
-    let list: NewsContent[] = [];
-    let $targetTable = $('.banner_list.event');
-    let $list = $targetTable.find('li > a');
+    const list: NewsContent[] = [];
+    const $targetTable = $('.banner_list.event');
+    const $list = $targetTable.find('li > a');
     if ($list && $list.length > 0) {
       $list.each(function (idx, data) {
-        let url = $(this).attr('href') || '';
+        const url = $(this).attr('href') || '';
 
-        let $thumbnail = $(this).find('span.banner_img').attr('style') || '';
-        let _thumbnail = $thumbnail.split(`'`);
+        const $thumbnail = $(this).find('span.banner_img').attr('style') || '';
+        const _thumbnail = $thumbnail.split(`'`);
 
         const parseDetail: NewsContent = {
           idx: url.split(`?`)[0].split(`/`).slice(-1)[0],
@@ -393,13 +394,13 @@ export class ArchiveParseHelper {
     $: CheerioAPI,
     pLocaleBaseUrl: string,
   ): NewsContent[] {
-    let list: NewsContent[] = [];
-    let $targetTable = $('.banner_list.note');
-    let $list = $targetTable.find('li > a');
+    const list: NewsContent[] = [];
+    const $targetTable = $('.banner_list.note');
+    const $list = $targetTable.find('li > a');
     if ($list && $list.length > 0) {
       $list.each(function (idx, data) {
-        let $thumbnail = $(this).find('span.banner_img').attr('style') || '';
-        let _thumbnail = $thumbnail.split(`'`);
+        const $thumbnail = $(this).find('span.banner_img').attr('style') || '';
+        const _thumbnail = $thumbnail.split(`'`);
 
         const parseDetail: NewsContent = {
           idx: $(this).find('span.num').html() || '',
@@ -418,11 +419,11 @@ export class ArchiveParseHelper {
 
   static parseKoreaMaintenanceSub($: CheerioAPI): string {
     let content = '';
-    let textBox = $('.board_view_box');
+    const textBox = $('.board_view_box');
     if (textBox.length > 0) {
-      let text = textBox.text();
+      const text = textBox.text();
 
-      let list = {
+      const list = {
         date: [] as any,
         content: [] as any,
       };
@@ -461,7 +462,7 @@ export class ArchiveParseHelper {
 
       let count = 1;
       if (list.date.length == list.content.length) {
-        for (let idx in list.date) {
+        for (const idx in list.date) {
           if (content.length > 0) content += `\n`;
           content += `${count++}. ${list.content[idx]}\n`;
           content += ` - ${list.date[idx]}`;
