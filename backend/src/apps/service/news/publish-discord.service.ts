@@ -11,7 +11,7 @@ import {
 } from '../../port/out/news-publish-cache-save-port.interface';
 import { NewsPublishDiscordUseCase } from '../../port/in/news-publish-discord-usecase.interface';
 
-const axios = require('axios').default;
+import axios from 'axios';
 const PromiseAdv = require('bluebird');
 
 @Injectable()

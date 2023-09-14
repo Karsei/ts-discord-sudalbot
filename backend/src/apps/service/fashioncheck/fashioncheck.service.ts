@@ -19,7 +19,7 @@ import { FashionCheckError } from '../../../exceptions/fashion-check.exception';
 import { FashionCheckUseCase } from '../../port/in/fashioncheck-usecase.interface';
 import { FashionCheckNoticeUseCase } from '../../port/in/fashioncheck-notice-usecase.interface';
 
-const axios = require('axios').default;
+import axios from 'axios';
 const PromiseAdv = require('bluebird');
 
 export interface ManagedWebhook {

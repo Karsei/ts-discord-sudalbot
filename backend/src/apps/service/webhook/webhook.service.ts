@@ -13,7 +13,7 @@ import { SaveWebhookDto } from '../../dto/save-webhook.dto';
 import { Guild } from '../../../entities/guild.entity';
 import { News } from '../../../entities/news.entity';
 
-const axios = require('axios');
+import axios from 'axios';
 
 @Injectable()
 export class WebhookService {
