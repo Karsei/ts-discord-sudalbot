@@ -63,6 +63,7 @@ import { ClientFileLoadPortToken } from './port/out/client-file-load-port.interf
 import { GithubAdapter } from './adapter/out/github.adapter';
 import { LodestoneLoadPortToken } from './port/out/lodestone-load-port.interface';
 import { OfficialSiteAdapter } from './adapter/out/official-site.adapter';
+import { NewsPublishDbLoadPortToken } from "./port/out/news-publish-db-load-port.interface";
 
 @Module({
   imports: [
@@ -113,6 +114,7 @@ import { OfficialSiteAdapter } from './adapter/out/official-site.adapter';
     { provide: ItemStoreLoadPortToken, useClass: MariadbAdapter },
     { provide: ItemStoreSavePortToken, useClass: MariadbAdapter },
     { provide: NewsPublishSavePortToken, useClass: DbCacheAdapter },
+    { provide: NewsPublishDbLoadPortToken, useClass: MariadbAdapter },
     { provide: NewsPublishDbSavePortToken, useClass: MariadbAdapter },
     { provide: NewsPublishCacheLoadPortToken, useClass: RedisAdapter },
     { provide: NewsPublishCacheSavePortToken, useClass: RedisAdapter },

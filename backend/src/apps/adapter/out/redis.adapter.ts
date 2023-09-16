@@ -205,4 +205,41 @@ export class RedisAdapter
   ) {
     return this.redis.srem(`${locale}-${type}-webhooks`, url);
   }
+
+  /**
+   * 모든 서버 Webhook 목록에 해당 url이 있는지 확인
+   *
+   * @param pUrl Webhook URL
+   */
+  async checkInAllWebhooks(pUrl: string) {
+    return this.redis.sismember(`all-webhooks`, pUrl);
+  }
+
+  /**
+   * 모든 서버 고유번호 목록에 등록
+   *
+   * @param guildId Discord 서버 고유번호
+   * @param url Webhook URL
+   */
+  async addGuildsAll(guildId: string, url: string) {
+    return this.redis.hset('all-guilds', guildId, url);
+  }
+
+  /**
+   * 모든 서버 Webhook 목록에 등록
+   *
+   * @param pUrl Webhook URL
+   */
+  async addUrlAll(pUrl: string) {
+    return this.redis.sadd(`all-webhooks`, pUrl);
+  }
+
+  async addWebhookNews(
+    guildId: string,
+    locale: string,
+    type: string,
+    url: string,
+  ) {
+    return this.redis.sadd(`${locale}-${type}-webhooks`, url);
+  }
 }

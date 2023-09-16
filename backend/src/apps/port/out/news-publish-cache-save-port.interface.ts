@@ -1,6 +1,7 @@
 import { EmbedBuilder } from 'discord.js';
 
 import { NewsContent } from '../../../definitions/interface/archive';
+import { InsertResult } from "typeorm";
 
 export interface NewsPublishCacheSavePort {
   addNewsId(post: NewsContent, typeStr: string, locale: string);
@@ -37,6 +38,28 @@ export interface NewsPublishCacheSavePort {
    * @param url Webhook URL
    */
   delNewsWebhookUrl(
+    guildId: string,
+    locale: string,
+    type: string,
+    url: string,
+  ): Promise<number>;
+
+  /**
+   * 모든 서버 고유번호 목록에 등록
+   *
+   * @param guildId Discord 서버 고유번호
+   * @param url Webhook URL
+   */
+  addGuildsAll(guildId: string, url: string): Promise<number>;
+
+  /**
+   * 모든 서버 Webhook 목록에 등록
+   *
+   * @param pUrl Webhook URL
+   */
+  addUrlAll(pUrl: string): Promise<number>;
+
+  addWebhookNews(
     guildId: string,
     locale: string,
     type: string,

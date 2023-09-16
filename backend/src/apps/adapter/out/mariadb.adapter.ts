@@ -22,6 +22,9 @@ import { ItemStoreLoadPort } from '../../port/out/itemstore-load-port.interface'
 import { PaginationParams } from '../../../definitions/interface/archive';
 import { NewsPublishDbSavePort } from '../../port/out/news-publish-db-save-port.interface';
 import { News } from '../../../entities/news.entity';
+import { NewsPublishDbLoadPort } from '../../port/out/news-publish-db-load-port.interface';
+import { YesNoFlag } from '../../../definitions/common.type';
+import { Guild } from '../../../entities/guild.entity';
 
 const cliProgress = require('cli-progress');
 
@@ -33,6 +36,7 @@ export class MariadbAdapter
     FashionCheckDbSavePort,
     ItemStoreLoadPort,
     ItemStoreSavePort,
+    NewsPublishDbLoadPort,
     NewsPublishDbSavePort
 {
   constructor(
@@ -58,6 +62,8 @@ export class MariadbAdapter
     // # NEWS
     @InjectRepository(News)
     private newsRepository: Repository<News>,
+    @InjectRepository(Guild)
+    private guildRepository: Repository<Guild>,
 
     // # GITHUB
     @Inject(ClientFileLoadPortToken)
@@ -268,5 +274,51 @@ export class MariadbAdapter
       locale: locale,
       type: type,
     });
+  }
+
+  async addWebhookNews(
+    guildId: string,
+    locale: string,
+    type: string,
+    url: string,
+  ) {
+    return this.newsRepository.insert({
+      guild: { id: guildId },
+      locale: locale,
+      type: type,
+      url: url,
+    });
+  }
+
+  async checkExistWebhookNews(locale: string, type: string, url: string) {
+    const news = await this.newsRepository.findBy({
+      locale: locale,
+      type: type,
+      url: url,
+      delFlag: YesNoFlag.NO,
+    });
+    return news && news.length > 0;
+  }
+
+  async getGuild(guildId: string) {
+    return this.guildRepository.findOneBy({ id: guildId });
+  }
+
+  async saveGuild(
+    id: any,
+    name: any,
+    webhookId: any,
+    webhookToken: any,
+    webhookUrl: any,
+    webhookChannelId: any,
+  ) {
+    const guild = new Guild();
+    guild.id = id;
+    guild.name = name;
+    guild.webhookId = webhookId;
+    guild.webhookToken = webhookToken;
+    guild.webhookUrl = webhookUrl;
+    guild.webhookChannelId = webhookChannelId;
+    return this.guildRepository.save(guild);
   }
 }

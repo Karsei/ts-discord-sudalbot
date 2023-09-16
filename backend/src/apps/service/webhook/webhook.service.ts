@@ -1,33 +1,45 @@
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { RedisService } from '@songkeys/nestjs-redis';
-import Redis from 'ioredis';
-import { Repository } from 'typeorm';
 
 import NewsCategories, {
   LodestoneLocales,
 } from '../../../definitions/interface/archive';
-import { YesNoFlag } from '../../../definitions/common.type';
 import { SaveWebhookDto } from '../../dto/save-webhook.dto';
 import { Guild } from '../../../entities/guild.entity';
-import { News } from '../../../entities/news.entity';
 
 import axios from 'axios';
+import {
+  NewsPublishCacheLoadPort,
+  NewsPublishCacheLoadPortToken,
+} from '../../port/out/news-publish-cache-load-port.interface';
+import {
+  NewsPublishCacheSavePort,
+  NewsPublishCacheSavePortToken,
+} from '../../port/out/news-publish-cache-save-port.interface';
+import {
+  NewsPublishDbLoadPort,
+  NewsPublishDbLoadPortToken,
+} from '../../port/out/news-publish-db-load-port.interface';
+import {
+  NewsPublishDbSavePort,
+  NewsPublishDbSavePortToken,
+} from '../../port/out/news-publish-db-save-port.interface';
 
 @Injectable()
 export class WebhookService {
-  private readonly redis: Redis;
-
   constructor(
-    @Inject(Logger) private readonly loggerService: LoggerService,
+    @Inject(Logger)
+    private readonly loggerService: LoggerService,
     private readonly configService: ConfigService,
-    private readonly redisService: RedisService,
-    @InjectRepository(Guild) private guildRepository: Repository<Guild>,
-    @InjectRepository(News) private newsRepository: Repository<News>,
-  ) {
-    this.redis = this.redisService.getClient();
-  }
+    @Inject(NewsPublishCacheLoadPortToken)
+    private readonly newsPublishCacheLoadPort: NewsPublishCacheLoadPort,
+    @Inject(NewsPublishCacheSavePortToken)
+    private readonly newsPublishCacheSavePort: NewsPublishCacheSavePort,
+    @Inject(NewsPublishDbLoadPortToken)
+    private readonly newsPublishDbLoadPort: NewsPublishDbLoadPort,
+    @Inject(NewsPublishDbSavePortToken)
+    private readonly newsPublishDbSavePort: NewsPublishDbSavePort,
+  ) {}
 
   /**
    * Discord Bot 을 인증하고 서버의 Webhook 을 저장합니다.
@@ -83,45 +95,38 @@ export class WebhookService {
    * @param webhookRes Webhook 저장 후 결과
    */
   private async saveGuild(webhookRes: { hookData: any; url: string }) {
-    let guild = await this.getGuild(webhookRes.hookData.guild.id);
-    if (!guild) {
-      guild = new Guild();
-      guild.id = webhookRes.hookData.guild.id;
-    }
-    guild.name = webhookRes.hookData.guild.name;
-    guild.webhookId = webhookRes.hookData.webhook.id;
-    guild.webhookToken = webhookRes.hookData.webhook.token;
-    guild.webhookUrl = webhookRes.hookData.webhook.url;
-    guild.webhookChannelId = webhookRes.hookData.webhook.channel_id;
-
-    const savedGuild = await this.guildRepository.save(guild);
+    const guild = await this.newsPublishDbLoadPort.getGuild(
+      webhookRes.hookData.guild.id,
+    );
+    const savedGuild = await this.newsPublishDbSavePort.saveGuild(
+      !guild ? webhookRes.hookData.guild.id : guild.id,
+      webhookRes.hookData.guild.name,
+      webhookRes.hookData.webhook.id,
+      webhookRes.hookData.webhook.token,
+      webhookRes.hookData.webhook.url,
+      webhookRes.hookData.webhook.channel_id,
+    );
 
     // Cache 추가
-    await this.addGuildsAll(
+    await this.newsPublishCacheSavePort.addGuildsAll(
       webhookRes.hookData.guild.id,
       webhookRes.hookData.webhook.url,
     );
 
     // Webhook 추가
-    const existWebhook = await this.checkInAllWebhooks(
+    const existWebhook = await this.newsPublishCacheLoadPort.checkInAllWebhooks(
       webhookRes.hookData.webhook.url,
     );
     if (!existWebhook) {
-      await this.addUrlAll(webhookRes.hookData.webhook.url);
+      await this.newsPublishCacheSavePort.addUrlAll(
+        webhookRes.hookData.webhook.url,
+      );
       this.loggerService.log(
         `${webhookRes.hookData.guild.id} - ${webhookRes.hookData.webhook.url} 등록 완료`,
       );
     }
 
     return savedGuild;
-  }
-
-  /**
-   * 서버 정보를 조회합니다.
-   * @param guildId 서버 ID
-   */
-  private async getGuild(guildId: string) {
-    return await this.guildRepository.findOneBy({ id: guildId });
   }
 
   /**
@@ -156,62 +161,25 @@ export class WebhookService {
    * @param url Webhook URL
    */
   async addUrl(guildId: string, locale: string, type: string, url: string) {
-    if (!(await this.checkExistWebhookNews(locale, type, url))) {
-      await this.newsRepository.insert({
-        guild: { id: guildId },
-        locale: locale,
-        type: type,
-        url: url,
-      });
+    if (
+      !(await this.newsPublishDbLoadPort.checkExistWebhookNews(
+        locale,
+        type,
+        url,
+      ))
+    ) {
+      await this.newsPublishDbSavePort.addWebhookNews(
+        guildId,
+        locale,
+        type,
+        url,
+      );
     }
-    return this.redis.sadd(`${locale}-${type}-webhooks`, url);
-  }
-
-  /**
-   * 소식을 현재 구독중인지 확인
-   * @param locale 언어
-   * @param type 카테고리
-   * @param url Webhook URL
-   */
-  private async checkExistWebhookNews(
-    locale: string,
-    type: string,
-    url: string,
-  ) {
-    const news = await this.newsRepository.findBy({
-      locale: locale,
-      type: type,
-      url: url,
-      delFlag: YesNoFlag.NO,
-    });
-    return news && news.length > 0;
-  }
-
-  /**
-   * 모든 서버 고유번호 목록에 등록
-   *
-   * @param guildId Discord 서버 고유번호
-   * @param url Webhook URL
-   */
-  private async addGuildsAll(guildId: string, url: string) {
-    return this.redis.hset('all-guilds', guildId, url);
-  }
-
-  /**
-   * 모든 서버 Webhook 목록에 해당 url이 있는지 확인
-   *
-   * @param pUrl Webhook URL
-   */
-  private async checkInAllWebhooks(pUrl: string) {
-    return this.redis.sismember(`all-webhooks`, pUrl);
-  }
-
-  /**
-   * 모든 서버 Webhook 목록에 등록
-   *
-   * @param pUrl Webhook URL
-   */
-  private async addUrlAll(pUrl: string) {
-    return this.redis.sadd(`all-webhooks`, pUrl);
+    return this.newsPublishCacheSavePort.addWebhookNews(
+      guildId,
+      locale,
+      type,
+      url,
+    );
   }
 }
