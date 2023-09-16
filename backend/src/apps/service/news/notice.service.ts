@@ -1,8 +1,6 @@
 import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
-import Redis from 'ioredis';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { RedisService } from '@songkeys/nestjs-redis';
 
 import NewsCategories from '../../../definitions/interface/archive';
 import { NoticeError } from '../../../exceptions/notice.exception';
@@ -11,37 +9,30 @@ import {
   SubscribeArticleCategory,
 } from '../../../definitions/common.type';
 import { NewsUseCase } from '../../port/in/news-usecase.interface';
+import {
+  NewsPublishCacheLoadPort,
+  NewsPublishCacheLoadPortToken,
+} from '../../port/out/news-publish-cache-load-port.interface';
 
 @Injectable()
 export class NoticeService implements NewsUseCase {
   private readonly menuComponentId = 'notify-pickup';
 
-  private readonly redis: Redis;
-
   constructor(
     private readonly configService: ConfigService,
-    private readonly redisService: RedisService,
-  ) {
-    this.redis = this.redisService.getClient();
-  }
+    @Inject(NewsPublishCacheLoadPortToken)
+    private readonly newsPublishCacheLoadPort: NewsPublishCacheLoadPort,
+  ) {}
 
   async makeComponent(locale: Locales, guildId: string, doCheckExist: boolean) {
-    const hookUrl = await this.getHookUrlByGuildId(guildId);
+    const hookUrl = await this.newsPublishCacheLoadPort.getHookUrlByGuildId(
+      guildId,
+    );
     if (!hookUrl) {
       throw new NoticeError('해당 디스코드 서버의 Webhook 을 찾지 못했어요!');
     }
 
     return await this.makeSelectComponent(locale, hookUrl, doCheckExist);
-  }
-
-  /**
-   * 서버 고유번호로 Webhook URL 조회
-   *
-   * @param guildId 서버 고유 번호
-   * @return Webhook URL
-   */
-  private async getHookUrlByGuildId(guildId: string) {
-    return this.redis.hget('all-guilds', guildId);
   }
 
   private async makeSelectComponent(
@@ -84,7 +75,7 @@ export class NoticeService implements NewsUseCase {
     for (const localeIdx in locales) {
       if (Locales[locales[localeIdx]] == locale) {
         for (const typeIdx in types) {
-          const resCheck = await this.checkInWebhook(
+          const resCheck = await this.newsPublishCacheLoadPort.checkInWebhook(
             locale,
             types[typeIdx],
             hookUrl,
@@ -107,16 +98,5 @@ export class NoticeService implements NewsUseCase {
       showItems: showStrRes,
       selectItems: selectRes,
     };
-  }
-
-  /**
-   * 특정 소식에 해당 Webhook URL이 있는지 확인
-   *
-   * @param pLocale 언어
-   * @param pType 카테고리
-   * @param pUrl Webhook URL
-   */
-  private async checkInWebhook(pLocale: string, pType: string, pUrl: string) {
-    return this.redis.sismember(`${pLocale}-${pType}-webhooks`, pUrl);
   }
 }

@@ -165,11 +165,11 @@ export class RedisAdapter
   /**
    * 서버 고유번호로 Webhook URL 조회
    *
-   * @param pGuildId 서버 고유 번호
+   * @param guildId 서버 고유 번호
    * @return Webhook URL
    */
-  async getHookUrlByGuildId(pGuildId: string) {
-    return this.redis.hget('all-guilds', pGuildId);
+  async getHookUrlByGuildId(guildId: string) {
+    return this.redis.hget('all-guilds', guildId);
   }
 
   /**
@@ -241,5 +241,9 @@ export class RedisAdapter
     url: string,
   ) {
     return this.redis.sadd(`${locale}-${type}-webhooks`, url);
+  }
+
+  async checkInWebhook(pLocale: string, pType: string, pUrl: string) {
+    return this.redis.sismember(`${pLocale}-${pType}-webhooks`, pUrl);
   }
 }
