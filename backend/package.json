@@ -1,6 +1,7 @@
 {
   "name": "ts-discord-daldalee-backend",
-  "version": "2.0.0",
+  "version": "2.0.2",
+  "description": "달달이봇",
   "author": "Karsei",
   "license": "ISC",
   "bugs": {

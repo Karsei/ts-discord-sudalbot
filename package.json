@@ -12,7 +12,7 @@
     "type": "git",
     "url": "git+https://github.com/Karsei/ts-discord-sudalbot.git"
   },
-  "main": "index.js",
+  "private": true,
   "scripts": {
     "init": "npm ci --prefix backend && npm ci --prefix frontend",
     "start": "npm run --prefix backend start:prod",
