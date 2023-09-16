@@ -1,4 +1,4 @@
-import { RedisService } from '@liaoliaots/nestjs-redis';
+import { RedisService } from '@songkeys/nestjs-redis';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';

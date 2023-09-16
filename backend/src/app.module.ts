@@ -1,7 +1,7 @@
 import { Module, Logger } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RedisModule } from '@liaoliaots/nestjs-redis';
+import { RedisModule } from '@songkeys/nestjs-redis';
 
 import { BaseConfig } from './configs/base.config';
 import { CacheConfig } from './configs/cache.config';

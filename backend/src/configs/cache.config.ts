@@ -1,5 +1,5 @@
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { RedisModuleAsyncOptions } from '@liaoliaots/nestjs-redis';
+import { RedisModuleAsyncOptions } from '@songkeys/nestjs-redis';
 
 export const CacheConfig: RedisModuleAsyncOptions = {
   imports: [ConfigModule],

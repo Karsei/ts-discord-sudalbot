@@ -2,7 +2,7 @@ import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
 import Redis from 'ioredis';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { RedisService } from '@liaoliaots/nestjs-redis';
+import { RedisService } from '@songkeys/nestjs-redis';
 
 import NewsCategories from '../../../definitions/interface/archive';
 import { NoticeError } from '../../../exceptions/notice.exception';

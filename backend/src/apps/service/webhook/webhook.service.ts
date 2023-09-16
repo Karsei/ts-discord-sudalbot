@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RedisService } from '@liaoliaots/nestjs-redis';
+import { RedisService } from '@songkeys/nestjs-redis';
 import Redis from 'ioredis';
 import { Repository } from 'typeorm';
 

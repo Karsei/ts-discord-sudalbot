@@ -1,6 +1,6 @@
 import { EmbedBuilder } from 'discord.js';
 import Redis from 'ioredis';
-import { RedisService } from '@liaoliaots/nestjs-redis';
+import { RedisService } from '@songkeys/nestjs-redis';
 import { Injectable } from '@nestjs/common';
 
 import { FashionCheckCacheLoadPort } from '../../port/out/fashioncheck-cache-load-port.interface';
