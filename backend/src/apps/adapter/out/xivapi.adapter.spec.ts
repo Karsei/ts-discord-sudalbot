@@ -13,6 +13,30 @@ describe('XivapiServiceTest', () => {
     xivapiService = app.get<XivApiAdapter>(XivApiAdapter);
   });
 
+  it('fetchSearch', async () => {
+    // given
+    const index = 'Item';
+    const keyword = 'Coke';
+
+    // when
+    const itemInfo = await xivapiService.fetchSearch(index, keyword);
+
+    // then
+    expect(itemInfo).toBeDefined();
+    expect(itemInfo.data.Results).toBeDefined();
+    expect(itemInfo.data.Pagination).toBeDefined();
+    // expect(itemInfo.data.Pagination[0].ID).toBeDefined();
+    // expect(itemInfo.data.Pagination[0].ID).toEqual(5530);
+    // expect(itemInfo.data.Pagination[0].Icon).toBeDefined();
+    // expect(itemInfo.data.Pagination[0].Icon).toEqual('/i/021000/021462.png');
+    // expect(itemInfo.data.Pagination[0].Name).toBeDefined();
+    // expect(itemInfo.data.Pagination[0].Name).toEqual('Coke');
+    // expect(itemInfo.data.Pagination[0].Url).toBeDefined();
+    // expect(itemInfo.data.Pagination[0].Url).toEqual('/Item/5530');
+    // expect(itemInfo.data.Pagination[0].UrlType).toBeDefined();
+    // expect(itemInfo.data.Pagination[0].UrlType).toEqual('Item');
+  });
+
   it('fetchItem', async () => {
     // given
     const itemId = 12345;
