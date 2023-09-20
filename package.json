@@ -23,6 +23,12 @@
     "build:linux": "npm run --prefix frontend build && mv frontend/build backend/views && npm run --prefix backend build",
     "build:backend": "npm run --prefix backend build",
     "build:frontend": "npm run --prefix frontend build",
-    "test": "npm run --prefix backend test"
+    "test": "npm run --prefix backend test",
+    "commitlint": "commitlint --edit"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.7.1",
+    "@commitlint/config-conventional": "^17.7.0",
+    "husky": "^8.0.3"
   }
 }
