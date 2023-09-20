@@ -38,7 +38,7 @@ export class XivApiAdapter implements XivApiLoadPort {
       limit: pLimit,
     };
     if (pStringColumn.length > 0) params['string_column'] = pStringColumn;
-    return await this.fetchXivApiGet(`https://xivapi.com/search`, params);
+    return this.fetchXivApiGet(`https://xivapi.com/search`, params);
   }
 
   async fetchElasticSearch(
@@ -51,28 +51,28 @@ export class XivApiAdapter implements XivApiLoadPort {
       body: pBody,
     };
     if (pColumn.length > 0) data['columns'] = pColumn;
-    return await this.fetchXivApiPost(`https://xivapi.com/search`, data);
+    return this.fetchXivApiPost(`https://xivapi.com/search`, data);
   }
 
   async fetchItem(pId: number, pLimit = '100') {
     const params = {
       limit: pLimit,
     };
-    return await this.fetchXivApiGet(`https://xivapi.com/item/${pId}`, params);
+    return this.fetchXivApiGet(`https://xivapi.com/item/${pId}`, params);
   }
 
-  async fetchInstance(pId: number, pLimit = '100') {
+  async fetchInstance(pId?: number, pLimit = '100') {
     const params = {
       limit: pLimit,
     };
-    return await this.fetchXivApiGet(
+    return this.fetchXivApiGet(
       `https://xivapi.com/instancecontent/${pId}`,
       params,
     );
   }
 
   private async fetchXivApiGet(pUrl: string, pData: object) {
-    return await axios.get(`${pUrl}`, {
+    return axios.get(`${pUrl}`, {
       params: {
         ...pData,
         private_key: this.configService.get('XIVAPI_KEY'),
@@ -81,7 +81,7 @@ export class XivApiAdapter implements XivApiLoadPort {
   }
 
   private async fetchXivApiPost(pUrl: string, pData: object) {
-    return await axios.post(`${pUrl}`, {
+    return axios.post(`${pUrl}`, {
       ...pData,
       private_key: this.configService.get('XIVAPI_KEY'),
     });

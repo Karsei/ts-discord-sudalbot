@@ -25,16 +25,30 @@ describe('XivapiServiceTest', () => {
     expect(itemInfo).toBeDefined();
     expect(itemInfo.data.Results).toBeDefined();
     expect(itemInfo.data.Pagination).toBeDefined();
-    // expect(itemInfo.data.Pagination[0].ID).toBeDefined();
-    // expect(itemInfo.data.Pagination[0].ID).toEqual(5530);
-    // expect(itemInfo.data.Pagination[0].Icon).toBeDefined();
-    // expect(itemInfo.data.Pagination[0].Icon).toEqual('/i/021000/021462.png');
-    // expect(itemInfo.data.Pagination[0].Name).toBeDefined();
-    // expect(itemInfo.data.Pagination[0].Name).toEqual('Coke');
-    // expect(itemInfo.data.Pagination[0].Url).toBeDefined();
-    // expect(itemInfo.data.Pagination[0].Url).toEqual('/Item/5530');
-    // expect(itemInfo.data.Pagination[0].UrlType).toBeDefined();
-    // expect(itemInfo.data.Pagination[0].UrlType).toEqual('Item');
+    expect(itemInfo.data.Results[0].ID).toBeDefined();
+    expect(itemInfo.data.Results[0].ID).toEqual(5530);
+    expect(itemInfo.data.Results[0].Icon).toBeDefined();
+    expect(itemInfo.data.Results[0].Icon).toEqual('/i/021000/021462.png');
+    expect(itemInfo.data.Results[0].Name).toBeDefined();
+    expect(itemInfo.data.Results[0].Name).toEqual('Coke');
+    expect(itemInfo.data.Results[0].Url).toBeDefined();
+    expect(itemInfo.data.Results[0].Url).toEqual('/Item/5530');
+    expect(itemInfo.data.Results[0].UrlType).toBeDefined();
+    expect(itemInfo.data.Results[0].UrlType).toEqual('Item');
+  });
+
+  it('fetchInstance', async () => {
+    // given
+    const id = 1;
+
+    // when
+    const instanceInfo = await xivapiService.fetchInstance(id);
+
+    // then
+    expect(instanceInfo).toBeDefined();
+    expect(instanceInfo.data).toBeDefined();
+    expect(instanceInfo.data.Name).toEqual('the Thousand Maws of Toto–Rak');
+    expect(instanceInfo.data.Patch).toEqual(2);
   });
 
   it('fetchItem', async () => {
