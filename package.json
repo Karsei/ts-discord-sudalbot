@@ -1,6 +1,6 @@
 {
   "name": "ts-discord-daldalee",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "달달이봇",
   "author": "Karsei",
   "license": "ISC",
@@ -29,6 +29,9 @@
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",
-    "husky": "^8.0.3"
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "husky": "^8.0.3",
+    "semantic-release": "^22.0.4"
   }
 }
