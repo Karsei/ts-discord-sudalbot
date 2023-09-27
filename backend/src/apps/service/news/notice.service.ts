@@ -32,7 +32,7 @@ export class NoticeService implements NewsUseCase {
       throw new NoticeError('해당 디스코드 서버의 Webhook 을 찾지 못했어요!');
     }
 
-    return await this.makeSelectComponent(locale, hookUrl, doCheckExist);
+    return this.makeSelectComponent(locale, hookUrl, doCheckExist);
   }
 
   private async makeSelectComponent(
