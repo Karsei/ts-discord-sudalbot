@@ -12,6 +12,11 @@ import {
 import { NewsPublishDiscordUseCase } from '../../port/in/news-publish-discord-usecase.interface';
 
 import axios from 'axios';
+import {
+  WebhookPublishPort,
+  WebhookPublishPortToken,
+} from 'src/apps/port/out/webhook-publish-port.interface';
+
 const PromiseAdv = require('bluebird');
 
 @Injectable()
@@ -19,6 +24,8 @@ export class PublishDiscordService implements NewsPublishDiscordUseCase {
   constructor(
     @Inject(Logger)
     private readonly loggerService: LoggerService,
+    @Inject(WebhookPublishPortToken)
+    private readonly discordWebhookPublishPort: WebhookPublishPort,
     @Inject(NewsPublishCacheLoadPortToken)
     private readonly cacheLoadPort: NewsPublishCacheLoadPort,
     @Inject(NewsPublishCacheSavePortToken)
@@ -106,17 +113,7 @@ export class PublishDiscordService implements NewsPublishDiscordUseCase {
     locale: string,
   ) {
     try {
-      const res = await axios({
-        method: 'POST',
-        url: url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        data: post,
-      });
-
-      // 너무 많이 보낸 경우 미리 딜레이를 줌
-      await PublishDiscordService.delayIfManyRequests(res);
+      await this.discordWebhookPublishPort.sendWebhook(url, post);
 
       return 'success';
     } catch (err) {
@@ -153,17 +150,6 @@ export class PublishDiscordService implements NewsPublishDiscordUseCase {
         default:
           await this.cacheSavePort.addResendItem(url, post, locale, typeStr);
           return 'fail';
-      }
-    }
-  }
-
-  private static async delayIfManyRequests(res) {
-    if (res.headers['x-ratelimit-remaining'] == '0') {
-      const time =
-        parseInt(res.headers['x-ratelimit-reset']) * 1000 -
-        new Date().getTime();
-      if (time > 0) {
-        await PromiseAdv.delay(time + 1000);
       }
     }
   }

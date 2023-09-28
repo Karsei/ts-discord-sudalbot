@@ -63,7 +63,9 @@ import { ClientFileLoadPortToken } from './port/out/client-file-load-port.interf
 import { GithubAdapter } from './adapter/out/github.adapter';
 import { LodestoneLoadPortToken } from './port/out/lodestone-load-port.interface';
 import { OfficialSiteAdapter } from './adapter/out/official-site.adapter';
-import { NewsPublishDbLoadPortToken } from "./port/out/news-publish-db-load-port.interface";
+import { NewsPublishDbLoadPortToken } from './port/out/news-publish-db-load-port.interface';
+import { WebhookPublishPortToken } from './port/out/webhook-publish-port.interface';
+import { DiscordWebhookAdapter } from './adapter/out/discord-webhook.adapter';
 
 @Module({
   imports: [
@@ -118,6 +120,7 @@ import { NewsPublishDbLoadPortToken } from "./port/out/news-publish-db-load-port
     { provide: NewsPublishDbSavePortToken, useClass: MariadbAdapter },
     { provide: NewsPublishCacheLoadPortToken, useClass: RedisAdapter },
     { provide: NewsPublishCacheSavePortToken, useClass: RedisAdapter },
+    { provide: WebhookPublishPortToken, useClass: DiscordWebhookAdapter },
     { provide: FashionCheckLoadPortToken, useClass: DbCacheAdapter },
     { provide: FashionCheckSavePortToken, useClass: DbCacheAdapter },
     { provide: FashionCheckCacheLoadPortToken, useClass: RedisAdapter },
