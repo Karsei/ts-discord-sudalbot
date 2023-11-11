@@ -40,7 +40,7 @@
     "@nestjs/terminus": "^10.0.1",
     "@nestjs/typeorm": "^10.0.0",
     "@songkeys/nestjs-redis": "^10.0.0",
-    "axios": "^1.4.0",
+    "axios": "^1.6.0",
     "bluebird": "^3.7.2",
     "cheerio": "^1.0.0-rc.12",
     "class-transformer": "^0.5.1",
