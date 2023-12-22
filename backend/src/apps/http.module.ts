@@ -14,9 +14,27 @@ import { NewsPublishCacheSavePortToken } from './port/out/news-publish-cache-sav
 import { MariadbAdapter } from './adapter/out/mariadb.adapter';
 import { NewsPublishDbLoadPortToken } from './port/out/news-publish-db-load-port.interface';
 import { NewsPublishDbSavePortToken } from './port/out/news-publish-db-save-port.interface';
+import { Contact } from '../entities/contact.entity';
+import { XivVersion } from '../entities/xiv-version.entity';
+import { XivItem } from '../entities/xiv-item.entity';
+import { XivItemCategories } from '../entities/xiv-item-categories.entity';
+import { FashionCheckNotice } from '../entities/fashioncheck-notice.entity';
+import { Chat } from '../entities/chat.entity';
 
 @Module({
-  imports: [TerminusModule, TypeOrmModule.forFeature([Guild, News])],
+  imports: [
+    TerminusModule,
+    TypeOrmModule.forFeature([
+      Chat,
+      Contact,
+      XivVersion,
+      XivItem,
+      XivItemCategories,
+      Guild,
+      News,
+      FashionCheckNotice,
+    ]),
+  ],
   controllers: [HealthController, WebhookController],
   providers: [
     Logger,
