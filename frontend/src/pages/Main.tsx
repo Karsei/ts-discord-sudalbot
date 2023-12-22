@@ -47,7 +47,7 @@ export default function Main() {
                         <Typography>
                             <Title level={2}>소개</Title>
                             <Paragraph>
-                                2019년도에 심심풀이로 만들었다가 글로벌과 한국 서비스의 소식이라던지 아이템 검색 또는 프프로그 조회 기능(현재는 지원하지 않습니다) 등을 지인들과 함께 이용할 수 있도록 만들어진 디스코드 봇입니다.
+                                2019년도에 심심풀이로 만들었다가 글로벌과 한국 서비스의 소식이라던지 아이템 검색 또는 편의 기능 등을 지인들과 함께 이용할 수 있도록 만들어진 디스코드 봇입니다.
                             </Paragraph>
                             <Row gutter={16}>
                                 <Col xs={24} lg={12} xl={12} xxl={8}>
@@ -131,10 +131,14 @@ export default function Main() {
                                 <dt className="text-cmd"><Text code>/패션체크</Text></dt>
                                 <dd>이번 주의 패션체크를 확인합니다. 글로벌/한국 서비스 모두 동일합니다.</dd>
                             </dl>
+                            <dl>
+                                <dt className="text-cmd"><Text code>/패션체크소식등록</Text></dt>
+                                <dd>패션체크를 자동으로 소식을 전달하도록 구독합니다.</dd>
+                            </dl>
                             <Title level={4}>기타</Title>
                             <dl>
-                                <dt className="text-cmd"><Text code>/따라하기 [메세지]</Text></dt>
-                                <dd>봇이 사용자의 말을 똑같이 따라합니다.</dd>
+                                <dt className="text-cmd"><Text code>/제보하기</Text></dt>
+                                <dd>개발자에게 이야기하고 싶은 말을 전달합니다.</dd>
                                 <dt className="text-cmd"><Text code>/업타임</Text></dt>
                                 <dd>서버가 실행된 후 경과된 시간을 출력합니다.</dd>
                             </dl>
