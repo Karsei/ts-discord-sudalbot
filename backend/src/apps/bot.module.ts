@@ -21,6 +21,7 @@ import { XivVersion } from '../entities/xiv-version.entity';
 import { XivItem } from '../entities/xiv-item.entity';
 import { News } from '../entities/news.entity';
 import { Chat } from '../entities/chat.entity';
+import { Guild } from '../entities/guild.entity';
 import { FashionCheckNotice } from '../entities/fashioncheck-notice.entity';
 import { XivItemCategories } from '../entities/xiv-item-categories.entity';
 import { MarketService } from './service/market/market.service';
@@ -78,6 +79,7 @@ import { DiscordWebhookAdapter } from './adapter/out/discord-webhook.adapter';
       XivItemCategories,
       News,
       Chat,
+      Guild,
       FashionCheckNotice,
     ]),
   ],
