@@ -28,9 +28,10 @@ import { NewsPublishDiscordUseCaseToken } from './port/in/news-publish-discord-u
 import { Contact } from '../entities/contact.entity';
 import { FashionCheckNotice } from '../entities/fashioncheck-notice.entity';
 import { News } from '../entities/news.entity';
+import { Guild } from '../entities/guild.entity';
 import { Chat } from '../entities/chat.entity';
-import {WebhookPublishPortToken} from "./port/out/webhook-publish-port.interface";
-import {DiscordWebhookAdapter} from "./adapter/out/discord-webhook.adapter";
+import { WebhookPublishPortToken } from './port/out/webhook-publish-port.interface';
+import { DiscordWebhookAdapter } from './adapter/out/discord-webhook.adapter';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import {DiscordWebhookAdapter} from "./adapter/out/discord-webhook.adapter";
       XivItem,
       XivItemCategories,
       News,
+      Guild,
       Chat,
       FashionCheckNotice,
     ]),
