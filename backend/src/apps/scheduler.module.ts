@@ -29,6 +29,8 @@ import { Contact } from '../entities/contact.entity';
 import { FashionCheckNotice } from '../entities/fashioncheck-notice.entity';
 import { News } from '../entities/news.entity';
 import { Chat } from '../entities/chat.entity';
+import {WebhookPublishPortToken} from "./port/out/webhook-publish-port.interface";
+import {DiscordWebhookAdapter} from "./adapter/out/discord-webhook.adapter";
 
 @Module({
   imports: [
@@ -56,6 +58,7 @@ import { Chat } from '../entities/chat.entity';
     { provide: NewsArchiveUseCaseToken, useClass: ArchiveService },
     { provide: NewsArchiveCacheLoadPortToken, useClass: RedisAdapter },
     { provide: NewsArchiveCacheSavePortToken, useClass: RedisAdapter },
+    { provide: WebhookPublishPortToken, useClass: DiscordWebhookAdapter },
     ItemJob,
     { provide: ItemStoreUseCaseToken, useClass: ItemStoreService },
     { provide: ClientFileLoadPortToken, useClass: GithubAdapter },
