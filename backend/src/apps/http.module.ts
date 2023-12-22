@@ -20,6 +20,8 @@ import { XivItem } from '../entities/xiv-item.entity';
 import { XivItemCategories } from '../entities/xiv-item-categories.entity';
 import { FashionCheckNotice } from '../entities/fashioncheck-notice.entity';
 import { Chat } from '../entities/chat.entity';
+import {ClientFileLoadPortToken} from "./port/out/client-file-load-port.interface";
+import {GithubAdapter} from "./adapter/out/github.adapter";
 
 @Module({
   imports: [
@@ -44,6 +46,7 @@ import { Chat } from '../entities/chat.entity';
     { provide: NewsPublishCacheSavePortToken, useClass: RedisAdapter },
     { provide: NewsPublishDbLoadPortToken, useClass: MariadbAdapter },
     { provide: NewsPublishDbSavePortToken, useClass: MariadbAdapter },
+    { provide: ClientFileLoadPortToken, useClass: GithubAdapter },
   ],
 })
 export class HttpModule {}
