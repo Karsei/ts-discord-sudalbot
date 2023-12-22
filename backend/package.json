@@ -53,7 +53,6 @@
     "moment-timezone": "^0.5.43",
     "mysql2": "^3.6.0",
     "nest-winston": "^1.9.3",
-    "openai": "^3.3.0",
     "redis": "^4.6.7",
     "reflect-metadata": "^0.1.13",
     "remote-git-tags": "^4.0.0",
