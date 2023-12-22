@@ -10,6 +10,10 @@ import { Guild } from '../entities/guild.entity';
 import { News } from '../entities/news.entity';
 import { RedisAdapter } from './adapter/out/redis.adapter';
 import { NewsPublishCacheLoadPortToken } from './port/out/news-publish-cache-load-port.interface';
+import { NewsPublishCacheSavePortToken } from './port/out/news-publish-cache-save-port.interface';
+import { MariadbAdapter } from './adapter/out/mariadb.adapter';
+import { NewsPublishDbLoadPortToken } from './port/out/news-publish-db-load-port.interface';
+import { NewsPublishDbSavePortToken } from './port/out/news-publish-db-save-port.interface';
 
 @Module({
   imports: [TerminusModule, TypeOrmModule.forFeature([Guild, News])],
@@ -19,6 +23,9 @@ import { NewsPublishCacheLoadPortToken } from './port/out/news-publish-cache-loa
     SampleHealthIndicator,
     WebhookService,
     { provide: NewsPublishCacheLoadPortToken, useClass: RedisAdapter },
+    { provide: NewsPublishCacheSavePortToken, useClass: RedisAdapter },
+    { provide: NewsPublishDbLoadPortToken, useClass: MariadbAdapter },
+    { provide: NewsPublishDbSavePortToken, useClass: MariadbAdapter },
   ],
 })
 export class HttpModule {}
