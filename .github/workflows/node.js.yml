@@ -39,10 +39,11 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
 
-    - run: |
-      echo $APP_NAME
-      echo ${{ vars.APP_NAME }}
-      echo ${{ secrets.APP_NAME }}
+    - name: test env
+      run: |
+        echo $APP_NAME
+        echo ${{ vars.APP_NAME }}
+        echo ${{ secrets.APP_NAME }}
     
     - name: init
       # if: steps.cache.outputs.cache-hit != 'true'
