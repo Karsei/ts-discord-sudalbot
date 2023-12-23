@@ -16,4 +16,19 @@ module.exports = {
       },
     },
   ],
+  deploy: {
+    production: {
+      user: 'daldaleebot',
+      host: 'daldaleebot.kr',
+      ref: 'origin/master',
+      repo: 'git@github.com:Karsei/ts-discord-sudalbot.git',
+      ssh_options: 'StrictHostKeyChecking=no',
+      path: '/home/daldaleebot/ts-discord-sudalbot',
+      'post-deploy':
+        'npm run init && rm -rf backend/views && npm run build:linux && pm2 reload ecosystem.config.js',
+      env: {
+        NODE_ENV: "prod"
+      }
+    },
+  },
 }
