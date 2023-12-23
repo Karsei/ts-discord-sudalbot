@@ -25,9 +25,9 @@ jobs:
     - uses: actions/cache@v3
       id: cache
       with:
-        path:
-          - '~/.npm'
-          - '**/node_modules'
+        path: |
+          ~/.npm
+          **/node_modules
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-node-
@@ -47,6 +47,7 @@ jobs:
     - run: npm test
 
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -60,9 +61,9 @@ jobs:
     - uses: actions/cache@v3
       id: cache
       with:
-        path:
-          - '~/.npm'
-          - '**/node_modules'
+        path: |
+          ~/.npm
+          **/node_modules
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-node-
