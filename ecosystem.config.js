@@ -21,7 +21,7 @@ module.exports = {
       user: 'daldaleebot',
       host: 'daldaleebot.kr',
       key: 'deploy.key',
-      ref: 'origin/master',
+      ref: 'origin/feature/deploy-test',
       repo: 'git@github.com:Karsei/ts-discord-sudalbot.git',
       ssh_options: 'StrictHostKeyChecking=no',
       path: '/home/daldaleebot/ts-discord-sudalbot',
