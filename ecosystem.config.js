@@ -26,7 +26,7 @@ module.exports = {
       ssh_options: 'StrictHostKeyChecking=no',
       path: '/home/daldaleebot/ts-discord-sudalbot',
       'post-deploy':
-        'npm run init && rm -rf backend/views && npm run build:linux && pm2 reload ecosystem.config.js',
+        'npm run init && rm -rf backend/views && npm run build:linux && pm2 reload ecosystem.config.js --env prod',
       env: {
         NODE_ENV: "prod"
       }
