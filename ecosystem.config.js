@@ -25,6 +25,7 @@ module.exports = {
       repo: 'git@github.com:Karsei/ts-discord-sudalbot.git',
       ssh_options: 'StrictHostKeyChecking=no',
       path: '/home/daldaleebot/ts-discord-sudalbot',
+      'pre-deploy-local': `scp -Cr .env daldaleebot@daldaleebot.kr:ts-discord-sudalbot/current`,
       'post-deploy':
         'npm run init && rm -rf backend/views && npm run build:linux && pm2 reload ecosystem.config.js --env prod',
       env: {
