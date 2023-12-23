@@ -78,30 +78,30 @@ jobs:
     - name: Create env file
       run: |
         touch .env
-        echo APP_NAME=${{ vars.APP_NAME }} >> .env
-        echo SERVER_PORT=${{ secrets.SERVER_PORT }} >> .env
-        echo REACT_APP_DISCORD_URL_BOT_HOST=${{ vars.REACT_APP_DISCORD_URL_BOT_HOST }} >> .env
-        echo REACT_APP_DISCORD_BOT_CLIENT_ID=${{ secrets.REACT_APP_DISCORD_BOT_CLIENT_ID }} >> .env
-        echo DISCORD_BOT_CLIENT_SECRET=${{ secrets.DISCORD_BOT_CLIENT_SECRET }} >> .env
-        echo DISCORD_BOT_TOKEN=${{ secrets.DISCORD_BOT_TOKEN }} >> .env
-        echo DISCORD_URL_BOT_AUTHORIZE_URI=${{ vars.DISCORD_URL_BOT_AUTHORIZE_URI }} >> .env
-        echo DISCORD_BOT_TEST_SERVER_ID=${{ vars.DISCORD_BOT_TEST_SERVER_ID }} >> .env
-        echo PUBLIC_URL=${{ vars.PUBLIC_URL }} >> .env
-        echo REDIS_HOST=${{ secrets.REDIS_HOST }} >> .env
-        echo REDIS_PORT=${{ secrets.REDIS_PORT }} >> .env
-        echo REDIS_DB=${{ secrets.REDIS_DB }} >> .env
-        echo REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} >> .env
-        echo MARIADB_HOST=${{ secrets.MARIADB_HOST }} >> .env
-        echo MARIADB_PORT=${{ secrets.MARIADB_PORT }} >> .env
-        echo MARIADB_DATABASE=${{ secrets.MARIADB_DATABASE }} >> .env
-        echo MARIADB_USER=${{ secrets.MARIADB_USER }} >> .env
-        echo MARIADB_PASSWORD=${{ secrets.MARIADB_PASSWORD }} >> .env
-        echo MARIADB_CONNECTION_LIMIT=${{ vars.MARIADB_CONNECTION_LIMIT }} >> .env
-        echo REDDIT_CLIENT_ID=${{ secrets.REDDIT_CLIENT_ID }} >> .env
-        echo REDDIT_CLIENT_SECRET=${{ secrets.REDDIT_CLIENT_SECRET }} >> .env
-        echo REDDIT_CLIENT_REFRESH_TOKEN=${{ secrets.REDDIT_CLIENT_REFRESH_TOKEN }} >> .env
-        echo REDDIT_CLIENT_ACCESS_TOKEN=${{ secrets.REDDIT_CLIENT_ACCESS_TOKEN }} >> .env
-        echo XIVAPI_KEY=${{ secrets.XIVAPI_KEY }} >> .env
+        echo APP_NAME=${{ env.APP_NAME }} >> .env
+        echo SERVER_PORT=${{ env.SERVER_PORT }} >> .env
+        echo REACT_APP_DISCORD_URL_BOT_HOST=${{ env.REACT_APP_DISCORD_URL_BOT_HOST }} >> .env
+        echo REACT_APP_DISCORD_BOT_CLIENT_ID=${{ env.REACT_APP_DISCORD_BOT_CLIENT_ID }} >> .env
+        echo DISCORD_BOT_CLIENT_SECRET=${{ env.DISCORD_BOT_CLIENT_SECRET }} >> .env
+        echo DISCORD_BOT_TOKEN=${{ env.DISCORD_BOT_TOKEN }} >> .env
+        echo DISCORD_URL_BOT_AUTHORIZE_URI=${{ env.DISCORD_URL_BOT_AUTHORIZE_URI }} >> .env
+        echo DISCORD_BOT_TEST_SERVER_ID=${{ env.DISCORD_BOT_TEST_SERVER_ID }} >> .env
+        echo PUBLIC_URL=${{ env.PUBLIC_URL }} >> .env
+        echo REDIS_HOST=${{ env.REDIS_HOST }} >> .env
+        echo REDIS_PORT=${{ env.REDIS_PORT }} >> .env
+        echo REDIS_DB=${{ env.REDIS_DB }} >> .env
+        echo REDIS_PASSWORD=${{ env.REDIS_PASSWORD }} >> .env
+        echo MARIADB_HOST=${{ env.MARIADB_HOST }} >> .env
+        echo MARIADB_PORT=${{ env.MARIADB_PORT }} >> .env
+        echo MARIADB_DATABASE=${{ env.MARIADB_DATABASE }} >> .env
+        echo MARIADB_USER=${{ env.MARIADB_USER }} >> .env
+        echo MARIADB_PASSWORD=${{ env.MARIADB_PASSWORD }} >> .env
+        echo MARIADB_CONNECTION_LIMIT=${{ env.MARIADB_CONNECTION_LIMIT }} >> .env
+        echo REDDIT_CLIENT_ID=${{ env.REDDIT_CLIENT_ID }} >> .env
+        echo REDDIT_CLIENT_SECRET=${{ env.REDDIT_CLIENT_SECRET }} >> .env
+        echo REDDIT_CLIENT_REFRESH_TOKEN=${{ env.REDDIT_CLIENT_REFRESH_TOKEN }} >> .env
+        echo REDDIT_CLIENT_ACCESS_TOKEN=${{ env.REDDIT_CLIENT_ACCESS_TOKEN }} >> .env
+        echo XIVAPI_KEY=${{ env.XIVAPI_KEY }} >> .env
 
     - name: Set up SSH
       run: |
