@@ -51,7 +51,7 @@ jobs:
     - name: Deploy
       # env $(cat .env | grep -v \"#\" | xargs)
       run: |
-        pm2 deploy production setup
+        pm2 deploy ecosystem.config.js production setup
         pm2 deploy ecosystem.config.js production
 
     #- name: Release
