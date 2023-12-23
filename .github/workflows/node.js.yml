@@ -10,7 +10,7 @@ on:
       - feature/deploy-test
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -22,13 +22,58 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - uses: actions/cache@v3
+      id: cache
+      with:
+        path:
+          - '~/.npm'
+          - '**/node_modules'
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
 
     - name: Use Node.js ${{ matrix.node-version }}
+      if: steps.cache.outputs.cache-hit != 'true'
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     
+    - name: init
+      if: steps.cache.outputs.cache-hit != 'true'
+      #run: npm ci
+      run: npm run init
+    #- run: npm run build --if-present
+    - run: npm test
+
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/cache@v3
+      id: cache
+      with:
+        path:
+          - '~/.npm'
+          - '**/node_modules'
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
     - name: Create env file
       run: |
         touch .env
@@ -56,11 +101,6 @@ jobs:
         echo REDDIT_CLIENT_REFRESH_TOKEN=${{ secrets.REDDIT_CLIENT_REFRESH_TOKEN }} >> .env
         echo REDDIT_CLIENT_ACCESS_TOKEN=${{ secrets.REDDIT_CLIENT_ACCESS_TOKEN }} >> .env
         echo XIVAPI_KEY=${{ secrets.XIVAPI_KEY }} >> .env
-
-    - run: npm ci
-    - run: npm run init
-    - run: npm run build --if-present
-    - run: npm test
 
     - name: Set up SSH
       run: |
