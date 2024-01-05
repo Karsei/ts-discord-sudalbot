@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/Karsei/ts-discord-sudalbot/compare/2.1.0...2.2.0) (2024-01-05)
+
+
+### Features
+
+* 강제 배포 ([#77](https://github.com/Karsei/ts-discord-sudalbot/issues/77)) ([a605788](https://github.com/Karsei/ts-discord-sudalbot/commit/a60578889e0773e2de7fe23fa56220cdb0680e78))
+
 # [2.1.0](https://github.com/Karsei/ts-discord-sudalbot/compare/2.0.4...2.1.0) (2024-01-05)
 
 
