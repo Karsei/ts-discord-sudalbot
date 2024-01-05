@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/Karsei/ts-discord-sudalbot/compare/2.2.0...2.3.0) (2024-01-05)
+
+
+### Features
+
+* deploy 시 다시 설정 후 배포 ([#78](https://github.com/Karsei/ts-discord-sudalbot/issues/78)) ([8197d7b](https://github.com/Karsei/ts-discord-sudalbot/commit/8197d7be3a7e8fa682fc01ba79f50767f9f46a80))
+
 # [2.2.0](https://github.com/Karsei/ts-discord-sudalbot/compare/2.1.0...2.2.0) (2024-01-05)
 
 
