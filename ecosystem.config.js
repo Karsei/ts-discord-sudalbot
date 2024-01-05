@@ -16,4 +16,21 @@ module.exports = {
       },
     },
   ],
+  deploy: {
+    production: {
+      user: 'daldaleebot',
+      host: 'daldaleebot.kr',
+      key: 'deploy.key',
+      ref: 'origin/feature/deploy-test',
+      repo: 'git@github.com:Karsei/ts-discord-sudalbot.git',
+      ssh_options: 'StrictHostKeyChecking=no',
+      path: '/home/daldaleebot/ts-discord-sudalbot',
+      'pre-deploy-local': `scp -i ./deploy.key -Cr .env daldaleebot@daldaleebot.kr:ts-discord-sudalbot/current`,
+      'post-deploy':
+        'npm run init && rm -rf backend/views && npm run build:linux && pm2 reload ecosystem.config.js --env prod',
+      env: {
+        NODE_ENV: "prod"
+      }
+    },
+  },
 }
