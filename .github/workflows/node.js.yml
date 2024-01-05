@@ -1,13 +1,9 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
 name: Node.js CI
 
 on:
   push:
     branches:
       - "*"
-      - feature/deploy-test
 
 jobs:
   test:
@@ -18,42 +14,34 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
     - uses: actions/checkout@v3
-    # - uses: actions/cache@v3
-    #   id: cache
-    #   with:
-    #     path: |
-    #       ~/.npm
-    #       **/node_modules
-    #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-    #     restore-keys: |
-    #       ${{ runner.os }}-node-
+    - uses: actions/cache@v3
+      id: cache
+      with:
+        path: |
+          ~/.npm
+          **/node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
 
     - name: Use Node.js ${{ matrix.node-version }}
-      # if: steps.cache.outputs.cache-hit != 'true'
+      if: steps.cache.outputs.cache-hit != 'true'
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-
-    - name: test env
-      run: |
-        echo $APP_NAME
-        echo ${{ vars.APP_NAME }}
-        echo ${{ secrets.APP_NAME }}
     
     - name: init
-      # if: steps.cache.outputs.cache-hit != 'true'
-      #run: npm ci
+      if: steps.cache.outputs.cache-hit != 'true'
       run: npm run init
-    #- run: npm run build --if-present
     - run: npm test
 
   deploy:
     needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -64,18 +52,18 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    # - uses: actions/cache@v3
-    #   id: cache
-    #   with:
-    #     path: |
-    #       ~/.npm
-    #       **/node_modules
-    #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-    #     restore-keys: |
-    #       ${{ runner.os }}-node-
+    - uses: actions/cache@v3
+      id: cache
+      with:
+        path: |
+          ~/.npm
+          **/node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
 
     - name: Use Node.js ${{ matrix.node-version }}
-      # if: steps.cache.outputs.cache-hit != 'true'
+      if: steps.cache.outputs.cache-hit != 'true'
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
@@ -84,30 +72,30 @@ jobs:
     - name: Create env file
       run: |
         touch .env
-        echo APP_NAME=${{ vars.DEV_APP_NAME }} >> .env
-        echo SERVER_PORT=${{ secrets.DEV_SERVER_PORT }} >> .env
-        echo REACT_APP_DISCORD_URL_BOT_HOST=${{ vars.DEV_REACT_APP_DISCORD_URL_BOT_HOST }} >> .env
-        echo REACT_APP_DISCORD_BOT_CLIENT_ID=${{ secrets.DEV_REACT_APP_DISCORD_BOT_CLIENT_ID }} >> .env
-        echo DISCORD_BOT_CLIENT_SECRET=${{ secrets.DEV_DISCORD_BOT_CLIENT_SECRET }} >> .env
-        echo DISCORD_BOT_TOKEN=${{ secrets.DEV_DISCORD_BOT_TOKEN }} >> .env
-        echo DISCORD_URL_BOT_AUTHORIZE_URI=${{ vars.DEV_DISCORD_URL_BOT_AUTHORIZE_URI }} >> .env
-        echo DISCORD_BOT_TEST_SERVER_ID=${{ vars.DEV_DISCORD_BOT_TEST_SERVER_ID }} >> .env
-        echo PUBLIC_URL=${{ vars.DEV_PUBLIC_URL }} >> .env
-        echo REDIS_HOST=${{ secrets.DEV_REDIS_HOST }} >> .env
-        echo REDIS_PORT=${{ secrets.DEV_REDIS_PORT }} >> .env
-        echo REDIS_DB=${{ secrets.DEV_REDIS_DB }} >> .env
-        echo REDIS_PASSWORD=${{ secrets.DEV_REDIS_PASSWORD }} >> .env
-        echo MARIADB_HOST=${{ secrets.DEV_MARIADB_HOST }} >> .env
-        echo MARIADB_PORT=${{ secrets.DEV_MARIADB_PORT }} >> .env
-        echo MARIADB_DATABASE=${{ secrets.DEV_MARIADB_DATABASE }} >> .env
-        echo MARIADB_USER=${{ secrets.DEV_MARIADB_USER }} >> .env
-        echo MARIADB_PASSWORD=${{ secrets.DEV_MARIADB_PASSWORD }} >> .env
-        echo MARIADB_CONNECTION_LIMIT=${{ vars.DEV_MARIADB_CONNECTION_LIMIT }} >> .env
-        echo REDDIT_CLIENT_ID=${{ secrets.DEV_REDDIT_CLIENT_ID }} >> .env
-        echo REDDIT_CLIENT_SECRET=${{ secrets.DEV_REDDIT_CLIENT_SECRET }} >> .env
-        echo REDDIT_CLIENT_REFRESH_TOKEN=${{ secrets.DEV_REDDIT_CLIENT_REFRESH_TOKEN }} >> .env
-        echo REDDIT_CLIENT_ACCESS_TOKEN=${{ secrets.DEV_REDDIT_CLIENT_ACCESS_TOKEN }} >> .env
-        echo XIVAPI_KEY=${{ secrets.DEV_XIVAPI_KEY }} >> .env
+        echo APP_NAME=${{ vars.PROD_APP_NAME }} >> .env
+        echo SERVER_PORT=${{ secrets.PROD_SERVER_PORT }} >> .env
+        echo REACT_APP_DISCORD_URL_BOT_HOST=${{ vars.PROD_REACT_APP_DISCORD_URL_BOT_HOST }} >> .env
+        echo REACT_APP_DISCORD_BOT_CLIENT_ID=${{ secrets.PROD_REACT_APP_DISCORD_BOT_CLIENT_ID }} >> .env
+        echo DISCORD_BOT_CLIENT_SECRET=${{ secrets.PROD_DISCORD_BOT_CLIENT_SECRET }} >> .env
+        echo DISCORD_BOT_TOKEN=${{ secrets.PROD_DISCORD_BOT_TOKEN }} >> .env
+        echo DISCORD_URL_BOT_AUTHORIZE_URI=${{ vars.PROD_DISCORD_URL_BOT_AUTHORIZE_URI }} >> .env
+        echo DISCORD_BOT_TEST_SERVER_ID=${{ vars.PROD_DISCORD_BOT_TEST_SERVER_ID }} >> .env
+        echo PUBLIC_URL=${{ vars.PROD_PUBLIC_URL }} >> .env
+        echo REDIS_HOST=${{ secrets.PROD_REDIS_HOST }} >> .env
+        echo REDIS_PORT=${{ secrets.PROD_REDIS_PORT }} >> .env
+        echo REDIS_DB=${{ secrets.PROD_REDIS_DB }} >> .env
+        echo REDIS_PASSWORD=${{ secrets.PROD_REDIS_PASSWORD }} >> .env
+        echo MARIADB_HOST=${{ secrets.PROD_MARIADB_HOST }} >> .env
+        echo MARIADB_PORT=${{ secrets.PROD_MARIADB_PORT }} >> .env
+        echo MARIADB_DATABASE=${{ secrets.PROD_MARIADB_DATABASE }} >> .env
+        echo MARIADB_USER=${{ secrets.PROD_MARIADB_USER }} >> .env
+        echo MARIADB_PASSWORD=${{ secrets.PROD_MARIADB_PASSWORD }} >> .env
+        echo MARIADB_CONNECTION_LIMIT=${{ vars.PROD_MARIADB_CONNECTION_LIMIT }} >> .env
+        echo REDDIT_CLIENT_ID=${{ secrets.PROD_REDDIT_CLIENT_ID }} >> .env
+        echo REDDIT_CLIENT_SECRET=${{ secrets.PROD_REDDIT_CLIENT_SECRET }} >> .env
+        echo REDDIT_CLIENT_REFRESH_TOKEN=${{ secrets.PROD_REDDIT_CLIENT_REFRESH_TOKEN }} >> .env
+        echo REDDIT_CLIENT_ACCESS_TOKEN=${{ secrets.PROD_REDDIT_CLIENT_ACCESS_TOKEN }} >> .env
+        echo XIVAPI_KEY=${{ secrets.PROD_XIVAPI_KEY }} >> .env
 
     - name: Set up SSH
       run: |
@@ -125,10 +113,9 @@ jobs:
 
     - name: Deploy
       run: |
-        pm2 deploy ecosystem.config.js production setup
         pm2 deploy ecosystem.config.js production
 
-    #- name: Release
-    #  env:
-    #    GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-    #  run: npx semantic-release@22 --no-ci --dry-run false
+    - name: Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: npx semantic-release@22 --no-ci --dry-run false
