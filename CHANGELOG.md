@@ -1,3 +1,10 @@
+## [2.3.1](https://github.com/Karsei/ts-discord-sudalbot/compare/2.3.0...2.3.1) (2024-07-16)
+
+
+### Bug Fixes
+
+* message content intent 삭제 ([#91](https://github.com/Karsei/ts-discord-sudalbot/issues/91)) ([92f68f1](https://github.com/Karsei/ts-discord-sudalbot/commit/92f68f147b72fe99e6280d8b2e39b510aa74b02e))
+
 # [2.3.0](https://github.com/Karsei/ts-discord-sudalbot/compare/2.2.0...2.3.0) (2024-01-05)
 
 
