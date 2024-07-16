@@ -11,12 +11,10 @@ export const DiscordConfig = {
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.GuildMessageReactions,
         GatewayIntentBits.GuildVoiceStates,
-        GatewayIntentBits.MessageContent,
       ],
     },
     registerCommandOptions: [
       {
-        //forGuild: configService.get('DISCORD_BOT_TEST_SERVER_ID'),
         removeCommandsBefore: true,
       },
     ],
