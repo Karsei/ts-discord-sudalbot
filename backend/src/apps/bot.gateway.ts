@@ -42,28 +42,4 @@ export class BotGateway {
       `Successful removing this bot from server. (Id: ${guild.id}, Name: ${guild.name})`,
     );
   }
-
-  @On('messageCreate')
-  @UseGuards(MessageFromUserGuard)
-  async onMessageCreate(message: Message) {
-    await this.saveChat(message);
-  }
-
-  /**
-   * 채팅 로그를 저장합니다.
-   * @param message message 객체
-   */
-  private async saveChat(message: Message) {
-    const serverId = message.guildId,
-      serverName = message.guild.name,
-      userId = message.author.id,
-      userName = message.author.username;
-    return await this.chatRepository.insert({
-      guild: { id: serverId },
-      guildName: serverName,
-      userId: userId,
-      userName: userName,
-      content: message.content,
-    });
-  }
 }
